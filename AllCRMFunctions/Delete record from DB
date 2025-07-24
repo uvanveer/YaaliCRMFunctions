@@ -1,0 +1,15 @@
+void automation.Untitled_Function37(Int crmid)
+{
+get_domain = zoho.crm.getRecordById("Domain_Settings",3106252000056886136);
+base_url = get_domain.get("Domain_Name");
+url = base_url + "/api/fieldmap/delete";
+mymap = Map();
+mymap.put("crm_id",crmid);
+BADAuthorization = zoho.crm.getOrgVariable("OAuthHashCode");
+header_map = Map();
+header_map.put("Content-Type","application/json");
+header_map.put("BADAuthorization",BADAuthorization);
+s = postUrl(url,mymap,header_map);
+info mymap;
+info s;
+}
