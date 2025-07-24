@@ -1,0 +1,85 @@
+void automation.Untitled_Function28()
+{
+contact = zoho.crm.getRecords("Contacts",73,200);
+ids = "";
+count = 0;
+for each  singleContact in contact
+{
+	ids = ids + "," + singleContact.get("id");
+	count = count + 1;
+}
+contact = zoho.crm.getRecords("Contacts",74,200);
+for each  singleContact in contact
+{
+	ids = ids + "," + singleContact.get("id");
+	count = count + 1;
+}
+contact = zoho.crm.getRecords("Contacts",75,200);
+for each  singleContact in contact
+{
+	ids = ids + "," + singleContact.get("id");
+	count = count + 1;
+}
+contact = zoho.crm.getRecords("Contacts",76,200);
+for each  singleContact in contact
+{
+	ids = ids + "," + singleContact.get("id");
+	count = count + 1;
+}
+contact = zoho.crm.getRecords("Contacts",77,200);
+for each  singleContact in contact
+{
+	ids = ids + "," + singleContact.get("id");
+	count = count + 1;
+}
+contact = zoho.crm.getRecords("Contacts",78,200);
+for each  singleContact in contact
+{
+	ids = ids + "," + singleContact.get("id");
+	count = count + 1;
+}
+contact = zoho.crm.getRecords("Contacts",79,200);
+for each  singleContact in contact
+{
+	ids = ids + "," + singleContact.get("id");
+	count = count + 1;
+}
+contact = zoho.crm.getRecords("Contacts",80,200);
+for each  singleContact in contact
+{
+	ids = ids + "," + singleContact.get("id");
+	count = count + 1;
+}
+contact = zoho.crm.getRecords("Contacts",81,200);
+for each  singleContact in contact
+{
+	ids = ids + "," + singleContact.get("id");
+	count = count + 1;
+}
+contact = zoho.crm.getRecords("Contacts",82,200);
+for each  singleContact in contact
+{
+	ids = ids + "," + singleContact.get("id");
+	count = count + 1;
+}
+contact = zoho.crm.getRecords("Contacts",83,200);
+for each  singleContact in contact
+{
+	ids = ids + "," + singleContact.get("id");
+	count = count + 1;
+}
+contact = zoho.crm.getRecords("Contacts",84,200);
+for each  singleContact in contact
+{
+	ids = ids + "," + singleContact.get("id");
+	count = count + 1;
+}
+contact = zoho.crm.getRecords("Contacts",85,200);
+for each  singleContact in contact
+{
+	ids = ids + "," + singleContact.get("id");
+	count = count + 1;
+}
+info ids;
+info count;
+}
