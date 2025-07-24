@@ -1,0 +1,8 @@
+void automation.rk_updateTaskContact(Int id)
+{
+getT = zoho.crm.getRecordById("Tasks",id);
+up = Map();
+up.put("$se_module","Contacts");
+up.put("Who_Id","3106252000004510308");
+updateT = zoho.crm.updateRecord("Tasks",id,up);
+}
