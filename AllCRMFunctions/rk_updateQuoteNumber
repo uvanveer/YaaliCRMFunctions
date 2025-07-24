@@ -1,0 +1,12 @@
+void automation.rk_updateQuoteNumber(Int id)
+{
+resq = zoho.crm.getRecordById("Quotes",id);
+resu = zoho.crm.getRecordById("users",resq.get("Owner").get("id"));
+user = resu.get("users");
+for each  u in user
+{
+	name = if(u.get("alias") == null,"",u.get("alias"));
+}
+quote_num = "00" + name + "" + id.toString().subText(15,19);
+resu = zoho.crm.updateRecord("Quotes",id,{"Sales_Quote_Number":quote_num});
+}
