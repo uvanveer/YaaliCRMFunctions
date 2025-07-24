@@ -1,0 +1,14 @@
+void automation.rk_udpateSalesOrder(Int id)
+{
+gets = zoho.crm.getRecordById("Sales_Orders",id);
+info "res" + gets;
+mp = Map();
+storeid = gets.get("Store").get("id");
+res_s = zoho.crm.getRecordById("Stores",storeid.toLong());
+info "gets" + res_s;
+store_c = res_s.get("Currency");
+mp.put("Currency",store_c);
+mp.put("Source",res_s.get("Channel"));
+ups = zoho.crm.updateRecord("Sales_Orders",id,mp);
+info "ups" + ups;
+}
