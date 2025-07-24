@@ -1,0 +1,38 @@
+void automation.Untitled_Function8()
+{
+/* Page_Count = 1;
+Record_count = 100;
+SO_URL = "https://books.zoho.com/api/v3/salesorders/1324986000043783940?organization_id=666840843"; */
+reqURL = "https://www.zohoapis.com/books/v3/contacts/1324986000043204803/address?organization_id=666840843";
+hearderMap = Map();
+hearderMap.put("Authorization","Zoho-authtoken 62821be1f52aaa5a1e3c658edba059cf");
+DataMap = Map();
+DataMap.put("attention","test customer");
+DataMap.put("address","test address---->>");
+DataMap.put("street2","test street !*--)-$");
+DataMap.put("city","Ontario");
+DataMap.put("state","California");
+DataMap.put("country","U.S.A");
+DataMap.put("zip","94588");
+OruString = "t><est123  ;;; <<     address>>";
+Clist = {";",">","<"};
+for each  rec in Clist
+{
+	OruString = OruString.remove(rec);
+}
+info OruString;
+//info OruString.replaceAll(OruString.removeAllAlphaNumeric(), " ") ;
+/* JSONString = Map();
+JSONString.put("delivery_customer_id","1324986000016340056");
+JSONString.put("delivery_customer_address_id","1324986000034559966"); */
+//DataMap.put("JSONString", JSONString);
+//info JSONString;
+/* TestResp = invokeurl
+[
+	url :reqURL
+	type :POST
+	headers:hearderMap
+	parameters: DataMap.tostring()
+];
+info TestResp; */
+}
