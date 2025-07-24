@@ -1,0 +1,12 @@
+void automation.GetCreatedStoreID(Int StoreID)
+{
+storemap = Map();
+storemap.put("CRM_ID",StoreID);
+storemap.put("Module_Name","CRM-Store");
+// CreateStore = zoho.creator.v1.createRecord("zoho_zoho1502","quotes","Mapping_Form",storemap);
+Temp_map = Map();
+CreateStore = zoho.creator.createRecord("zoho_zoho1502","quotes","Mapping_Form",storemap,Temp_map,"zcreator_connecction");
+info "CreateStore" + CreateStore;
+CreateStorev3 = zoho.creator.createRecord("zoho_zoho1502","quotesv3","Mapping_Form",storemap,Temp_map,"zcreator_connecction");
+info "CreateStorev3" + CreateStorev3;
+}
