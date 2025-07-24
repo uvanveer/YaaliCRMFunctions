@@ -1,0 +1,142 @@
+void automation.Untitled_Function80(Map event)
+{
+eventId = event.get("Events.ID");
+datamap = Map:String();
+datamap.put("module","Events");
+datamap.put("id",eventId);
+resp = zoho.crm.invokeConnector("crm.get",datamap);
+respMap = resp.get("response")._toMap();
+users = respMap.get("data");
+if(users.startsWith("["))
+{
+	temp = users.subString(1,users.length() - 1);
+}
+else
+{
+	temp = users.toJSONList().toString();
+}
+dataVal = temp._toMap();
+participants = dataVal.get("Participants");
+newpart = participants.subString(1,participants.length() - 1);
+newpartList = newpart.replaceAll("},{","}-|||-{",true).toList("-|||-");
+for each  ind in newpartList
+{
+	indMap = ind._toMap();
+	if(indMap.get("type") == "contact")
+	{
+		contactId = indMap.get("participant");
+		datamapc = Map:String();
+		datamapc.put("module","Contacts");
+		datamapc.put("id",contactId);
+		respc = zoho.crm.invokeConnector("crm.get",datamapc);
+		respMapc = respc.get("response")._toMap();
+		usersc = respMapc.get("data");
+		if(usersc.startsWith("["))
+		{
+			tempC = usersc.subString(1,usersc.length() - 1);
+		}
+		else
+		{
+			tempC = usersc.toJSONList().toString();
+		}
+		dataValC = tempC._toMap();
+		mobile = dataValC.get("Mobile");
+		tmobiletemp = zoho.crm.getOrgVariable("twilio.Twilio_Mobile_Number");
+		if(tmobiletemp.contains(" "))
+		{
+			twiliomobile = tmobiletemp.replaceAll(" ","",false);
+		}
+		else
+		{
+			twiliomobile = tmobiletemp;
+		}
+		if(twiliomobile.contains("-"))
+		{
+			twiliomobilenew = twiliomobile.replaceAll("-","",false);
+		}
+		else
+		{
+			twiliomobilenew = tmobiletemp;
+		}
+		twilioAccSId = zoho.crm.getOrgVariable("twilio.Account_SID");
+		authtokenTwilio = zoho.crm.getOrgVariable("twilio.AuthToken");
+		baseEncoded = zoho.encryption.base64Encode(twilioAccSId + ":" + authtokenTwilio);
+		encode = baseEncoded.removeFirstOccurence("\n");
+		headermap = Map:String();
+		headermap.put("Authorization","Basic " + encode);
+		mappp = Map:String();
+		mappp.put("To",mobile);
+		mappp.put("From",twiliomobilenew);
+		mappp.put("Body","This is alert for your event !");
+		locale = zoho.crm.getOrgVariable("twilio.Language");
+		if(locale == null || locale == "null" || locale == "")
+		{
+			mappp.put("locale","en");
+		}
+		else
+		{
+			mappp.put("locale",locale);
+		}
+		respp = postUrl("https://api.twilio.com/2010-04-01/Accounts/" + twilioAccSId + "/Messages.json",mappp,headermap);
+		info respp;
+	}
+	else if(indMap.get("type") == "lead")
+	{
+		leadId = indMap.get("participant");
+		datamapc = Map:String();
+		datamapc.put("module","Leads");
+		datamapc.put("id",leadId);
+		respc = zoho.crm.invokeConnector("crm.get",datamapc);
+		respMapc = respc.get("response")._toMap();
+		usersc = respMapc.get("data");
+		if(usersc.startsWith("["))
+		{
+			tempC = usersc.subString(1,usersc.length() - 1);
+		}
+		else
+		{
+			tempC = usersc.toJSONList().toString();
+		}
+		dataValC = tempC._toMap();
+		mobile = dataValC.get("Mobile");
+		tmobiletemp = zoho.crm.getOrgVariable("twilio.Twilio_Mobile_Number");
+		if(tmobiletemp.contains(" "))
+		{
+			twiliomobile = tmobiletemp.replaceAll(" ","",false);
+		}
+		else
+		{
+			twiliomobile = tmobiletemp;
+		}
+		if(twiliomobile.contains("-"))
+		{
+			twiliomobilenew = twiliomobile.replaceAll("-","",false);
+		}
+		else
+		{
+			twiliomobilenew = tmobiletemp;
+		}
+		twilioAccSId = zoho.crm.getOrgVariable("twilio.Account_SID");
+		authtokenTwilio = zoho.crm.getOrgVariable("twilio.AuthToken");
+		baseEncoded = zoho.encryption.base64Encode(twilioAccSId + ":" + authtokenTwilio);
+		encode = baseEncoded.removeFirstOccurence("\n");
+		headermap = Map:String();
+		headermap.put("Authorization","Basic " + encode);
+		mappp = Map:String();
+		mappp.put("To",mobile);
+		mappp.put("From",twiliomobilenew);
+		mappp.put("Body","This is alert for your event !");
+		locale = zoho.crm.getOrgVariable("twilio.Language");
+		if(locale == null || locale == "null" || locale == "")
+		{
+			mappp.put("locale","en");
+		}
+		else
+		{
+			mappp.put("locale",locale);
+		}
+		respp = postUrl("https://api.twilio.com/2010-04-01/Accounts/" + twilioAccSId + "/Messages.json",mappp,headermap);
+		info respp;
+	}
+}
+}
