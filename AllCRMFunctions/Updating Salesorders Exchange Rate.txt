@@ -1,0 +1,242 @@
+string standalone.Book_Duplicate_Contacts_Records_Merger_To_Master()
+{
+header_data = Map();
+header_data.put("Authorization","Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2");
+getBooksPage = zoho.crm.getRecordById("Merger_Schedule",3106252000061961343);
+Books_Contact_Index = getBooksPage.get("Books_Contact_RP_Index").toLong();
+processed_count = getBooksPage.get("Books_Duplicate_Contact_RP_Count").toLong();
+starttime = now.toLong();
+if(Books_Contact_Index < 3)
+{
+	//----------------------------
+	testing = zoho.books.getRecords("contacts","666840843","contact_type=customer&cf_duplicate_is_processed=false&page=" + Books_Contact_Index + "&per_page=30&cf_is_processed=true");
+	// info testing.get("contacts");
+	if(testing.get("message") == "success")
+	{
+		counter = 0;
+		for each  customer in testing.get("contacts")
+		{
+			counter = counter + 1;
+			contact_id = customer.get("contact_id");
+			masterContact_id = ifnull(customer.get("cf_master_contactid"),"");
+			crmContactEmail = ifnull(customer.get("email"),"");
+			syncdcrmMasterID = customer.get("cf_crm_contact_id");
+			// 	contact_id = 1324986000018873931;
+			// 	masterContact_id = ifnull(1324986000018924254,""); 
+			// 	crmContactEmail = "balaji@bizappln.com";
+			info counter + "------- function starts " + contact_id + " master " + masterContact_id + " email " + crmContactEmail + " syncdcrmid " + syncdcrmMasterID + " " + ifnull(customer.get("cf_master_contactid"),"") + "\n <br />";
+			//process only if master id is available
+			if(masterContact_id != "" && crmContactEmail != "")
+			{
+				processed_count = processed_count + 1;
+				urlencoded_Email = zoho.encryption.urlEncode(crmContactEmail);
+				Get_all_contactslist = zoho.books.getRecords("contacts","666840843","contact_type=customer&email=" + urlencoded_Email);
+				info "books contact size " + Get_all_contactslist.get("contacts").size();
+				Get_contact_details = Get_all_contactslist.get("contacts");
+				if(Get_contact_details.size() > 1)
+				{
+					master_data = zoho.books.getRecordsByID("contacts","666840843",masterContact_id);
+					info "master data " + master_data;
+					if(master_data.get("message") == "success")
+					{
+						masterCheck = master_data.get("contact");
+						masterEmail = masterCheck.get("email");
+						mastercontactID = masterCheck.get("contact_id");
+						info masterEmail + " " + mastercontactID;
+						info "customer details " + customer.get("customer_name") + " email " + crmContactEmail + " - type: " + customer.get("contact_type") + " id " + contact_id + " --master " + customer.get("cf_duplicate_is_processed") + " --processed " + customer.get("cf_is_processed") + " masterid " + masterContact_id;
+						if(customer.get("contact_type") == "customer" && customer.get("cf_is_processed") == true && customer.get("cf_duplicate_is_processed") == false && customer.get("cf_master_contactid") != "" && customer.get("customer_name") != "" && masterEmail == crmContactEmail)
+						{
+							//sales order
+							Get_SO_data = zoho.books.getRecords("salesorders","666840843","customer_id=" + contact_id);
+							if(Get_SO_data.get("message") == "success")
+							{
+								Get_So = Get_SO_data.get("salesorders");
+								info "sale order count " + Get_So.size();
+								so_count = 0;
+								for each  SO in Get_So
+								{
+									so_count = so_count + 1;
+									// 								if(so_count == 1)
+									// 							if(SO.get("salesorder_id") == "1324986000024209097")
+									// 							{
+									saleorder_id = SO.get("salesorder_id");
+									info "saleorder iteration starts " + saleorder_id;
+									saleorders = getUrl("https://www.zohoapis.com/books/v3/salesorders/" + saleorder_id + "?organization_id=666840843",header_data);
+									// info saleorders;
+									if(saleorders.get("message") == "success")
+									{
+										saleorder_detail = saleorders.get("salesorder");
+										info "inside saleorder loop " + saleorder_detail.get("invoices").size() + " saleorder id " + saleorder_id;
+										//invoice processing
+										if(saleorder_detail.get("invoices").size() > 0)
+										{
+											inv_count = 0;
+											for each  inv in saleorder_detail.get("invoices")
+											{
+												inv_count = inv_count + 1;
+												invoice_id = inv.get("invoice_id");
+												info inv_count + " invoice id iteration starts for " + inv.get("invoice_id") + " Sale Order_id" + saleorder_id + "status " + inv.get("status");
+												//to add log
+												invoice = zoho.books.getRecordsByID("invoices","666840843",invoice_id);
+												info invoice.get("message");
+												// 		if(invoices.get("message") == "success")
+												// 		{									
+												payment_list = getUrl("https://www.zohoapis.com/books/v3/invoices/" + invoice_id + "/payments?organization_id=666840843",{"Authorization":"Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2"});
+												// 	info payment_list;
+												if(payment_list.get("message") == "success")
+												{
+													info "inside payments for " + invoice_id;
+													if(payment_list.get("payments").size() > 0)
+													{
+														for each  Invpayment in payment_list.get("payments")
+														{
+															info Invpayment.get("payment_id") + " " + Invpayment.get("invoice_id");
+															delete_payment = invokeurl
+															[
+																url :"https://www.zohoapis.com/books/v3/customerpayments/" + Invpayment.get("payment_id") + "?organization_id=666840843"
+																type :DELETE
+																headers:header_data
+															];
+															info delete_payment;
+															payment_logs = {"contact":contact_id,"Which_Module":"Books-Contacts-Merger-Payment","Action":"duplicate merge - delete payment","Contact_data":customer,"Mastercontact_Data":master_data,"Saleorder_Data":saleorders,"What_Time":now.toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'"),"Name":"custom function - Book_Duplicate_Contacts_Records_Merger_To_Master / payment deletion","Contact_Response":"payment id: " + Invpayment.get("payment_id") + " invoice id: " + Invpayment.get("invoice_id") + " saleorder id: " + saleorder_id,"Start_Time":starttime.toString(),"End_Time":now.toLong().toString(),"Books_Record_ID":contact_id.toString(),"Contact_Record_ID":"crmID: " + syncdcrmMasterID + " -- booksmaster: " + masterContact_id,"Contact_Name":customer.get("contact_name"),"Email":crmContactEmail,"Invoice_Record_ID":invoice_id.toString(),"Invoice_Request":"invoice need to be deleted ","Invoice_Response":"inv data: " + invoice,"Payment_Record_ID":Invpayment.get("payment_id"),"Payment_Request":"payment delete: " + delete_payment,"Payment_Response":Invpayment};
+															logs = postUrl("https://1.door-pay.com/api/add/log",payment_logs.toString());
+															info "payment logs " + logs;
+															crm_logs = zoho.crm.createRecord("Log_ContactQuoteDeals",{"Which_Module":"Books-Contacts-Merger-Payment","Action":"duplicate merge - payment delete ","Contact_Data":SO,"What_Time":now.toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'"),"Name":"custom function - Book_Duplicate_Contacts_Records_Merger_To_Master / payment delete","Contact_Response":"payment id: " + Invpayment.get("payment_id") + " invoice id: " + Invpayment.get("invoice_id") + " saleorder id: " + saleorder_id,"Start_Time":starttime.toString(),"End_Time":now.toLong().toString(),"Books_Record_ID":contact_id.toString(),"Contact_Record_ID":"crmID: " + syncdcrmMasterID + " -- booksmaster: " + masterContact_id,"Contact_Name":customer.get("contact_name"),"Email":crmContactEmail,"Invoice_Record_ID":invoice_id.toString(),"Invoice_Request":"invoice need to be deleted ","Invoice_Response":"inv data: " + invoice.get("invioce").get("salesorders") + " " + invoice.get("invioce").get("contact_persons_details"),"Payment_Record_ID":Invpayment.get("payment_id"),"Payment_Request":"payment delete: " + delete_payment});
+															info "payement deletion crm log " + crm_logs;
+														}
+														//delete invoice
+														delete_invoice = invokeurl
+														[
+															url :"https://www.zohoapis.com/books/v3/invoices/" + invoice_id + "?organization_id=666840843"
+															type :DELETE
+															headers:header_data
+														];
+														info delete_invoice;
+														inv_logs = {"contact":contact_id,"Which_Module":"Books-Contacts-Merger-Invoice","Action":"duplicate merge - delete invoice with > 1 payment","Contact_data":customer,"Mastercontact_Data":master_data,"Saleorder_Data":saleorders,"What_Time":now.toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'"),"Name":"custom function - Book_Duplicate_Contacts_Records_Merger_To_Master / invoice delete with payments","Contact_Response":"invoice id: " + invoice_id + " saleorder id: " + saleorder_id,"Start_Time":starttime.toString(),"End_Time":now.toLong().toString(),"Books_Record_ID":contact_id.toString(),"Contact_Record_ID":"crmID: " + syncdcrmMasterID + " -- booksmaster: " + masterContact_id,"Contact_Name":customer.get("contact_name"),"Email":crmContactEmail,"Invoice_Record_ID":invoice_id.toString(),"Invoice_Request":"invoice delete: " + delete_invoice,"Invoice_Response":"inv data: " + invoice};
+														logs = postUrl("https://1.door-pay.com/api/add/log",inv_logs.toString());
+														info "invoice delete with payments log " + logs;
+														crm_inv_logs = zoho.crm.createRecord("Log_ContactQuoteDeals",{"Which_Module":"Books-Contacts-Merger","Action":"duplicate merge - invoice delete","Contact_Data":"","What_Time":now.toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'"),"Name":"custom function - Book_Duplicate_Contacts_Records_Merger_To_Master","Contact_Response":"invoice id: " + invoice_id + " saleorder id: " + saleorder_id,"Start_Time":starttime.toString(),"End_Time":now.toLong().toString(),"Books_Record_ID":contact_id.toString(),"Contact_Record_ID":"crmID: " + syncdcrmMasterID + " -- booksmaster: " + masterContact_id,"Contact_Name":customer.get("contact_name"),"Email":crmContactEmail,"Invoice_Record_ID":invoice_id.toString(),"Invoice_Request":"invoice delete: " + delete_invoice,"Invoice_Response":"inv data: " + invoice.get("invioce").get("salesorder_id") + " " + invoice.get("invioce").get("contact_persons_details")});
+														info "delete invoice more than 1 payment crm log " + crm_inv_logs;
+													}
+													else if(payment_list.get("payments").size() == 0)
+													{
+														info "delete invoice and re-associate saleorder part without payments";
+														delete_invoice = invokeurl
+														[
+															url :"https://www.zohoapis.com/books/v3/invoices/" + invoice_id + "?organization_id=666840843"
+															type :DELETE
+															headers:header_data
+														];
+														info delete_invoice;
+														inv_logs = {"contact":contact_id,"Which_Module":"Books-Contacts-Merger-Invoice","Action":"duplicate merge - delete invoice with 0 payment","Contact_data":customer,"Mastercontact_Data":master_data,"Saleorder_Data":saleorders,"What_Time":now.toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'"),"Name":"custom function - Book_Duplicate_Contacts_Records_Merger_To_Master / 0 payment in invoice","Contact_Response":"invoice id: " + invoice_id + " saleorder id: " + saleorder_id,"Start_Time":starttime.toString(),"End_Time":now.toLong().toString(),"Books_Record_ID":contact_id.toString(),"Contact_Record_ID":"crmID: " + syncdcrmMasterID + " -- booksmaster: " + masterContact_id,"Contact_Name":customer.get("contact_name"),"Email":crmContactEmail,"Invoice_Record_ID":invoice_id.toString(),"Invoice_Request":"invoice delete: " + delete_invoice,"Invoice_Response":"inv data: " + invoice};
+														logs = postUrl("https://1.door-pay.com/api/add/log",inv_logs.toString());
+														info " 0 payment in invoice log " + logs;
+														crminv_logs = zoho.crm.createRecord("Log_ContactQuoteDeals",{"Which_Module":"Books-Contacts-Merger","Action":"duplicate merge - delete invoice","Contact_Data":"","What_Time":now.toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'"),"Name":"custom function - Book_Duplicate_Contacts_Records_Merger_To_Master / invoice delete with  0 payment","Contact_Response":"invoice id: " + invoice_id + " saleorder id: " + saleorder_id,"Start_Time":starttime.toString(),"End_Time":now.toLong().toString(),"Books_Record_ID":contact_id.toString(),"Contact_Record_ID":"crmID: " + syncdcrmMasterID + " -- booksmaster: " + masterContact_id,"Contact_Name":customer.get("contact_name"),"Email":crmContactEmail,"Invoice_Record_ID":invoice_id.toString(),"Invoice_Request":"invoice delete: " + delete_invoice,"Invoice_Response":"inv data: " + invoice});
+														info "delete invoice with 0 payment crm log " + crminv_logs;
+													}
+												}
+												// 		}
+											}
+											//update saleorders
+											// 									
+											// 									info "order status " + Order_Status;
+											Update_SO_data = zoho.books.updateRecord("salesorders","666840843",saleorder_id,{"customer_id":masterContact_id});
+											info Update_SO_data.get("message");
+											if(Update_SO_data.get("message") == "Sales Order has been updated.")
+											{
+												so_updateresponse = "Success";
+											}
+											else
+											{
+												so_updateresponse = "Error";
+												so_response = Update_SO_data.get("message") + " " + "sale order update failed for invoice more than 1";
+											}
+											logs = {"contact":contact_id,"Which_Module":"Books-Contacts-Merger","Status":so_updateresponse,"Action":"duplicate merge - saleorder update","Contact_data":customer,"Mastercontact_Data":master_data,"Saleorder_Data":saleorders,"What_Time":now.toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'"),"Name":"custom function - Book_Duplicate_Contacts_Records_Merger_To_Master / multiple invoice records- saleorrder update","Contact_Response":so_response,"Start_Time":starttime.toString(),"End_Time":now.toLong().toString(),"Books_Record_ID":contact_id.toString(),"Contact_Record_ID":"crmID: " + syncdcrmMasterID + " -- booksmaster: " + masterContact_id,"Contact_Name":customer.get("contact_name"),"Email":crmContactEmail};
+											logs = postUrl("https://1.door-pay.com/api/add/log",logs.toString());
+											info "multiple invoice records- saleorrder update logs " + logs;
+											crmlogs = zoho.crm.createRecord("Log_ContactQuoteDeals",{"Which_Module":"Books-Contacts-Merger","Status":so_updateresponse,"Action":"duplicate merge - saleorder update","Contact_Data":Update_SO_data.get("message"),"What_Time":now.toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'"),"Name":"custom function - Book_Duplicate_Contacts_Records_Merger_To_Master / multiple invoice records- saleorrder update","Contact_Response":so_response,"Start_Time":starttime.toString(),"End_Time":now.toLong().toString(),"Books_Record_ID":contact_id.toString(),"Contact_Record_ID":"crmID: " + syncdcrmMasterID + " -- booksmaster: " + masterContact_id,"Contact_Name":customer.get("contact_name"),"Email":crmContactEmail});
+											info "crm log " + crmlogs;
+										}
+										else if(saleorder_detail.get("invoices").size() == 0)
+										{
+											info "no invoice so re-associate saleorder to master";
+											Update_SO_data = zoho.books.updateRecord("salesorders","666840843",saleorder_id,{"customer_id":masterContact_id});
+											info Update_SO_data.get("message");
+											if(Update_SO_data.get("message") == "Sales Order has been updated.")
+											{
+												so_updateerror = "Success";
+											}
+											else
+											{
+												so_updateerror = "Error";
+												so_response = Update_SO_data.get("message") + " " + "saleorder update failed for invoice count 0";
+											}
+											logs = {"contact":contact_id,"Which_Module":"Books-Contacts-Merger","Status":so_updateerror,"Action":"duplicate merge - saleorder update / no invoice - saleorder update","Contact_data":customer,"Mastercontact_Data":master_data,"Saleorder_Data":saleorders,"What_Time":now.toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'"),"Name":"custom function - Book_Duplicate_Contacts_Records_Merger_To_Master","Contact_Response":so_response,"Created_Edited_By":zoho.loginuserid,"Start_Time":starttime.toString(),"End_Time":now.toLong().toString(),"Books_Record_ID":contact_id.toString(),"Contact_Record_ID":"crmID: " + syncdcrmMasterID + " -- booksmaster: " + masterContact_id,"Contact_Name":customer.get("contact_name"),"Email":crmContactEmail};
+											logs = postUrl("https://1.door-pay.com/api/add/log",logs.toString());
+											info "no invoice - saleorder update log " + logs;
+											crmlogs = zoho.crm.createRecord("Log_ContactQuoteDeals",{"Which_Module":"Books-Contacts-Merger","Status":so_updateerror,"Action":"duplicate merge - saleorder update","Contact_Data":Update_SO_data.get("message"),"What_Time":now.toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'"),"Name":"custom function - Book_Duplicate_Contacts_Records_Merger_To_Master / no invoice - saleorder update","Contact_Response":so_response,"Created_Edited_By":zoho.loginuserid,"Start_Time":starttime.toString(),"End_Time":now.toLong().toString(),"Books_Record_ID":contact_id.toString(),"Contact_Record_ID":"crmID: " + syncdcrmMasterID + " -- booksmaster: " + masterContact_id,"Contact_Name":customer.get("contact_name"),"Email":crmContactEmail});
+											info crmlogs;
+										}
+									}
+									// 							}
+								}
+								// 					//sale order fetch ends
+								if(Get_So.size() == 0)
+								{
+									logs = {"contact":contact_id,"Which_Module":"Books-Contacts-Merger","Status":"Success","Action":"duplicate merge","Contact_Data":customer,"Mastercontact_Data":master_data,"What_Time":now.toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'"),"Name":"custom function - Book_Duplicate_Contacts_Records_Merger_To_Master","Contact_Response":"no saleorder so can delete","Created_Edited_By":zoho.loginuserid,"Start_Time":starttime.toString(),"End_Time":now.toLong().toString(),"Books_Record_ID":contact_id.toString(),"Contact_Record_ID":"crmID: " + syncdcrmMasterID + " -- booksmaster: " + masterContact_id,"Contact_Name":customer.get("contact_name"),"Email":crmContactEmail};
+									logs = postUrl("https://1.door-pay.com/api/add/log",logs.toString());
+									info "no saleorder - update log : " + logs;
+									SOcrmlogs = zoho.crm.createRecord("Log_ContactQuoteDeals",{"Which_Module":"Books-Contacts-Merger","Status":"Success","Action":"duplicate merge - no saleorder found for contact","Contact_Data":"","What_Time":now.toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'"),"Name":"custom function - Book_Duplicate_Contacts_Records_Merger_To_Master / no saleorder","Contact_Response":"","Created_Edited_By":zoho.loginuserid,"Start_Time":starttime.toString(),"End_Time":now.toLong().toString(),"Books_Record_ID":contact_id.toString(),"Contact_Record_ID":"crmID: " + syncdcrmMasterID + " -- booksmaster: " + masterContact_id,"Contact_Name":customer.get("contact_name"),"Email":crmContactEmail});
+									info "no saleorder in contact : crm logs: --> " + SOcrmlogs;
+								}
+							}
+						}
+						else
+						{
+							logs = {"contact":contact_id,"Which_Module":"Books-Contacts-Merger","Status":"Reprocess","Action":"duplicate merge","Contact_Data":customer,"Mastercontact_Data":master_data,"What_Time":now.toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'"),"Name":"custom function - Book_Duplicate_Contacts_Records_Merger_To_Master / master and contact email doesnt match. re-process","Contact_Response":"master email and contact email doesnt match. re-process","Created_Edited_By":zoho.loginuserid,"Start_Time":starttime.toString(),"End_Time":now.toLong().toString(),"Books_Record_ID":contact_id.toString(),"Contact_Record_ID":"crmID: " + syncdcrmMasterID + " -- booksmaster: " + masterContact_id,"Contact_Name":customer.get("contact_name"),"Email":crmContactEmail,"master_Data":master_data};
+							logs = postUrl("https://1.door-pay.com/api/add/log",logs.toString());
+							info "master and contact email doesnt match. re-process log: " + logs;
+							logscrm = zoho.crm.createRecord("Log_ContactQuoteDeals",{"Which_Module":"Books-Contacts-Merger","Status":"Reprocess","Action":"master email and contact email doesnt match","Contact_Data":"Fetched record email: " + crmContactEmail + " master email: " + masterEmail,"What_Time":now.toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'"),"Name":"custom function - Book_Duplicate_Contacts_Records_Merger_To_Master / master and contact email doesnt match. re-process","Contact_Response":"master email and contact email doent match. re-process","Created_Edited_By":zoho.loginuserid,"Start_Time":starttime.toString(),"End_Time":now.toLong().toString(),"Books_Record_ID":contact_id.toString(),"Contact_Record_ID":"crmID: " + syncdcrmMasterID + " -- booksmaster: " + masterContact_id,"Contact_Name":customer.get("contact_name"),"Email":crmContactEmail});
+							info "log crm " + logscrm;
+						}
+					}
+					else
+					{
+						// 			logs = zoho.crm.createRecord("Log_ContactQuoteDeals",{"Which_Module":"Books-Contacts","Status":"Error","Action":"duplicate record merge", "Contact_Data":customer,"What_Time":now.toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'"),"Name":"custom function - Book_Duplicate_Contacts_Records_Merger_To_Master","Contact_Response":"Fetching master detail failed "+ masterContact_id, "Created_Edited_By":zoho.loginuserid, "Start_Time":starttime.toString(), "End_Time":now.toLong().toString(),"Books_Record_ID":contact_id.toString(),"Contact_Record_ID":"crmID: " + syncdcrmMasterID + " -- booksmaster: " + masterContact_id,"Contact_Name":customer.get("contact_name"),"Email":crmContactEmail});
+						logs = {"contact":contact_id,"Which_Module":"Books-Contacts-Merger","Status":"Error","Action":"duplicate record merge","Contact_Data":customer,"Mastercontact_Data":master_data,"What_Time":now.toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'"),"Name":"custom function - Book_Duplicate_Contacts_Records_Merger_To_Master / masterdata fetch failed","Contact_Response":"Fetching master detail failed " + masterContact_id,"Created_Edited_By":zoho.loginuserid,"Start_Time":starttime.toString(),"End_Time":now.toLong().toString(),"Books_Record_ID":contact_id.toString(),"Contact_Record_ID":"crmID: " + syncdcrmMasterID + " -- booksmaster: " + masterContact_id,"Contact_Name":customer.get("contact_name"),"Email":crmContactEmail};
+						logs = postUrl("https://1.door-pay.com/api/add/log",logs.toString());
+						info "masterdata fetch failed logs: " + logs;
+					}
+					//master check
+				}
+				else if(Get_contact_details.size() == 1)
+				{
+					info "only one contact is found so not to re-associate ";
+					logs = {"contact":contact_id,"Which_Module":"Books-Contacts-Merger","Status":"Reprocess","Action":"duplicate record merge","Contact_Data":customer,"What_Time":now.toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'"),"Name":"custom function - Book_Duplicate_Contacts_Records_Merger_To_Master / only one contact is found so not to re-assiociate.","Contact_Response":"only one contact is found so not to re-associate " + masterContact_id,"Created_Edited_By":zoho.loginuserid,"Start_Time":starttime.toString(),"End_Time":now.toLong().toString(),"Books_Record_ID":contact_id.toString(),"Contact_Record_ID":"crmID: " + syncdcrmMasterID + " -- booksmaster: " + masterContact_id,"Contact_Name":customer.get("contact_name"),"Email":crmContactEmail};
+					logs = postUrl("https://1.door-pay.com/api/add/log",logs.toString());
+					info "only one contact is found so not to re-associate logs: " + logs;
+					logscrm = zoho.crm.createRecord("Log_ContactQuoteDeals",{"contact":contact_id,"Which_Module":"Books-Contacts-Merger","Status":"Reprocess","Action":"duplicate record merge","Contact_Data":"","What_Time":now.toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'"),"Name":"custom function - Book_Duplicate_Contacts_Records_Merger_To_Master / only one contact is found so not to re-associate","Contact_Response":"only one contact is found so not to re-associate " + masterContact_id,"Created_Edited_By":zoho.loginuserid,"Start_Time":starttime.toString(),"End_Time":now.toLong().toString(),"Books_Record_ID":contact_id.toString(),"Contact_Record_ID":"crmID: " + syncdcrmMasterID + " -- booksmaster: " + masterContact_id,"Contact_Name":customer.get("contact_name"),"Email":crmContactEmail});
+					info "crm logs --> " + logscrm;
+				}
+			}
+			else
+			{
+				info "master id / email is not found in the record.";
+				logs = {"contact":contact_id,"Which_Module":"Books-Contacts-Merger","Status":"Reprocess","Action":"duplicate record merge","Contact_Data":customer,"What_Time":now.toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'"),"Name":"custom function - Book_Duplicate_Contacts_Records_Merger_To_Master / master id / email is not found in the record","Contact_Response":"- master id / email is not found in record " + masterContact_id,"Created_Edited_By":zoho.loginuserid,"Start_Time":starttime.toString(),"End_Time":now.toLong().toString(),"Books_Record_ID":contact_id.toString(),"Contact_Record_ID":"crmID: " + syncdcrmMasterID + " -- booksmaster: " + masterContact_id,"Contact_Name":customer.get("contact_name"),"Email":crmContactEmail};
+				logs = postUrl("https://1.door-pay.com/api/add/log",logs.toString());
+				info "master id / email is not found in the record logs: " + logs;
+				logscrm = zoho.crm.createRecord("Log_ContactQuoteDeals",{"contact":contact_id,"Which_Module":"Books-Contacts-Merger","Status":"Reprocess","Action":"master email / id is not found","Contact_Data":customer,"What_Time":now.toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'"),"Name":"custom function - Book_Duplicate_Contacts_Records_Merger_To_Master / master id / email is not found in the record","Contact_Response":"- master id / email is not found in record " + masterContact_id,"Created_Edited_By":zoho.loginuserid,"Start_Time":starttime.toString(),"End_Time":now.toLong().toString(),"Books_Record_ID":contact_id.toString(),"Contact_Record_ID":"crmID: " + syncdcrmMasterID + " -- booksmaster: " + masterContact_id,"Contact_Name":customer.get("contact_name"),"Email":crmContactEmail});
+				info logscrm;
+			}
+		}
+		if(counter == 30)
+		{
+			update_last_page = Books_Contact_Index + 1;
+			update_last_page = update_last_page.toString();
+			updateMerger = zoho.crm.updateRecord("Merger_Schedule",3106252000061961343,{"Books_Contact_RP_Index":update_last_page,"Books_Duplicate_Contact_RP_Count":processed_count.toString()});
+			info " merger res || " + updateMerger.get("id");
+		}
+	}
+}
+return "function executed " + Books_Contact_Index + " -- next page " + update_last_page;
+}

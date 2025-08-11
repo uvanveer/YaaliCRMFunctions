@@ -1,0 +1,345 @@
+string standalone.Checking_DropShiporder_status_to_bc()
+{
+Best_access_doors_store = "73d62";
+Best_access_doors_client = "jz4y6k2juxckhz78kcah0ri3zcjgom";
+Best_access_doors_auth = "6bmozc9y8turqqviijfkt5o6mbut6ic";
+Access_Doors_And_Panels_store = "d6xnuf";
+Access_Doors_And_Panels_client = "jfyktmsgp25t13fe3cvtqpm5vws7kig";
+Access_Doors_And_Panels_auth = "petu2tvugsv4m7c3i0tvgcxvllt5jzk";
+Best_Access_Doors_Canada_store = "jdq9dzd";
+Best_Access_Doors_Canada_client = "6020ggpten8oik8pyeud6zhw3a19rji";
+Best_Access_Doors_Canada_auth = "im4ouy3gboed27ksptqm43roxyxoi9j";
+Access_Doors_Canada_store = "ekrllr";
+Access_Doors_Canada_client = "r6nghg45pf6sei4xhbt4otklyzkd600";
+Access_Doors_Canada_auth = "6gpb9ztna3tsvxwdtwwo4fye6c234yu";
+Acudor_Access_Panels_store = "sy018d9yee";
+Acudor_Access_Panels_client = "3zssshtvtwym5zq8ws7hc3npa8lde2";
+Acudor_Access_Panels_auth = "8dhmjz7rm1q4lagy8fords7mef59jrr";
+Max_Supply_store = "dh5771";
+Max_Supply_client = "f2ivuekkxy32gurxtosfhlfkik5bdig";
+Max_Supply_auth = "bq023epaqceys9695vag8tgzlgjyf83";
+Public_Furniture_store = "p56begf";
+Public_Furniture_client = "filpf1n5hp96xfglo9tkbct38kw1qqf";
+Public_Furniture_auth = "ilm14r0wyxlkpelmjqunaeni38jwsd0";
+California_Access_Doors_store = "v5cbc8ee";
+California_Access_Doors_client = "b0fu2egusdrr4im3jlwiwx1823170o4";
+California_Access_Doors_auth = "4oz25yional9eu6h9dw2x4bhkjhw966";
+Best_roof_hatches_store = "mp5b8fef04";
+Best_roof_hatches_client = "i8f6kh487vlfebzy4fs45sro2flavac";
+Best_roof_hatches_auth = "d6ldmxx08ylfsj7joyil479rguxjym7";
+Number_list = rightpad("t",5).replaceall(" ",",t").tolist();
+count = 0;
+NotCreated_dropshiper_order = list();
+zero_dropship_order = list();
+Wrong_sales_order = list();
+wrong_bc_order = list();
+wrong_salesorderid = list();
+for each  each_number in Number_list
+{
+	count = count + 1;
+	//info count;
+	getting_sales_orders = zoho.crm.getRecords("Sales_Orders",count,200,{"cvid":3106252000098117372});
+	if(getting_sales_orders.size() > 0)
+	{
+		for each  each_sales_order in getting_sales_orders
+		{
+			sales_order_status = each_sales_order.get("Status");
+			//Sale_order=each_sales_order.get("id");
+			//info Sale_order;
+			sales_order_line_Item_count = each_sales_order.get("Product_Details").size();
+			getting_purchase_orders = zoho.crm.getRelatedRecords("Dropship_Orders","Sales_Orders",each_sales_order.get("id"));
+			if(getting_purchase_orders.size() > 0)
+			{
+				created_count = 0;
+				shipped_count = 0;
+				sent_to_dropshippers_count = 0;
+				cancelled_count = 0;
+				Dropship_order_count = getting_purchase_orders.size();
+				purchase_order_line_item_count = 0;
+				for each  each_purchase_order in getting_purchase_orders
+				{
+					purchase_order_line_item_count = purchase_order_line_item_count + each_purchase_order.get("Product_Details").size();
+					if(each_purchase_order.get("Status") == "Sent to Dropshippers")
+					{
+						sent_to_dropshippers_count = sent_to_dropshippers_count + 1;
+					}
+					else if(each_purchase_order.get("Status") == "Shipped" || each_purchase_order.get("Status") == "Completed")
+					{
+						shipped_count = shipped_count + 1;
+					}
+					else if(each_purchase_order.get("Status") == "created")
+					{
+						created_count = created_count + 1;
+					}
+					else if(each_purchase_order.get("Status") == "Cancelled")
+					{
+						cancelled_count = cancelled_count + 1;
+					}
+				}
+				Get_store_name = each_sales_order.get("Store").get("name");
+				// 				info "Store_name:" + Get_store_name;
+				// 				info "subject:" + each_sales_order.get("id");
+				if(Get_store_name.contains("Amazon") == false && sales_order_status != "Refunded" && sales_order_status != "Partially Refunded" && sales_order_status != "Disputed")
+				{
+					if(Dropship_order_count == shipped_count)
+					{
+						if(sales_order_status != "Shipped" && sales_order_status != "Completed")
+						{
+							Wrong_sales_order.add(each_sales_order.get("Store").get("name") + "_" + each_sales_order.get("Subject"));
+							// 							wrong_salesorderid.add(each_sales_order.get("id"));
+						}
+					}
+					else if(Dropship_order_count == sent_to_dropshippers_count)
+					{
+						if(sales_order_status != "Awaiting Shipment")
+						{
+							Wrong_sales_order.add(each_sales_order.get("Store").get("name") + "_" + each_sales_order.get("Subject"));
+							// 							wrong_salesorderid.add(each_sales_order.get("id"));
+						}
+					}
+					else if(Dropship_order_count > shipped_count && shipped_count != 0)
+					{
+						if(sales_order_status != "Partially Shipped" && sales_order_status != "PartiallyShipped")
+						{
+							Wrong_sales_order.add(each_sales_order.get("Store").get("name") + "_" + each_sales_order.get("Subject"));
+							// 							wrong_salesorderid.add(each_sales_order.get("id"));
+						}
+					}
+					else if(Dropship_order_count == cancelled_count)
+					{
+						if(sales_order_status != "Cancelled")
+						{
+							Wrong_sales_order.add(each_sales_order.get("Store").get("name") + "_" + each_sales_order.get("Subject"));
+							// 							wrong_salesorderid.add(each_sales_order.get("id"));
+						}
+					}
+					else
+					{
+						if(sales_order_status != "Awaiting Fulfillment")
+						{
+							Wrong_sales_order.add(each_sales_order.get("Store").get("name") + "_" + each_sales_order.get("Subject"));
+							// 							wrong_salesorderid.add(each_sales_order.get("id"));
+						}
+					}
+				}
+				if(purchase_order_line_item_count != sales_order_line_Item_count)
+				{
+					NotCreated_dropshiper_order.add(each_sales_order.get("Store").get("name") + "_" + each_sales_order.get("Subject"));
+				}
+			}
+			else
+			{
+				zero_dropship_order.add(each_sales_order.get("Store").get("name") + "_" + each_sales_order.get("Subject"));
+			}
+			if(!isempty(each_sales_order))
+			{
+				if(each_sales_order.get("Store").get("name") == "Best_Access_Doors")
+				{
+					HeaderMap = Map();
+					HeaderMap.put("Accept","application/json");
+					HeaderMap.put("Content-Type","application/json");
+					HeaderMap.put("X-Auth-Token",Best_access_doors_auth);
+					HeaderMap.put("X-Auth-Client",Best_access_doors_client);
+					getting_bigcommerce_order = geturl("https://api.bigcommerce.com/stores/" + Best_access_doors_store + "/v2/orders/" + each_sales_order.get("Bigcommerce_Order_ID"),HeaderMap);
+					// 					info "etting_bigcommerce_order == "+ getting_bigcommerce_order.get("status");
+					// 					info "sales_order_status  == "+sales_order_status;
+					if(getting_bigcommerce_order.get("status") != sales_order_status)
+					{
+						if(!(sales_order_status == "Completed" && (getting_bigcommerce_order.get("status") == "Shipped" || getting_bigcommerce_order.get("status") == "Awaiting Pickup") || sales_order_status == "Shipped" && (getting_bigcommerce_order.get("status") == "Completed" || getting_bigcommerce_order.get("status") == "Awaiting Pickup")))
+						{
+							wrong_bc_order.add("Best_Access_Doors_" + getting_bigcommerce_order.get("id"));
+							wrong_salesorderid.add(each_sales_order.get("id"));
+							// 							info "BC id"+ each_sales_order.get("Bigcommerce_Order_ID") +" sales_order_status" + sales_order_status +"BC status: " + getting_bigcommerce_order.get("status");
+						}
+						// 					else
+						// 					{
+						// 					}
+					}
+				}
+				else if(each_sales_order.get("Store").get("name") == "Access_Doors_And_Panels")
+				{
+					HeaderMap = Map();
+					HeaderMap.put("Accept","application/json");
+					HeaderMap.put("Content-Type","application/json");
+					HeaderMap.put("X-Auth-Token",Access_Doors_And_Panels_auth);
+					HeaderMap.put("X-Auth-Client",Access_Doors_And_Panels_client);
+					getting_bigcommerce_order = geturl("https://api.bigcommerce.com/stores/" + Access_Doors_And_Panels_store + "/v2/orders/" + each_sales_order.get("Bigcommerce_Order_ID"),HeaderMap);
+					if(getting_bigcommerce_order.get("status") != sales_order_status)
+					{
+						if(!(sales_order_status == "Completed" && (getting_bigcommerce_order.get("status") == "Shipped" || getting_bigcommerce_order.get("status") == "Awaiting Pickup") || sales_order_status == "Shipped" && (getting_bigcommerce_order.get("status") == "Completed" || getting_bigcommerce_order.get("status") == "Awaiting Pickup")))
+						{
+							wrong_bc_order.add("Access_Doors_And_Panels_" + getting_bigcommerce_order.get("id"));
+							wrong_salesorderid.add(each_sales_order.get("id"));
+						}
+						// 					else
+						// 					{
+						// 					}
+					}
+				}
+				else if(each_sales_order.get("Store").get("name").containsignorecase("Best_Access_Doors_Canada"))
+				{
+					HeaderMap = Map();
+					HeaderMap.put("Accept","application/json");
+					HeaderMap.put("Content-Type","application/json");
+					HeaderMap.put("X-Auth-Token",Best_Access_Doors_Canada_auth);
+					HeaderMap.put("X-Auth-Client",Best_Access_Doors_Canada_client);
+					getting_bigcommerce_order = geturl("https://api.bigcommerce.com/stores/" + Best_Access_Doors_Canada_store + "/v2/orders/" + each_sales_order.get("Bigcommerce_Order_ID"),HeaderMap);
+					if(getting_bigcommerce_order.get("status") != sales_order_status)
+					{
+						if(!(sales_order_status == "Completed" && (getting_bigcommerce_order.get("status") == "Shipped" || getting_bigcommerce_order.get("status") == "Awaiting Pickup") || sales_order_status == "Shipped" && (getting_bigcommerce_order.get("status") == "Completed" || getting_bigcommerce_order.get("status") == "Awaiting Pickup")))
+						{
+							wrong_bc_order.add("Best_Access_Doors_Canada_" + getting_bigcommerce_order.get("id"));
+							wrong_salesorderid.add(each_sales_order.get("id"));
+						}
+						// 					else
+						// 					{
+						// 					}
+					}
+				}
+				else if(each_sales_order.get("Store").get("name").containsignorecase("Access_Doors_Canada"))
+				{
+					HeaderMap = Map();
+					HeaderMap.put("Accept","application/json");
+					HeaderMap.put("Content-Type","application/json");
+					HeaderMap.put("X-Auth-Token",Access_Doors_Canada_auth);
+					HeaderMap.put("X-Auth-Client",Access_Doors_Canada_client);
+					getting_bigcommerce_order = geturl("https://api.bigcommerce.com/stores/" + Access_Doors_Canada_store + "/v2/orders/" + each_sales_order.get("Bigcommerce_Order_ID"),HeaderMap);
+					if(getting_bigcommerce_order.get("status") != sales_order_status)
+					{
+						if(!(sales_order_status == "Completed" && (getting_bigcommerce_order.get("status") == "Shipped" || getting_bigcommerce_order.get("status") == "Awaiting Pickup") || sales_order_status == "Shipped" && (getting_bigcommerce_order.get("status") == "Completed" || getting_bigcommerce_order.get("status") == "Awaiting Pickup")))
+						{
+							wrong_bc_order.add("Access_Doors_Canada_" + getting_bigcommerce_order.get("id"));
+							wrong_salesorderid.add(each_sales_order.get("id"));
+						}
+						// 					else
+						// 					{
+						// 					}
+					}
+				}
+				else if(each_sales_order.get("Store").get("name") == "Acudor_Access_Panels")
+				{
+					HeaderMap = Map();
+					HeaderMap.put("Accept","application/json");
+					HeaderMap.put("Content-Type","application/json");
+					HeaderMap.put("X-Auth-Token",Acudor_Access_Panels_auth);
+					HeaderMap.put("X-Auth-Client",Acudor_Access_Panels_client);
+					getting_bigcommerce_order = geturl("https://api.bigcommerce.com/stores/" + Acudor_Access_Panels_store + "/v2/orders/" + each_sales_order.get("Bigcommerce_Order_ID"),HeaderMap);
+					if(getting_bigcommerce_order.get("status") != sales_order_status)
+					{
+						if(!(sales_order_status == "Completed" && (getting_bigcommerce_order.get("status") == "Shipped" || getting_bigcommerce_order.get("status") == "Awaiting Pickup") || sales_order_status == "Shipped" && (getting_bigcommerce_order.get("status") == "Completed" || getting_bigcommerce_order.get("status") == "Awaiting Pickup")))
+						{
+							wrong_bc_order.add("Acudor_Access_Panels_" + getting_bigcommerce_order.get("id"));
+							wrong_salesorderid.add(each_sales_order.get("id"));
+						}
+						// 					else
+						// 					{
+						// 						wrong_bc_order.add("Acudor_Access_Panels_" + getting_bigcommerce_order.get("id"));
+						// 					}
+					}
+				}
+				else if(each_sales_order.get("Store").get("name") == "Max_Supply")
+				{
+					HeaderMap = Map();
+					HeaderMap.put("Accept","application/json");
+					HeaderMap.put("Content-Type","application/json");
+					HeaderMap.put("X-Auth-Token",Max_Supply_auth);
+					HeaderMap.put("X-Auth-Client",Max_Supply_client);
+					getting_bigcommerce_order = geturl("https://api.bigcommerce.com/stores/" + Max_Supply_store + "/v2/orders/" + each_sales_order.get("Bigcommerce_Order_ID"),HeaderMap);
+					if(getting_bigcommerce_order.get("status") != sales_order_status)
+					{
+						if(!(sales_order_status == "Completed" && (getting_bigcommerce_order.get("status") == "Shipped" || getting_bigcommerce_order.get("status") == "Awaiting Pickup") || sales_order_status == "Shipped" && (getting_bigcommerce_order.get("status") == "Completed" || getting_bigcommerce_order.get("status") == "Awaiting Pickup")))
+						{
+							wrong_bc_order.add("Max_Supply_" + getting_bigcommerce_order.get("id"));
+							wrong_salesorderid.add(each_sales_order.get("id"));
+						}
+						// 					else
+						// 					{
+						// 					}
+					}
+				}
+				else if(each_sales_order.get("Store").get("name") == "Public_Furniture")
+				{
+					HeaderMap = Map();
+					HeaderMap.put("Accept","application/json");
+					HeaderMap.put("Content-Type","application/json");
+					HeaderMap.put("X-Auth-Token",Public_Furniture_auth);
+					HeaderMap.put("X-Auth-Client",Public_Furniture_client);
+					getting_bigcommerce_order = geturl("https://api.bigcommerce.com/stores/" + Public_Furniture_store + "/v2/orders/" + each_sales_order.get("Bigcommerce_Order_ID"),HeaderMap);
+					if(getting_bigcommerce_order.get("status") != sales_order_status)
+					{
+						if(!(sales_order_status == "Completed" && (getting_bigcommerce_order.get("status") == "Shipped" || getting_bigcommerce_order.get("status") == "Awaiting Pickup") || sales_order_status == "Shipped" && (getting_bigcommerce_order.get("status") == "Completed" || getting_bigcommerce_order.get("status") == "Awaiting Pickup")))
+						{
+							wrong_bc_order.add("Public_Furniture_" + getting_bigcommerce_order.get("id"));
+							wrong_salesorderid.add(each_sales_order.get("id"));
+						}
+						// 					else
+						// 					{
+						// 					}
+					}
+				}
+				else if(each_sales_order.get("Store").get("name") == "California_Access_Doors")
+				{
+					HeaderMap = Map();
+					HeaderMap.put("Accept","application/json");
+					HeaderMap.put("Content-Type","application/json");
+					HeaderMap.put("X-Auth-Token",California_Access_Doors_auth);
+					HeaderMap.put("X-Auth-Client",California_Access_Doors_client);
+					getting_bigcommerce_order = geturl("https://api.bigcommerce.com/stores/" + California_Access_Doors_store + "/v2/orders/" + each_sales_order.get("Bigcommerce_Order_ID"),HeaderMap);
+					if(getting_bigcommerce_order.get("status") != sales_order_status)
+					{
+						if(!(sales_order_status == "Completed" && (getting_bigcommerce_order.get("status") == "Shipped" || getting_bigcommerce_order.get("status") == "Awaiting Pickup") || sales_order_status == "Shipped" && (getting_bigcommerce_order.get("status") == "Completed" || getting_bigcommerce_order.get("status") == "Awaiting Pickup")))
+						{
+							wrong_bc_order.add("California_Access_Doors_" + getting_bigcommerce_order.get("id"));
+							wrong_salesorderid.add(each_sales_order.get("id"));
+						}
+						// 					else
+						// 					{
+						// 					}
+					}
+				}
+				else if(each_sales_order.get("Store").get("name") == "Best_Roof_Hatches")
+				{
+					HeaderMap = Map();
+					HeaderMap.put("Accept","application/json");
+					HeaderMap.put("Content-Type","application/json");
+					HeaderMap.put("X-Auth-Token",Best_roof_hatches_auth);
+					HeaderMap.put("X-Auth-Client",Best_roof_hatches_client);
+					getting_bigcommerce_order = geturl("https://api.bigcommerce.com/stores/" + Best_roof_hatches_store + "/v2/orders/" + each_sales_order.get("Bigcommerce_Order_ID"),HeaderMap);
+					info "BC status" + getting_bigcommerce_order.get("status") + "sales_order_status" + sales_order_status;
+					if(getting_bigcommerce_order.get("status") != sales_order_status)
+					{
+						if(!(sales_order_status == "Completed" && (getting_bigcommerce_order.get("status") == "Shipped" || getting_bigcommerce_order.get("status") == "Awaiting Pickup") || sales_order_status == "Shipped" && (getting_bigcommerce_order.get("status") == "Completed" || getting_bigcommerce_order.get("status") == "Awaiting Pickup")))
+						{
+							wrong_bc_order.add("Best roof hatches_" + getting_bigcommerce_order.get("id"));
+							wrong_salesorderid.add(each_sales_order.get("id"));
+						}
+						// 					else
+						// 					{
+						// 					}
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		break;
+	}
+}
+info "\nzero dropshiporders\n" + zero_dropship_order;
+info "\nWrong Sales Orders\n" + Wrong_sales_order;
+info "\nNotCreated_dropshiper_order\n" + NotCreated_dropshiper_order;
+info "\nwrong_bc_order\n" + wrong_bc_order;
+info "wrong_salesorderid" + wrong_salesorderid;
+for each  orderid in wrong_salesorderid
+{
+	// 	response = invokeurl
+	// [
+	// 	url :"https://www.1.door-pay.com/api/zohocrm/updateOrder"
+	// 	type :POST
+	// 	parameters:orderid
+	// 	detailed:true
+	// ];
+}
+return "";
+}

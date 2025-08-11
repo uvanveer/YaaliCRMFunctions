@@ -1,0 +1,230 @@
+string standalone.assignCRMAdmin()
+{
+//code done by pooja L on 19/5/2020
+highriseAuth = "Basic OWZiYjY1ODg2NWY5MTUyODlmN2U5ZDNiM2E3MWNkYmI6WA==";
+logs = zoho.crm.getRecords("Duplicate_Moderation_Log",2,20,{"cvid":3106252000088997747});
+for each  log in logs
+{
+	try 
+	{
+		//log = zoho.crm.getRecordById("Duplicate_Moderation_Log",3106252000088695025);
+		dealName = log.get("Deal_Name");
+		dealID = log.get("HR_Deal_Id");
+		highrisedeal = geturl("https://bestaccessdoors.highrisehq.com/deals/" + dealID + ".xml",{"Authorization":highriseAuth});
+		info dealName + " ___ " + highrisedeal;
+		hrContactEmail = list();
+		hrContactPhone = list();
+		crmDealFound = false;
+		errorMap = Map();
+		errorMap.put("Status","Try Again");
+		if(highrisedeal.executeXPath("deal").containsIgnoreCase("Person") || highrisedeal.executeXPath("deal").containsIgnoreCase("Company"))
+		{
+			partyData = highrisedeal.executeXPath("deal/parties");
+			if(partyData.contains("party"))
+			{
+				partyData = partyData.executeXPath("parties/party");
+				info "test1";
+			}
+			else
+			{
+				partyData = highrisedeal.executeXPath("deal/party");
+				info "test2";
+			}
+			//user = ifnull(highrisedeal.executeXPath("deal/responsible-party-id/text()"),"");
+			info "----- party data " + partyData + " -----";
+			info "party " + partyData.executeXPath("party");
+			if(partyData.executeXPath("party/type/text()") == "Person")
+			{
+				info "testing";
+				typeContact = true;
+				if(partyData.executeXPath("party/contact-data/email-addresses").containsIgnoreCase("@") || partyData.executeXPath("party/contact-data/email-addresses").containsIgnoreCase(".com"))
+				{
+					info "resp " + partyData.executeXPath("party/contact-data/email-addresses");
+					partEmailList = partyData.executeXPath("party/contact-data/email-addresses/email-address").toXmlList();
+					info "----- emailslist " + partEmailList.size() + " ------";
+					for each  singleemail in partEmailList
+					{
+						getEmail = singleemail.executexpath("email-address/address/text()");
+						info "Email " + getEmail;
+						hrContactEmail.add(getEmail.toLowerCase());
+					}
+				}
+				hrPhNoResp = partyData.executeXPath("party/contact-data/phone-numbers");
+				if(hrPhNoResp.replaceAll("phone-numbers","").containsIgnoreCase("phone-number"))
+				{
+					if(hrPhNoResp.replaceAll("phone-numbers","").replaceAll("phone-number","").containsIgnoreCase("number"))
+					{
+						partPhoneList = partyData.executeXPath("party/contact-data/phone-numbers/phone-number").toXmlList();
+						for each  singlePhone in partPhoneList
+						{
+							getPhone = singlePhone.executexpath("phone-number/number/text()");
+							info "Phone " + getPhone;
+							if(getPhone != "")
+							{
+								phNo = getPhone.toString();
+								phNo = phNo.replaceAll("[/\-\(\)_@#\^!\$%\&\*:;`~+.,']","");
+								phNo = phNo.removeAllAlpha();
+								data = '"';
+								phNo = phNo.replaceAll(data,"");
+								phNo = phNo.replaceAll(" ","");
+								info "Modified Phone No " + phNo;
+								hrContactPhone.add(phNo);
+							}
+						}
+					}
+				}
+			}
+			else if(partyData.executeXPath("party/type/text()") == "Company")
+			{
+				//get company name
+				hrAccountName = ifnull(partyData.executeXPath("party/name"),"");
+				typeAccount = true;
+			}
+			else
+			{
+				//log it and mark type is not company/contact
+				errorMap.put("Message",log.get("Message") + ", Type is not either person or company for HR. Type: " + partyData.executeXPath("party/type"));
+				createErrorLog = zoho.crm.updateRecord("Duplicate_Moderation_Log",log.get("id"),errorMap);
+				info "error map : " + errorMap;
+			}
+			DealMap = Map();
+			searchDeals = zoho.crm.searchRecords("Deals","Deal_Name:equals:" + dealName);
+			info "----searchDeals " + searchDeals.size() + "---resp :" + searchDeals + "------";
+			if(searchDeals.size() == 1)
+			{
+				for each  crmDeal in searchDeals
+				{
+					crmDealId = crmDeal.get("id");
+					errorMap.put("CRM_Deal_Id",crmDealId);
+					if(typeContact)
+					{
+						if(crmDeal.get("Contact_Name") != null && crmDeal.get("Contact_Name") != "")
+						{
+							contactId = crmDeal.get("Contact_Name").get("id");
+							crmContacts = zoho.crm.getRecordById("Contacts",contactId);
+							crmContactEmail = ifnull(crmContacts.get("Email"),"");
+							crmContactPhone = ifnull(crmContacts.get("Phone"),"");
+							info "---CRM CONTACT EMAIL : " + crmContactEmail + ", HR EMAIL LIST : " + hrContactEmail + " ----------------------";
+							info "hrContactPhone " + hrContactPhone;
+							info "crmContactPhone " + crmContactPhone;
+							if(crmContactEmail != "" && hrContactEmail.size() > 0)
+							{
+								if(hrContactEmail.contains(crmContactEmail.toLowerCase()))
+								{
+									crmDealFound = true;
+								}
+							}
+							else if(crmContactPhone != "" && hrContactPhone.size() > 0)
+							{
+								phNo1 = crmContactPhone.toString();
+								phNo1 = phNo1.replaceAll("[/\-\(\)_@#\^!\$%\&\*:;`~+.,']","");
+								phNo1 = phNo1.removeAllAlpha();
+								data1 = '"';
+								phNo1 = phNo1.replaceAll(data1,"");
+								phNo1 = phNo1.replaceAll(" ","");
+								info "phNo1 " + phNo1;
+								info "hrContactPhone " + hrContactPhone;
+								if(hrContactPhone.contains(phNo1))
+								{
+									crmDealFound = true;
+								}
+							}
+							else
+							{
+								errorMap.put("Message",log.get("Message") + ", Contact data not matched(Email&phone)");
+								createErrorLog = zoho.crm.updateRecord("Duplicate_Moderation_Log",log.get("id"),errorMap);
+								info "-----------error map : " + errorMap + "-----------------";
+							}
+						}
+						else
+						{
+							//crm contact details is not there
+							errorMap.put("Message",log.get("Message") + ", Contact not found in CRM");
+							errorMap.put("CRM_Deal_Id",crmDealId);
+							createErrorLog = zoho.crm.updateRecord("Duplicate_Moderation_Log",log.get("id"),errorMap);
+							info "-----------error map : " + errorMap + "-----------------";
+						}
+					}
+					else if(typeAccount)
+					{
+						if(crmDeal.get("Account_Name") != null && crmDeal.get("Account_Name") != "")
+						{
+							if(hrAccountName != "")
+							{
+								if(crmDeal.get("Account_Name").equalsIgnoreCase(hrAccountName))
+								{
+									crmDealFound = true;
+								}
+								else
+								{
+									//crm deal account name doesn't match
+									errorMap.put("Message",log.get("Message") + ", Account Name doesn't Match In CRM");
+									errorMap.put("CRM_Deal_Id",crmDealId);
+									createErrorLog = zoho.crm.updateRecord("Duplicate_Moderation_Log",log.get("id"),errorMap);
+									info "-----------error map : " + errorMap + "-----------------";
+								}
+							}
+							else
+							{
+								//log account name is not available in highrise
+								errorMap.put("Message",log.get("Message") + ", Account Name is Not Available In HR");
+								createErrorLog = zoho.crm.updateRecord("Duplicate_Moderation_Log",log.get("id"),errorMap);
+								info "-----------error map : " + errorMap + "-----------------";
+							}
+						}
+						else
+						{
+							//mark account not associated in crm deal
+							errorMap.put("Message",log.get("Message") + ", Account is Not associated for CRM Deal");
+							createErrorLog = zoho.crm.updateRecord("Duplicate_Moderation_Log",log.get("id"),errorMap);
+							info "-----------error map : " + errorMap + "-----------------";
+						}
+					}
+					if(crmDealFound)
+					{
+						DealMap.put("Previous_Owner_Id",crmDeal.get("Owner").get("id"));
+						//info "Previous owner id : " + crmDeal.get("Owner").get("id");
+						DealMap.put("HR_Deal_Owner_Updated",true);
+						DealMap.put("HR_Owner_ID_If_CRM_Admin",log.get("HR_OWNER_ID"));
+						DealMap.put("Owner","3106252000004512006");
+						updateCrmDeal = zoho.crm.updateRecord("Deals",crmDealId,DealMap);
+						info "----- resp " + updateCrmDeal + "-----";
+						info "------deal map " + DealMap + "---------";
+						updateLog = zoho.crm.updateRecord("Duplicate_Moderation_Log",log.get("id"),{"Status":"Assigned crm admin"});
+						info "------Update Log " + updateLog + "---------";
+					}
+					else
+					{
+						info "Not found";
+					}
+				}
+			}
+			else if(searchDeals.size() > 1)
+			{
+				//mark it in log more than One deal found with the same name
+				errorMap.put("Message",log.get("Message") + ", More Than One Deal found in CRM");
+				createErrorLog = zoho.crm.updateRecord("Duplicate_Moderation_Log",log.get("id"),errorMap);
+				info "-----------error map : " + errorMap + "-----------------";
+			}
+			else if(searchDeals.size() == 0)
+			{
+				//mark it corresponding deal not found
+				errorMap.put("Message",log.get("Message") + ", Deal not found in CRM");
+				createErrorLog = zoho.crm.updateRecord("Duplicate_Moderation_Log",log.get("id"),errorMap);
+				info "-----------error map : " + errorMap + "-----------------";
+			}
+			//}
+		}
+		else
+		{
+			errorMap.put("Message",log.get("Message") + ", Party Data is not available in the HR response");
+			createErrorLog = zoho.crm.updateRecord("Duplicate_Moderation_Log",log.get("id"),errorMap);
+			info "error map : " + errorMap;
+		}
+	}
+ catch (e)
+	{		info e;
+	}
+}
+return "";
+}

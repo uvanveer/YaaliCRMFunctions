@@ -1,0 +1,109 @@
+string standalone.Books_PO_Status_Update_to_Issued()
+{
+getBooksPage = zoho.crm.getRecordById("Merger_Schedule",3106252000061961343);
+last_page = getBooksPage.get("Books_PO_Last_Page").toLong();
+processed_count = getBooksPage.get("Books_Processed_PO").toLong();
+OrganizationID = "666840843";
+if(last_page <= 2687)
+{
+	pcount = 0;
+	Limit_val = 200;
+	Offset_val = 0;
+	coql_map = Map();
+	//for status - sent to dropshippers
+	//coql_map.put("select_query","select Order_Date,Status,Created_Time from Purchase_Orders where Status = 'Sent to Dropshippers' and Created_Time between '2020-05-01T00:00:01-04:00' and '2020-05-27T23:59:59-04:00' ORDER BY Created_Time OFFSET " + last_page + " limit 200");
+	coql_map.put("select_query","select Order_Date,Status,Created_Time from Purchase_Orders where ((Status = 'Completed') or (Status = 'Shipped')) and Created_Time between '2020-05-01T00:00:01-04:00' and '2020-05-27T23:59:59-04:00' ORDER BY Created_Time OFFSET " + last_page + " limit 200");
+	maillist = invokeurl
+	[
+		url :"https://www.zohoapis.com/crm/v2/coql"
+		type :POST
+		parameters:coql_map.tostring()
+		connection:"crm_connection"
+	];
+	info " --- " + maillist.get("data").size();
+	// info "mrec " + maillist.get("data");
+	for each  dataRecord in maillist.get("data")
+	{
+		pcount = pcount + 1;
+		id = dataRecord.get("id");
+		getPO = zoho.books.getRecords("Purchaseorders",OrganizationID,"cf_crm_rec_id=" + id.toText());
+		if(getPO.getJSON("purchaseorders").size() > 0)
+		{
+			processed_count = processed_count + 1;
+			Books_po_id = getPO.getJSON("purchaseorders").getJSON("purchaseorder_id");
+			info pcount + " -- books po id " + Books_po_id;
+			response = invokeurl
+			[
+				url :"https://www.zohoapis.com/books/v3/purchaseorders/" + Books_po_id + "/status/open?organization_id=666840843"
+				type :POST
+				connection:"zoho_books_oauth2"
+			];
+			info response.get("message");
+			if(response.get("message") != "Purchase order status has been changed to Issued.")
+			{
+				logs = zoho.crm.createRecord("Duplicate_Moderation_Log",{"Source":"Books-PO-Status","Message":response.get("message"),"Error_Details":Books_po_id + " - " + id + " : searched po (" + dataRecord.get("Status") + ") is not updated in books"});
+			}
+		}
+		else
+		{
+			info pcount + " no po found in books " + id;
+			logs = zoho.crm.createRecord("Duplicate_Moderation_Log",{"Source":"Books-PO-Status","Message":id,"Error_Details":id + " : searched po (" + dataRecord.get("Status") + ") is not found in books"});
+		}
+	}
+	last_page = last_page + pcount;
+	updateMerger = zoho.crm.updateRecord("Merger_Schedule",3106252000061961343,{"Books_PO_Last_Page":last_page.toString(),"Books_Processed_PO":processed_count.toString()});
+	info "updateMerger " + updateMerger.get("Modified_Time");
+	return "completed processing count " + processed_count + " == " + pcount;
+}
+else
+{
+	return "completed processing for given count. please check the processing count ";
+}
+// OrganizationID = "666840843";
+// // 	getPO = zoho.books.getRecords("Purchaseorders",OrganizationID,"cf_crm_rec_id=" + Po_Id.toText());
+// getBooksPage = zoho.crm.getRecordById("Merger_Schedule",3106252000061961343);
+// last_page = getBooksPage.get("Books_PO_Last_Page").toLong();
+// processed_count = getBooksPage.get("Books_Processed_PO").toLong();
+// //ref - static date
+// currentDate = '01-Mar-2020';
+// newDate = currentDate.eomonth(1);
+// if(last_page <= 25)
+// {
+// 	// 	purchase_orders = zoho.books.getRecords("Purchaseorders",OrganizationID,"page=" + last_page + "&purchaseorders=date&filter_by=Status.Draft");
+// 	purchase_orders = getUrl("https://books.zoho.com/api/v3/purchaseorders?page=1&per_page=200&status=draft&sort_column=created_time&sort_order=D&usestate=false&date_start=2020-02-15&date_end=2020-04-30&organization_id=666840843",{"Authorization":"Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2"});
+// 	// 	info purchase_orders.get("purchaseorders");
+// 	info purchase_orders.get("message");
+// 	flag = 0;
+// 	if(purchase_orders.get("message") == "success")
+// 	{
+// 		for each  po in purchase_orders.get("purchaseorders")
+// 		{
+// 			flag = flag + 1;
+// 			// 			if(flag <= 200){				
+// 			Books_po_id = po.get("purchaseorder_id");
+// 			if(po.get("status") == "draft")
+// 			{
+// 				inputfetchTime = po.get("date");
+// 				inputTime = inputfetchTime;
+// 				if(inputTime.totime() <= newDate.totime())
+// 				{
+// 					processed_count = processed_count + 1;
+// 					info "--update status " + flag + " -------" + inputTime + " -- " + Books_po_id + " -- " + po.get("status");
+// 					response = invokeurl
+// 					[
+// 						url :"https://books.zoho.com/api/v3/purchaseorders/" + Books_po_id + "/status/open?organization_id=666840843"
+// 						type :POST
+// 						connection:"zoho_books_oauth2"
+// 					];
+// 					info response.get("message");
+// 				}
+// 			}
+// 			// 			}
+// 		}
+// 		last_page = last_page + 1;
+// 		updateMerger = zoho.crm.updateRecord("Merger_Schedule",3106252000061961343,{"Books_PO_Last_Page":last_page.toString(),"Books_Processed_PO":processed_count.toString()});
+// 		info "updateMerger" + updateMerger;
+// 	}
+// }
+// return "completed processing count " + processed_count + " last page " + last_page + " total " + flag;
+}

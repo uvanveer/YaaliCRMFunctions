@@ -1,0 +1,24 @@
+string standalone.elmdor_tracking(String crmAPIRequest)
+{
+crm_api_map = crmAPIRequest.toMap();
+params = crm_api_map.get("body");
+// params = {"id":"3fa128387966fda3a6f6c04c8ca3a19f","received_at":"2020-05-19 09:17:22","processed_at":"2020-05-19 15:44:05","mail_attachments":["https:\/\/files.mailparser.io\/f\/CfNk26JKPiPV14egerORZg","https:\/\/files.mailparser.io\/f\/OkLXLYrdc8gRYGtO5RuIDw","https:\/\/files.mailparser.io\/f\/64w5BCzY7d2l4onO80ckbA","https:\/\/files.mailparser.io\/f\/ARpK1jnLAsmnDs1qvVkK1g","https:\/\/files.mailparser.io\/f\/8ZuLBfutZuEv85IshR0EdA","https:\/\/files.mailparser.io\/f\/urbpHTcoh3IMlEpocGRY7A","https:\/\/files.mailparser.io\/f\/cBimovujGBar16XqWMQV5w","https:\/\/files.mailparser.io\/f\/M_IHG_FV4pMKMDUP7jug5Q","https:\/\/files.mailparser.io\/f\/HCyWEz2ue4Y3KWMVbvENTg","https:\/\/files.mailparser.io\/f\/TKKoL0aNRH1n9T5O3ciF8A","https:\/\/files.mailparser.io\/f\/FHwsp-RpMR4Vz6LY4o39oQ","https:\/\/files.mailparser.io\/f\/SfLyXqO31KfGGFoazpJjKQ","https:\/\/files.mailparser.io\/f\/3tbA7x6XqPVgw4U_8YCzow","https:\/\/files.mailparser.io\/f\/Yua2eNN7u7KFK0KNyAawhQ","https:\/\/files.mailparser.io\/f\/8xQ2gWhf07JCuRZSGUHcZw"]};
+for each  mail_attachment in params.getJSON("mail_attachments")
+{
+	attachment_url = mail_attachment.replaceAll("\\","");
+	attachemnt_stream = invokeurl
+	[
+		url :attachment_url
+		type :GET
+	];
+	sendmail
+	[
+		from :zoho.adminuserid
+		to :"ztiopcdh@mailparser.io"
+		subject :"ELmdor PDF Individual"
+		message :"Elmdor PDF Individual for Tracking No"
+		Attachments :file:attachemnt_stream
+	]
+}
+return "";
+}

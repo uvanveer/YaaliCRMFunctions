@@ -1,0 +1,22 @@
+string button.Refund_Page(String userEmail,String creatorID,String userID,String crmID)
+{
+crmAdminUser = false;
+adminUsers = zoho.crm.invokeConnector("crm.getusers",{"type":"AdminUsers"});
+//info adminUsers ;
+userAdminList = adminUsers.get("response").get("users");
+for each  userdata in userAdminList
+{
+	if(zoho.loginuserid == userdata.get("email"))
+	{
+		crmAdminUser = true;
+		break;
+	}
+}
+adminUsers = zoho.crm.invokeConnector("crm.getusers",{"type":"AdminUsers"});
+//https://creator.zohopublic.com/zoho_zoho1502/quotes/form-perma/Select_Method/KPADFJbZuFGJ2n1bkBdyDY5K90kZzCZJxfgu16mwUJZYnbxzuMd4aSMWC9eq7TC9qBRAab8ku8WqO6WjFUUG5xRhvV5JS3Gnm9rO
+//url = "https://creator.zohopublic.com/zoho_zoho1502/quotes/form-perma/Refund_Process/m0qFCURg3hpfauAy1NxG2Y6U335qEKSD4t0APYuNOnjVwEOfpVFY1BEFZjOJ8xZqbNOEBe6EaXkMdpu7dSP8jZRNCsTda281eXnk?Creator_ID=" + creatorID + "&Login_User=" + userEmail + "&CRM_Admin_User=" + crmAdminUser + "&Login_User_CRM_ID=" + userID + "&CRM_RECORD_ID=" + crmID + "&Is_Refund_For_Quote=true";
+// url changed by cva for select method aith RMA or w/o RMA
+url = "https://creator.zohopublic.com/zoho_zoho1502/quotes/form-perma/Select_Method/KPADFJbZuFGJ2n1bkBdyDY5K90kZzCZJxfgu16mwUJZYnbxzuMd4aSMWC9eq7TC9qBRAab8ku8WqO6WjFUUG5xRhvV5JS3Gnm9rO?Creator_ID=" + creatorID + "&Login_User=" + userEmail + "&CRM_Admin_User=" + crmAdminUser + "&Login_User_CRM_ID=" + userID + "&CRM_RECORD_ID=" + crmID + "&Is_Refund_For_Quote=true&Comes_From=Quotes";
+openUrl(url,"new window");
+return "";
+}

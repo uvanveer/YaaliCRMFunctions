@@ -1,0 +1,33 @@
+string button.Sync_Order_to_Books(String id)
+{
+/* Ezhilarasu 27/05/2020 */
+/* Sync Sale Order to Books */
+orderid = Map();
+orderid.put("crmOrderId",id);
+info orderid;
+BADAuthorization = zoho.crm.getOrgVariable("OAuthHashCode");
+header_map = Map();
+header_map.put("Content-Type","application/json");
+header_map.put("BADAuthorization",BADAuthorization);
+response = invokeurl
+[
+	url :"https://www.1.door-pay.com/api/zohocrm/updateOrder"
+	type :POST
+	parameters:orderid
+	headers:header_map
+	detailed:true
+];
+info response;
+if(response.get("responseCode") != 200)
+{
+	sendmail
+	[
+		from :zoho.adminuserid
+		to :"zoho_zoho1502-172@forms.zohocreator.com"
+		subject :"CRM to Books Salesorder Update"
+		message :"CRM RecID :" + id.toString() + "<br>Execution Time :" + zoho.currenttime.addMinutes(5) + "<br>Status :Pending<br>Attempt Tried :0<br>Source :CRMSalesOrderStatus<br>Is Active :true<br>Error Code :" + response.get('responseCode') + "<br>Error Response :" + response + "<br>"
+	]
+	info "mail has send";
+}
+return "";
+}

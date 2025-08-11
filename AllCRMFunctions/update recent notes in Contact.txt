@@ -1,0 +1,234 @@
+void automation.update_recent_notes_in_contact(Int contact_id)
+{
+//get_contact_info = zoho.crm.getRecordById("Contacts",contact_id);
+get_all_notes = zoho.crm.getRelatedRecords("Notes","Contacts",contact_id);
+info get_all_notes;
+if(get_all_notes.size() > 0 && get_all_notes.contains("email"))
+{
+	recent_note_map = get_all_notes.get(0);
+	info "recent_notes" + recent_note_map;
+	if(!isempty(recent_note_map))
+	{
+		Note_Title = recent_note_map.get("Note_Title");
+		Note_Content = recent_note_map.get("Note_Content");
+		Recent_Notes = Note_Title + " - " + Note_Content;
+		update_map = Map();
+		update_map.put("Recent_Notes",Recent_Notes);
+		update_map.put("Update_Source","ZCRM-Contact-3106252000088209139-1-" + now.toLong());
+		//info update_map;
+		update_contact_record = zoho.crm.updateRecord("Contacts",contact_id,update_map);
+		//info update_contact_record;
+	}
+}
+getContactInfo = zoho.crm.getRecordById("Contacts",contact_id);
+if(getContactInfo.size() > 0)
+{
+	phone = getContactInfo.get('Phone');
+	additional_Phone_1 = getContactInfo.get('Additional_Phone_1');
+	copyPhoneEmailNotification = getContactInfo.get('CopyPhoneEmailNotification');
+	info "Data :: " + copyPhoneEmailNotification;
+	BADAuthorization = zoho.crm.getOrgVariable("OAuthHashCode");
+	header_map = Map();
+	header_map.put("Content-Type","application/json");
+	header_map.put("BADAuthorization",BADAuthorization);
+	if(phone != null)
+	{
+		sp_data = phone.removeAllAlphaNumeric();
+		no_char = phone.removeAllAlpha();
+		for each  sp_chr in sp_data.toList("")
+		{
+			no_char = no_char.remove(sp_chr);
+		}
+		phone = no_char;
+		info phone;
+	}
+	if(additional_Phone_1 != null)
+	{
+		sp_data = additional_Phone_1.removeAllAlphaNumeric();
+		no_char = additional_Phone_1.removeAllAlpha();
+		for each  sp_chr in sp_data.toList("")
+		{
+			no_char = no_char.remove(sp_chr);
+		}
+		additional_Phone_1 = no_char;
+		info additional_Phone_1;
+	}
+	if(phone != null)
+	{
+		if(phone.length() <= 5 && additional_Phone_1 != null)
+		{
+			if(additional_Phone_1.length() <= 5)
+			{
+				/** send mail to */
+				// getContactInfo.get('Owner').get('email'), "dev@bestaccessdoors.com",zyarina@bestaccessdoors.com
+				info "Fields values are not correct";
+				if(copyPhoneEmailNotification == false)
+				{
+					update_map = Map();
+					update_map.put("CopyPhoneEmailNotification",true);
+					update_map.put("Update_Source","ZCRM-Contact-3106252000088209139-2-" + now.toLong());
+					workflow = Map();
+					workflow.put("trigger",{});
+					update_contact_record = zoho.crm.updateRecord("Contacts",contact_id,update_map,workflow);
+					info update_contact_record;
+					mailmap = Map();
+					mailmap.put("to",{getContactInfo.get('Owner').get('email'),"citrigno@bestaccessdoors.com","zyarina@bestaccessdoors.com"});
+					mailmap.put("cc",{"dhanapal@bizappln.com","sankar@bizappln.com"});
+					// 				mailmap.put("bcc",{"tharmendheran@bizappln.com","balaji@bizappln.com"});
+					// 				mailmap.put("scope","Droship Notify");
+					mailmap.put("subject","Alert - Phone and Additinal_Phone_1 fields was not legit full phone numbers");
+					mailmap.put("body","Hi " + getContactInfo.get('Owner').get('name') + "<br><br> We have identified <strong>Phone</strong> and <strong>Additional_Phone_1</strong> was not legit full phone numbers <br><br> <a href ='https://crm.zoho.com/crm/org663942562/tab/Contacts/" + contact_id + "'>Click Here </a> <br><br> <strong>Thanks</strong>");
+					// 	info mailmap;
+					mailres = postURL("https://1.door-pay.com/api/Office360Mail/sendreq",mailmap,header_map);
+					info "mailres:" + mailres;
+					/** create new task */
+					create_task = Map();
+					dueDate = zoho.currentdate;
+					// 				create_task.put("$se_module","Contacts");
+					// 				create_task.put("What_Id",contact_id);
+					create_task.put("Who_Id",contact_id);
+					create_task.put("Due_Date",dueDate);
+					create_task.put("Send_Notification_Email",true);
+					create_task.put("Status","Assigned");
+					create_task.put("Priority","High");
+					owner_id = getContactInfo.get('Owner').get('ID');
+					if(owner_id == "3106252000138625046" || owner_id == "3106252000000147711" || owner_id == "3106252000000147013" || owner_id == "3106252000014929001")
+					{
+						create_task.put("Owner","3106252000026453004");
+					}
+					else
+					{
+						create_task.put("Owner",getContactInfo.get('Owner').get('ID'));
+					}
+					create_task.put('Subject',"We have identified invalid phone numbers in Phone and Additional_Phone_1 fields, Please take action on this !!");
+					create_task.put('Description',"We have identified invalid phone numbers in Phone and Additional_Phone_1 fields, Please take action on this !!");
+					create_response = zoho.crm.createRecord("Tasks",create_task);
+					info create_response;
+				}
+			}
+			else if(additional_Phone_1.length() > 5)
+			{
+				info "Legit full phone number!!";
+				/** update/copy phone field values from additional phone field */
+				update_map = Map();
+				update_map.put("Phone",getContactInfo.get('Additional_Phone_1'));
+				update_map.put("Update_Source","ZCRM-Contact-3106252000088209139-3-" + now.toLong());
+				workflow = Map();
+				workflow.put("trigger",{});
+				update_contact_record = zoho.crm.updateRecord("Contacts",contact_id,update_map,workflow);
+				info update_contact_record;
+			}
+		}
+		else if(phone.length() > 5)
+		{
+			/** valid phone number in phone field */
+			info "Valid phone !!";
+			queryMap = Map();
+			queryMap.put("select_query","select Called_Number,Who_Id from Calls where ( Called_Number like '%" + phone + "%') and (Who_Id is null)");
+			info queryMap.tostring();
+			getCalls = invokeurl
+			[
+				url :"https://www.zohoapis.com/crm/v2/coql"
+				type :POST
+				parameters:queryMap.tostring()
+				connection:"crm_connection"
+			];
+			info "result set :: " + getCalls;
+			if(getCalls.size() > 0)
+			{
+				callsDetails = getCalls.tomap();
+				if(callsDetails.containKey("data"))
+				{
+					getData = callsDetails.get("data");
+					for each  call in getData
+					{
+						updateMap = Map();
+						updateMap.put("Who_Id",contact_id);
+						info updateMap;
+						//trigger workflow added by barani 08/11/2023
+						updateResponse = zoho.crm.updateRecord("Calls",call.get("id"),updateMap,{"trigger":{"workflow"}});
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		if(additional_Phone_1 != null)
+		{
+			if(additional_Phone_1.length() <= 5)
+			{
+				info "Fields values are not correct";
+				/** send mail to */
+				// getContactInfo.get('Owner').get('email'), "dev@bestaccessdoors.com",zyarina@bestaccessdoors.com
+				if(copyPhoneEmailNotification == false)
+				{
+					update_map = Map();
+					update_map.put("CopyPhoneEmailNotification",true);
+					update_map.put("Update_Source","ZCRM-Contact-3106252000088209139-4-" + now.toLong());
+					workflow = Map();
+					workflow.put("trigger",{});
+					update_contact_record = zoho.crm.updateRecord("Contacts",contact_id,update_map,workflow);
+					info update_contact_record;
+					mailmap = Map();
+					mailmap.put("to",{getContactInfo.get('Owner').get('email'),"citrigno@bestaccessdoors.com","zyarina@bestaccessdoors.com"});
+					mailmap.put("cc",{"dhanapal@bizappln.com","sankar@bizappln.com"});
+					// 				mailmap.put("bcc",{"tharmendheran@bizappln.com","balaji@bizappln.com"});
+					// 				mailmap.put("scope","Droship Notify");
+					mailmap.put("subject","Alert - Phone and Additinal_Phone_1 fields was not legit full phone numbers");
+					mailmap.put("body","Hi " + getContactInfo.get('Owner').get('name') + "<br><br> We have identified <strong>Phone</strong> and <strong>Additional_Phone_1</strong> was not legit full phone numbers <br><br> <a href ='https://crm.zoho.com/crm/org663942562/tab/Contacts/" + contact_id + "'>Click Here </a> <br><br> <strong>Thanks</strong>");
+					// 	info mailmap;
+					mailres = postURL("https://1.door-pay.com/api/Office360Mail/sendreq",mailmap,header_map);
+					info "mailres:" + mailres;
+					/** create new task */
+					create_task = Map();
+					dueDate = zoho.currentdate;
+					// 				create_task.put("SEMODULE","Contacts");
+					// 				create_task.put("SEID",contact_id);
+					// 				create_task.put("$se_module","Contacts");
+					create_task.put("Who_Id",contact_id);
+					create_task.put("Due_Date",dueDate);
+					create_task.put("Send_Notification_Email",true);
+					create_task.put("Status","Assigned");
+					create_task.put("Priority","High");
+					owner_id = getContactInfo.get('Owner').get('ID');
+					// 				3106252000138625046 - crmadmin
+					// 				3106252000000147711 - Anthony
+					// 				3106252000000147013 - Carlo
+					// 				3106252000014929001 - Zoho
+					if(owner_id == "3106252000138625046" || owner_id == "3106252000000147711" || owner_id == "3106252000000147013" || owner_id == "3106252000014929001")
+					{
+						create_task.put("Owner","3106252000026453004");
+					}
+					else
+					{
+						create_task.put("Owner",getContactInfo.get('Owner').get('ID'));
+					}
+					create_task.put('Subject',"We have identified invalid phone numbers in Phone and Additional_Phone_1 fields, Please take action on this !!");
+					create_task.put('Description',"We have identified invalid phone numbers in Phone and Additional_Phone_1 fields, Please take action on this !!");
+					create_response = zoho.crm.createRecord("Tasks",create_task);
+					info create_response;
+				}
+			}
+			else if(additional_Phone_1.length() > 5)
+			{
+				info "Legit full phone number!!";
+				/** update/copy phone field values from additional phone field */
+				update_map = Map();
+				update_map.put("Phone",getContactInfo.get('Additional_Phone_1'));
+				update_map.put("Update_Source","ZCRM-Contact-3106252000088209139-5-" + now.toLong());
+				workflow = Map();
+				workflow.put("trigger",{});
+				update_contact_record = zoho.crm.updateRecord("Contacts",contact_id,update_map,workflow);
+				info update_contact_record;
+			}
+		}
+		else
+		{
+			info "Additional Phone number is empty";
+			/** send mail to */
+			// getContactInfo.get('Owner').get('email'), "dev@bestaccessdoors.com",zyarina@bestaccessdoors.com
+		}
+	}
+}
+}

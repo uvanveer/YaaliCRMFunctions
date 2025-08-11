@@ -1,0 +1,27 @@
+void automation.Sync_Amazon_Failed_Order_To_Zoho(Int recordId)
+{
+/* Ezhilarasu 29/05/2020 */
+/* Sync failed amazon orders to zoho crm */
+body = Map();
+//postURL = "http://3.23.22.44:9090/syncorder?crmRecordId=" + recordId;
+postURL = "http://13.58.56.188:9090/syncorder?crmRecordId=" + recordId;
+syncOrderResponse = postUrl(postURL,body,true);
+info syncOrderResponse;
+if(syncOrderResponse.get("status").equals("success"))
+{
+	// Put into Queue
+	info "Success";
+}
+else
+{
+	// Failed
+	info "Failed";
+}
+sendmail
+[
+	from :zoho.adminuserid
+	to :"barani@bizappln.com"
+	subject :"syncOrderResponse"
+	message :syncOrderResponse
+]
+}

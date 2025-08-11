@@ -1,0 +1,29 @@
+void automation.Create_Log_Create_Update_Deal(Int Deal_Id)
+{
+Get_Deal = zoho.crm.getRecordById("Deals",Deal_Id);
+info Get_Deal;
+Get_Deal_name = "";
+if(Get_Deal.get("Deal_Name") != null)
+{
+	Get_Deal_name = Get_Deal.get("Deal_Name");
+}
+if(Get_Deal.get("Contact_Name") != null)
+{
+	Get_deal_contact = Get_Deal.get("Contact_Name").get("name");
+}
+else
+{
+	Get_deal_contact = "Contact name is empty";
+}
+Get_deal_owner = Get_Deal.get("Owner").get("name");
+info Get_deal_owner;
+Update_Log = Map();
+Update_Log.put("Deal_Contact",Get_deal_contact);
+Update_Log.put("Deal_Name",Get_Deal_name);
+Update_Log.put("Deal_Record_ID",Deal_Id.toString());
+Update_Log.put("Deal_Request",Get_Deal);
+Update_Log.put("Name","Deal Create/Edit");
+Update_Log.put("Which_Module","Deals");
+Create_log = zoho.crm.createRecord("Log_ContactQuoteDeals",Update_Log);
+info Create_log;
+}

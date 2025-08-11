@@ -1,0 +1,5 @@
+string button.open_manual_order_form(String contactid)
+{
+openUrl("https://creator.zohopublic.com/zoho_zoho1502/quotes/form-perma/Manual_Order/n13RSE9dHEW3aX6yDZ5H5qdgWP6dDppeR0P58tXNwFQbH6sT5v3fpZ6Fhhfus66jgMA0ruZeDvrXNdNtZ7KOhn4wNDxWvubZTXZP?CRM_Contact_ID=" + contactid,"open window");
+return "";
+}

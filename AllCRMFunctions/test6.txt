@@ -1,0 +1,69 @@
+string button.test()
+{
+// count = 1;
+// getrec = zoho.crm.getRecordById("Deals",3106252001081830765);
+// info getrec;
+getdso = zoho.crm.getRecordById("Purchase_Orders",3106252001267332109);
+info getdso;
+// getting_SalesOrders = zoho.crm.getRecords("Tasks",count,100,{"cvid":3106252001108425092});
+// // info getting_SalesOrders;
+// for each  getwhoID in getting_SalesOrders
+// {
+// 	gettaskID = getwhoID.getJSON("id");
+// 	info "gettaskID:" + gettaskID;
+// 	getwhoIDtask = getwhoID.getJSON("Who_Id");
+// 	info "getwhoIDtask:" + getwhoIDtask;
+// 	getwhatIDtask = getwhoID.getJSON("What_Id");
+// 	info "getwhatIDtask:" + getwhatIDtask;
+// 	if(!isNull(getwhoIDtask))
+// 	{
+// 		info "inside loop";
+// 		getwhoIDtask = getwhoID.getJSON("Who_Id").get("id");
+// 		getcontacts = zoho.crm.getRecordById("Contacts",getwhoIDtask);
+// 		info "getcontacts:" + getcontacts;
+// 		getemail = getcontacts.getJSON("Email");
+// 		info "getemail:" + getemail;
+// 		update = Map();
+// 		update.put("Email_1",getemail);
+// 		updaterec = zoho.crm.updateRecord("Tasks",gettaskID,update);
+// 		info "updaterec:" + updaterec;
+// 	}
+// 	else if(!isNull(getwhatIDtask))
+// 	{
+// 		info "contact not present";
+// 		getwhatnametask = getwhoID.getJSON("What_Id").get("name");
+// 		info "getwhatnametask:" + getwhatnametask;
+// 		if(getwhatnametask.contains("#"))
+// 		{
+// 			getwhatIDtask = getwhoID.getJSON("What_Id").get("id");
+// 			info "getwhatIDtask:" + getwhatIDtask;
+// 			getDSO = zoho.crm.getRecordById("Purchase_Orders",getwhatIDtask);
+// 			info "getDSO" + getDSO;
+// 			getcontactid = getDSO.getJSON("Contact_Name").get("id");
+// 			info "getcontactid:" + getcontactid;
+// 			getcontacts = zoho.crm.getRecordById("Contacts",getcontactid);
+// 			info "getcontacts:" + getcontacts;
+// 			getemail = getcontacts.getJSON("Email");
+// 			info "getemail:" + getemail;
+// 			update = Map();
+// 			update.put("Email_1",getemail);
+// 			updaterec = zoho.crm.updateRecord("Tasks",gettaskID,update);
+// 			info "updaterec:" + updaterec;
+// 		}
+// 		else
+// 		{
+// 			getwhatIDtask = getwhoID.getJSON("What_Id").get("id");
+// 			info "getwhatIDtask:" + getwhatIDtask;
+// 			getlead = zoho.crm.getRecordById("Leads",getwhatIDtask);
+// 			info "getlead:" + getlead;
+// 			getemail = getlead.getJSON("Email");
+// 			info "getemail:" + getemail;
+// 			update = Map();
+// 			update.put("Email_1",getemail);
+// 			updaterec = zoho.crm.updateRecord("Tasks",gettaskID,update);
+// 			info "updaterec:" + updaterec;
+// 		}
+// 	}
+// }
+return "";
+}

@@ -1,0 +1,15 @@
+string standalone.MyTest()
+{
+amazonReturnOrderId = "111-5609719-6865031";
+POdata = zoho.books.getRecords("salesorders","666840843","cf_amazon_order_id=" + amazonReturnOrderId);
+SO = POdata.get("salesorders");
+if(SO.isEmpty() == false)
+{
+	info "yes";
+}
+else
+{
+	info "no";
+}
+return "";
+}

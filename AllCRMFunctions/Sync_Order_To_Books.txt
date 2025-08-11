@@ -1,0 +1,62 @@
+string standalone.Sync_Order_To_Books()
+{
+/* Ezhilarasu 05/05/2020 */
+/* Check & Sync Amazon Sales Orders To Books */
+searchCriteria = "((Source:starts_with:Amazon)and(Created_Time:equals:2020-05-22))";
+coql_map = Map();
+coql_map.put("select_query","select Status,Created_Time from Sales_Orders where Source = 'Amazon Store' and Created_Time >= '2020-05-22T00:00:00+05:30' offset 1 limit 200");
+OrdersList = invokeurl
+[
+	url :"https://www.zohoapis.com/crm/v2/coql"
+	type :POST
+	parameters:coql_map.tostring()
+	connection:"crm_connection"
+];
+existOrders = list();
+notExistOrders = list();
+for each  orderObj in OrdersList.get("data")
+{
+	searchParam = Map();
+	searchParam.put("cf_crm_salesorder_id",orderObj.get("id"));
+	booksOrderInfo = zoho.books.getRecords("salesorders",666840843,searchParam);
+	if(booksOrderInfo.get("message") == "success")
+	{
+		// info "Exist Books Orders Size : "+booksOrderInfo.get("salesorders").size();
+		if(booksOrderInfo.get("salesorders").size() > 0)
+		{
+			// Sale Order Exist in Books
+			// info "Order Exist in Books : "+ amazonOrdersObj.get("id");
+			existOrders.add(orderObj.get("id"));
+		}
+		else
+		{
+			info "Order Not exist : " + orderObj.get("id");
+			notExistOrders.add(orderObj.get("id"));
+			// Sale order not exist in books & create sales order
+			orderid = Map();
+			orderid.put("crmOrderId",orderObj.get("id"));
+			response = invokeurl
+			[
+				url :"https://www.1.door-pay.com/api/zohocrm/updateOrder"
+				type :POST
+				parameters:orderid
+				detailed:true
+			];
+			if(response.get("responseCode") != 200)
+			{
+				sendmail
+				[
+					from :zoho.adminuserid
+					to :"zoho_zoho1502-172@forms.zohocreator.com"
+					subject :"CRM to Books Salesorder Update"
+					message :"CRM RecID :" + orderObj.get("id") + "<br>Execution Time :" + zoho.currenttime.addMinutes(5) + "<br>Status :Pending<br>Attempt Tried :0<br>Source :CRMSalesOrderStatus<br>Is Active :true<br>Error Code :" + response.get('responseCode') + "<br>Error Response :" + response + "<br>"
+				]
+				info "mail has send";
+			}
+		}
+	}
+}
+info "Exist Order Size : " + existOrders.size();
+info "Not exist order Size : " + notExistOrders.size();
+return "";
+}

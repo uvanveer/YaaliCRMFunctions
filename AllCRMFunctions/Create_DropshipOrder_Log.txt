@@ -1,0 +1,20 @@
+void automation.Create_DropshipOrder_Log(Int PO_Id)
+{
+Get_data = zoho.crm.getRecordById("Purchase_Orders",PO_Id);
+Get_Owner = Get_data.get("Owner").get("name");
+Get_PO_num = Get_data.get("Dropship_Number");
+Get_vendor = Get_data.get("Vendor_Name").get("name");
+Get_contact = Get_data.get("Contact_Name").get("name");
+Get_store = Get_data.get("Store").get("name");
+logMap = Map();
+logMap.put("Workflow_Name","Dropship Order Create/Edit");
+logMap.put("Name","Dropship Orders");
+logMap.put("Dropship_Order_Number",Get_PO_num);
+logMap.put("Dropship_Order_Record_ID",PO_Id.toString());
+logMap.put("Vendor_Name",Get_vendor);
+logMap.put("Created_Edited_By",Get_Owner);
+logMap.put("PO_response",Get_data);
+logMap.put("Function_Name","Create_DropshipOrder_Log");
+Create_log = zoho.crm.createRecord("Sales_Order_PO_Log",logMap);
+info Create_log;
+}

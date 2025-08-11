@@ -1,0 +1,11 @@
+string standalone.Get_Profile_Users()
+{
+Get_all_users = zoho.crm.getRecords("users");
+// info Get_all_users;
+for each  rec in Get_all_users.tolist()
+{
+	User_map = rec.tomap();
+	info User_map.get("id");
+}
+return "";
+}

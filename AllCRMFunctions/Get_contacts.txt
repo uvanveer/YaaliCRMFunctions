@@ -1,0 +1,5 @@
+string standalone.Get_contacts()
+{
+Get_all_contacts = zoho.crm.searchRecords("Contacts","test");
+return "";
+}

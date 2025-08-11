@@ -1,0 +1,29 @@
+map validation_rule.Validate_Additional_Names_field(String crmAPIRequest)
+{
+/* Created By prashanth on 2020 */
+/* condule module - additional name field validation  */
+//---------------------------------------------
+entityMap = crmAPIRequest.toMap().get("record");
+names = entityMap.get("Additional_Names");
+modify = entityMap.get("Allow_Additional_Names");
+response = Map();
+/* ---------------------------------------------------------------------------------------------- */
+if(modify == "true" || modify == true)
+{
+	response.put('status','success');
+}
+else
+{
+	response.put('status','error');
+	response.put('message',"A contact's additional-name can not be changed, please contact your Administrator");
+}
+// sendmail
+// [
+// 	from :zoho.loginuserid
+// 	to :"prashanth@bizappln.com"
+// 	subject :"addnl name edit tried by " + zoho.loginuserid
+// 	message :" | flag value | " + modify + " | names | " + names + " | checkname exists | " + checkNames + " | response | " + entityMap + " | getrecord res | "
+// ]
+/* ---------------------------------------------------------------------------------------------- */
+return response;
+}

@@ -1,0 +1,17 @@
+string standalone.Checking_Dropshiporders_Status()
+{
+Query = "select Subject from Sales_Orders where Created_Time between '2020-05-30T00:00:01-04:00' and '2020-05-30T23:59:59-04:00'";
+Get_map = Map();
+Get_map.put("select_query",Query);
+data = Map();
+data.put("JSONString",Get_map);
+Get_Sales_Orders = invokeurl
+[
+	url :"https://www.zohoapis.com/crm/v2/coql"
+	type :POST
+	parameters:Get_map.toString()
+	connection:"crm_connection"
+];
+info Get_Sales_Orders.get("data");
+return "";
+}

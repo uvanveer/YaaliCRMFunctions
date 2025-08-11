@@ -1,0 +1,125 @@
+void automation.Amazon_Return_Change_Sale_Order_Status(Int recordId)
+{
+/* Ezhilarasu 20/05/2020 */
+/* Update Amazon sales order status based on returned products */
+// Get Amazon Order Returns
+amazonReturnInfo = zoho.crm.getRecordById("Amazon_Order_Returns",recordId);
+amazonOrderID = amazonReturnInfo.get("Amazon_Order_ID");
+carrierName = amazonReturnInfo.get("Carrier_Name");
+trackingID = amazonReturnInfo.get("Tracking_ID");
+getordertype = amazonReturnInfo.get("Order_Type");
+if(getordertype == "FBM")
+{
+	returnedProduct = amazonReturnInfo.get("Returned_Product").get("name");
+}
+/* Send mail to orders team */
+sendmail
+[
+	from :zoho.loginuserid
+	to :"orders@bestaccessdoors.com"
+	subject :"Amazon Order Returned Notification"
+	message :"<div>Hi Anthony,<br></div><div><br></div><div>We have found that the following product with name " + returnedProduct + " is retuned for the Amazon order " + amazonOrderID + "'. Tracking details are mentioned below.&nbsp;<br><br>Carrier :&nbsp;" + carrierName + "<br>Tracking ID :&nbsp;" + trackingID + "</div>"
+]
+//Script added by VIJAY.VR 
+data = zoho.books.getRecords("salesorders","666840843","cf_amazon_order_id=" + amazonOrderID);
+id = data.get("salesorders").getJSON("salesorder_id");
+rec = zoho.books.getRecordsByID("salesorders","666840843",id);
+inventorylineitems = rec.get("salesorder").getJSON("line_items");
+salesOrderTotalQty = 0;
+for each  getqty in inventorylineitems
+{
+	itemqty = getqty.get("quantity");
+	salesOrderTotalQty = salesOrderTotalQty + itemqty;
+}
+info "SaleordeQty :" + salesOrderTotalQty.toLong();
+totalReturnedProductQty = 0;
+GetAmazonmoduleitemqty = zoho.crm.searchRecords("Amazon_Order_Returns","Amazon_Order_ID:equals:" + amazonOrderID);
+for each  getcount in GetAmazonmoduleitemqty
+{
+	Amazonreturnqty = getcount.get("Returned_Quantity");
+	totalReturnedProductQty = totalReturnedProductQty + Amazonreturnqty.toNumber();
+}
+info "totalReturnedProductQty" + totalReturnedProductQty;
+if(salesOrderTotalQty == totalReturnedProductQty)
+{
+	update = list();
+	updatebooksSaleOrder = Map();
+	info "All Products are returned";
+	updatebooksSaleOrder.put("customfield_id","1324986000002128389");
+	updatebooksSaleOrder.put("value","Returned");
+	update.add(updatebooksSaleOrder);
+	cusfields = Map();
+	cusfields.put("custom_fields",update);
+}
+else if(salesOrderTotalQty > totalReturnedProductQty)
+{
+	info "Partially Returned";
+	update = list();
+	updatebooksSaleOrder = Map();
+	info "All Products are returned";
+	updatebooksSaleOrder.put("customfield_id","1324986000002128389");
+	updatebooksSaleOrder.put("value","Partially Returned");
+	update.add(updatebooksSaleOrder);
+	cusfields = Map();
+	cusfields.put("custom_fields",update);
+}
+updateSaleOrderInfo = zoho.books.updateRecord("salesorders","666840843",id,cusfields.toString());
+info updateSaleOrderInfo;
+//Script commented due to Salesorder not found in CRM
+/* Send mail to orders team end */
+// saleOrderId = amazonReturnInfo.get("Sale_Order").get("id");
+// getAmazonOrderReturns = zoho.crm.getRelatedRecords("Amazon_Order_Returned_Products","Sales_Orders",saleOrderId);
+// totalReturnedProduct = Map();
+// totalReturnedProductQty = 0;
+// for each  returnedProductsInfo in getAmazonOrderReturns
+// {
+// 	returnedProductId = returnedProductsInfo.get("Returned_Product").get("id");
+// 	returnedProductQty = returnedProductsInfo.get("Returned_Quantity");
+// 	info "Product : " + returnedProductId + " Qty : " + returnedProductQty;
+// 	totalReturnedProductQty = totalReturnedProductQty + returnedProductQty.toLong();
+// 	// totalReturnedProduct.put(returnedProductId, returnedProductQty);
+// }
+// info totalReturnedProduct;
+// // Get Amazon Sales Order
+// salesOrderInfo = zoho.crm.getRecordById("Sales_Orders",saleOrderId);
+// saleOrderProducts = salesOrderInfo.get("Product_Details");
+// salesOrderTotalQty = 0;
+// for each  saleProducts in saleOrderProducts
+// {
+// 	productId = saleProducts.get("product").get("id");
+// 	productQty = saleProducts.get("quantity");
+// 	salesOrderTotalQty = salesOrderTotalQty + productQty;
+// }
+// info salesOrderTotalQty;
+// if(totalReturnedProductQty > 0)
+// {
+// 	updateSaleOrder = Map();
+// 	if(salesOrderTotalQty == totalReturnedProductQty)
+// 	{
+// 		// Change status to returned
+// 		info "All Products are returned";
+// 		updateSaleOrder.put("Status","Returned");
+// 	}
+// 	else if(salesOrderTotalQty > totalReturnedProductQty)
+// 	{
+// 		info "Partially Returned";
+// 		updateSaleOrder.put("Status","Partially Returned");
+// 	}
+// 	updateSaleOrderInfo = zoho.crm.updateRecord("Sales_Orders",saleOrderId,updateSaleOrder);
+// 	info updateSaleOrderInfo;
+// }
+// /* Create Ticket in Desk */
+// dataMap = Map();
+// authToken = invokeurl
+// [
+// 	url :"https://www.zohoapis.com/crm/v2/functions/generate_auth_token/actions/execute?auth_type=oauth"
+// 	type :GET
+// 	parameters:dataMap
+// 	connection:"crm_connection"
+// ];
+// accessToken = authToken.get("details").get("output");
+// if(accessToken != "")
+// {
+// 	// create ticket in desk
+// }
+}

@@ -1,0 +1,715 @@
+void automation.emran_test(Int POID)
+{
+// /* Ezhilarasu 24/06/2020 */
+// // count = 1;
+// // Org_Id = "666840843";
+// // getting_SalesOrders = zoho.crm.getRecords("Tax_Exempt_Contacts",count,20,{"cvid":3106252001579622661});
+// // for each  rec_so in getting_SalesOrders
+// // {
+// // 	So_map = rec_so.tomap();
+// // 	Get_Source = So_map.get("test_check_box");
+// // 	Get_crm_salesorderid = So_map.get("id");
+// // 	info Get_Source + Get_crm_salesorderid;
+// // 	update = Map();
+// // 	update.put("test_check_box",false);
+// // 	updaterecord = zoho.crm.updateRecord("Tax_Exempt_Contacts",Get_crm_salesorderid,update,{"trigger":{}});
+// // 	info updaterecord;
+// // }
+// // getrec = zoho.crm.getRecordById("Purchase_Orders", 3106252001601412364);
+// // info getrec;
+// update = Map();
+// update.put('Status','Awaiting Shipment');
+// updaterec = zoho.crm.updateRecord('Sales_Orders',3106252001601408810,update);
+// info updaterec;
+// // updateshipping = Map();
+// // getd = zoho.crm.getRecordById("Purchase_Orders",POID.toLong());
+// // info getd;
+// // id = "3106252001545711375";
+// // postUrl = "https://1.door-pay.com/api/tax/database/avalaratest/" + id;
+// // response = invokeurl
+// // [
+// // 	url :postUrl
+// // 	type :POST
+// // ];
+// // info response;
+// // getven = zoho.crm.getRecordById("Vendors",getd.get("Vendor_Name").get("id").toLong());
+// // if(getven.get("DSO_Email") != null)
+// // {
+// // 	Vcontact_email = getven.get("DSO_Email").toList(",");
+// // }
+// // info Vcontact_email;
+// // getcrmrecord = zoho.crm.getRecordById("Sales_Orders",3106252001489479186);
+// //info getcrmrecord;
+// //getquotenumber = getcrmrecord.getJSON("");
+// // getrelatedrecords = zoho.crm.getRelatedRecords("Purchase_Orders","Sales_Orders",3106252001484920325);
+// // igetrelatedrecords;
+// //info getcrmrecord;
+// // updateshipping.put("Tax",10);
+// // update_shipping_cost = zoho.crm.updateRecord("Sales_Orders",3106252001489479186,updateshipping,{"trigger":{}});
+// // info update_shipping_cost;
+// //serchdropship = zoho.crm.searchRecords("Purchase_Orders","Sales_Order:equals:3106252001484920325");
+// //info serchdropship;
+// // for each  DSO in serchdropship
+// // {
+// // 	GetDSOID = DSO.getJSON("id");
+// // 	info GetDSOID;
+// // 	drop = Map();
+// // 	//CRM DSO shipping address
+// // 	drop.put("Shipping_First_Name",Shipping_First_Name);
+// // 	drop.put("Shipping_Last_Name",Shipping_Last_Name);
+// // 	drop.put("Shipping_Street",Shipping_Street);
+// // 	drop.put("Shipping_Company",Shipping_Company);
+// // 	drop.put("Shipping_Street_2",Shipping_Street_2);
+// // 	drop.put("Shipping_City",Shipping_City);
+// // 	drop.put("Shipping_Code",Shipping_Code);
+// // 	drop.put("Shipping_Country",Shipping_Country);
+// // 	drop.put("Shipping_State",Shipping_State);
+// // 	drop.put("Shipping_Phone",Shipping_Phone);
+// // 	drop.put("Shipping_Email",Shipping_Email);
+// // 	//update_shipping_cost = zoho.crm.updateRecord("Purchase_Orders",GetDSOID,updateshipping,{"trigger":{}});
+// // }
+// //Have to develop the script to update the shipping details in QC , BC , CRM SO , CRM DSO , BOOKS SO , purchase order
+// // getPO = zoho.crm.getRecordById("Purchase_Orders",POID);
+// // getsoID = getPO.getJSON("Sales_Order").get("id");
+// // //getSO = zoho.crm.getRecordById("Sales_Orders",getsoID);
+// // //info getSO;
+// // getrel = zoho.crm.getRelatedRecords("Deals","Sales_Order_ID",getsoID);
+// // info getrel;
+// //getquote = zoho.crm.getRecordById("Deals", 3106252001299591763);
+// // updatePO = Map();
+// // updatePO.put("Stage","LOST");
+// // updateres = zoho.crm.updateRecord("Deals",3106252001299591763,updatePO,{"trigger":{}});
+// // info updateres;
+// // contacts = zoho.crm.getRelatedRecords("Attachments","Purchase_Orders",3106252001404265044);
+// // info contacts;
+// // getorderdetails = zoho.crm.getRecordById("Sales_Orders","3106252001341302172");
+// // info getorderdetails;
+// // if(getsoID != Null)
+// // {
+// // 	getSO = zoho.crm.getRecordById("Sales_Orders",getsoID);
+// // 	getquoteID = getSO.getJSON("Sales_Quote_number");
+// // 	if(getquoteID != NULL)
+// // 	{
+// // 		GetID = getquoteID.get("id");
+// // 		getquotedetails = zoho.crm.getRecordById("Quotes",GetID);
+// // 		getdeal = getquotedetails.getJSON("Deal_Name");
+// // 		if(getdeal != NULL)
+// // 		{
+// // 			getdealID = getdeal.get("id");
+// // 			getdealdetails = zoho.crm.getRecordById("Deals",getdealID);
+// // 			getSO_ID = getdealdetails.getJSON("Sales_Order_ID").get("id");
+// // 			searchrecords = zoho.crm.getRelatedRecords('Dropship_Orders','Sales_Orders',getSO_ID);
+// // 			if(searchrecords.size() > 0)
+// // 			{
+// // 				info "More than one DSO";
+// // 				update = list();
+// // 				for each  dropshipInfo in searchrecords.toList()
+// // 				{
+// // 					getstatus = dropshipInfo.get("Status");
+// // 					if(getstatus == "Sent to Dropshippers" || getstatus == "Shipped")
+// // 					{
+// // 						getPOnumber = dropshipInfo.get("Dropship_Number");
+// // 						getvendor = dropshipInfo.getJSON("Vendor_Name");
+// // 						if(getvendor != Null)
+// // 						{
+// // 							getvendorname = getvendor.get("name");
+// // 						}
+// // 						update.add(getPOnumber + ' ' + getvendorname);
+// // 					}
+// // 				}
+// // 				updatePO = Map();
+// // 				updatePO.put("PO_number",update.toString());
+// // 				updateres = zoho.crm.updateRecord("Deals",getdealID,updatePO,{"trigger":{}});
+// // 				info updateres;
+// // 			}
+// // 		}
+// // 		else
+// // 		{
+// // 			info "deal not found";
+// // 		}
+// // 	}
+// // 	else
+// // 	{
+// // 		info "Quote not found";
+// // 	}
+// // }
+// // else
+// // {
+// // 	info "No sales order found for this DSO";
+// // }
+// // DRO_Update_Map = Map();
+// // DRO_Update_Map.put("Tax_Amount","228.64");
+// // //DRO_Update_Map.put("EDI_Verified",TRUE);
+// // //UpdatePO = zoho.crm.updateRecord("Purchase_Orders",Purchase_Id,DRO_Update_Map);
+// // UpdatePO = zoho.crm.updateRecord("Deals",3106252001203333168,DRO_Update_Map);
+// // updatePO = Map();
+// // updatePO.put("Owner",3106252000004512006);
+// // updatePO.put("Recent_Quote_Owner1",'');
+// // // updatePO.put("Last_Deal_Date","");
+// // // updatePO.put("Recent_Quote_Amount",0);
+// // // updatePO.put("Recent_Quote_Date","");
+// // // updatePO.put("Recent_Quote_Status","none");
+// // updateres = zoho.crm.updateRecord("Contacts",3106252000853336681,updatePO,{"trigger":{}});
+// //return "";
+// /* Create ticket in desk whenever new amazon order was returned */
+// // deskOrgId = 665802770;
+// // isTicketAlreadyExist = false;
+// // dataMap = Map();
+// // authToken = invokeurl
+// // [
+// // 	url :"https://www.zohoapis.com/crm/v2/functions/generate_auth_token/actions/execute?auth_type=oauth"
+// // 	type :GET
+// // 	parameters:dataMap
+// // 	connection:"crm_connection"
+// // ];
+// // accessToken = authToken.get("details").get("output");
+// // amazonReturnOrderInfo = zoho.crm.getRecordById("Amazon_Order_Returns",amazonReturnRecId);
+// // storeInfo = amazonReturnOrderInfo.get("Store");
+// // amazonReturnOrderId = amazonReturnOrderInfo.get("Amazon_Order_ID");
+// // returnProdAsin = amazonReturnOrderInfo.get("Product_ASIN");
+// // storeName = storeInfo.get("name");
+// // getordertype = amazonReturnOrderInfo.get("Order_Type");
+// // coqlMap = Map();
+// // coqlMap.put("select_query","select Ticket_Created from Amazon_Order_Returns where ((Ticket_Created = 'true' and Amazon_Order_ID = '" + amazonReturnOrderId + "') and Product_ASIN = '" + returnProdAsin + "') ");
+// // retunOrderList = invokeurl
+// // [
+// // 	url :"https://www.zohoapis.com/crm/v2/coql"
+// // 	type :POST
+// // 	parameters:coqlMap.tostring()
+// // 	connection:"crm_connection"
+// // ];
+// // if(retunOrderList.get("data").size() >= 1)
+// // {
+// // 	info "Ticket Already Created in Desk";
+// // 	info retunOrderList;
+// // }
+// // else
+// // {
+// // 	if(storeName.equals("Amazon.com - ADAP"))
+// // 	{
+// // 		if(amazonReturnOrderInfo.get("Ticket_Created") != true)
+// // 		{
+// // 			if(getordertype == "FBM")
+// // 			{
+// // 				info "YES";
+// // 				amazonReturnOrderId = amazonReturnOrderInfo.get("Amazon_Order_ID");
+// // 				//amazonSaleOrderRecId = amazonReturnOrderInfo.get("Sale_Order").get("id");
+// // 				amazonReturnCarrierName = amazonReturnOrderInfo.get("Carrier_Name");
+// // 				amazonReturnTrackingId = amazonReturnOrderInfo.get("Tracking_ID");
+// // 				amazonReturnReason = amazonReturnOrderInfo.get("Return_Reason");
+// // 				amazonReturnRequestDate = amazonReturnOrderInfo.get("Return_Request_Date");
+// // 				dropShipOrderNumber = "";
+// // 				dropShipOrderId = "";
+// // 				amazonReturnedProductRecId = amazonReturnOrderInfo.get("Returned_Product").get("id");
+// // 				//serchdropship = zoho.crm.searchRecords("Purchase_Orders","Sales_Order:equals:" + amazonSaleOrderRecId);
+// // 				serchdropship = zoho.crm.searchRecords("Purchase_Orders","Subject:equals:" + amazonReturnOrderId);
+// // 				dropshiporderdeltionid = List();
+// // 				if(serchdropship.size() > 0)
+// // 				{
+// // 					for each  dropshipInfo in serchdropship.toList()
+// // 					{
+// // 						productList = dropshipInfo.get("Product_Details");
+// // 						for each  eachProductInfo in productList
+// // 						{
+// // 							productId = eachProductInfo.get("product").get("id");
+// // 							info "AmazonproductID" + amazonReturnedProductRecId;
+// // 							info "ProductID" + productId;
+// // 							if(amazonReturnedProductRecId == productId)
+// // 							{
+// // 								dropShipOrderId = dropshipInfo.get("id");
+// // 								dropShipOrderNumber = dropshipInfo.get("Dropship_Number");
+// // 							}
+// // 						}
+// // 					}
+// // 					if(dropShipOrderId == "")
+// // 					{
+// // 						info "NO dropship order found";
+// // 					}
+// // 				}
+// // 				vendorEmail = "";
+// // 				if(accessToken != "" && dropShipOrderId != "")
+// // 				{
+// // 					info "first IF";
+// // 					// Dropship order info
+// // 					dropshipOrderInfo = zoho.crm.getRecordById("Purchase_Orders",dropShipOrderId);
+// // 					// info "Dropship Order Info : "+dropshipOrderInfo;
+// // 					PO_Number = dropshipOrderInfo.get("Dropship_Number");
+// // 					vendorId = dropshipOrderInfo.get("Vendor_Name").get("id");
+// // 					vendorName = dropshipOrderInfo.get("Vendor_Name").get("name");
+// // 					// Get Vendor Info
+// // 					vendorInfo = zoho.crm.getRecordById("Vendors",vendorId);
+// // 					info "CRM Vendor Info " + vendorInfo;
+// // 					vendorEmail = vendorInfo.get("Email");
+// // 					deskVendorContactId = null;
+// // 					// Testing 
+// // 					// vendorEmail = "ezhil@bizappln.com";
+// // 					// Testing 
+// // 					deskSearchParam = Map();
+// // 					deskSearchParam.put("customField1","cf_order_number:" + amazonReturnOrderId);
+// // 					deskSearchParam.put("customField2","cf_po_number:" + PO_Number);
+// // 					deskTicketInfo = zoho.desk.searchRecords(deskOrgId,"tickets",deskSearchParam);
+// // 					if(deskTicketInfo.get("data").size() > 0)
+// // 					{
+// // 						isTicketAlreadyExist = true;
+// // 					}
+// // 					if(vendorEmail != "" && vendorEmail != null)
+// // 					{
+// // 						info "second IF";
+// // 						info "Search Vendor Email in Desk : " + vendorEmail;
+// // 						searchContact = Map();
+// // 						searchContact.put("email",vendorEmail);
+// // 						deskContactInfo = zoho.desk.searchRecords(deskOrgId,"contacts",searchContact);
+// // 						info "Desk Vendor Info : " + deskContactInfo;
+// // 						if(deskContactInfo.containKey("data"))
+// // 						{
+// // 							info "third IF";
+// // 							deskContactInfoData = deskContactInfo.get("data");
+// // 							if(deskContactInfoData.size() >= 0)
+// // 							{
+// // 								info "fourth IF";
+// // 								for each  deskVendorInfo in deskContactInfoData
+// // 								{
+// // 									info "fifth IF";
+// // 									if(vendorEmail.equals(deskVendorInfo.get("email")))
+// // 									{
+// // 										info "six IF";
+// // 										deskVendorContactId = deskVendorInfo.get("id");
+// // 										break;
+// // 									}
+// // 								}
+// // 							}
+// // 						}
+// // 					}
+// // 					else
+// // 					{
+// // 						info "Vendor contact not exists";
+// // 					}
+// // 					if(deskVendorContactId != null && deskVendorContactId != "" && !isTicketAlreadyExist)
+// // 					{
+// // 						info "seven IF";
+// // 						// Create Ticket
+// // 						// deskContactId = 272635000010621929;
+// // 						deskDepartmentId = 272635000000114056;
+// // 						subject = "[" + PO_Number + "]" + " - Return Request - FBM";
+// // 						ticketData = Map();
+// // 						ticketData.put("subject",subject);
+// // 						ticketData.put("departmentId",deskDepartmentId);
+// // 						ticketData.put("contactId",deskVendorContactId);
+// // 						ticketData.put("status","Open");
+// // 						customFields = Map();
+// // 						customFields.put("cf_type","Return");
+// // 						customFields.put("cf_associated_type","Child");
+// // 						customFields.put("cf_return_reason",amazonReturnReason);
+// // 						customFields.put("cf_vendor",vendorName);
+// // 						customFields.put("cf_store","Amazon");
+// // 						customFields.put("cf_po_number",PO_Number);
+// // 						customFields.put("cf_carrier_name",amazonReturnCarrierName);
+// // 						customFields.put("cf_tracking_number",amazonReturnTrackingId);
+// // 						customFields.put("cf_order_number",amazonReturnOrderId);
+// // 						customFields.put("cf_authorization_type","Pre Authorized");
+// // 						ticketData.put("cf",customFields);
+// // 						//ticketResponse = zoho.desk.create(deskOrgId,"tickets",ticketData);
+// // 						// 						info "Ticket Response : " + ticketResponse;
+// // 						// 						info "Ticket Number : " + ticketResponse.get("ticketNumber");
+// // 						// 						ticketId = ticketResponse.get("id");
+// // 						// 						info "Ticket Id : " + ticketId;
+// // 						// 						deskSearchParam = Map();
+// // 						// 						deskSearchParam.put("customField1","cf_order_number:" + amazonReturnOrderId);
+// // 						// 						deskTicketInfo = zoho.desk.searchRecords(deskOrgId,"tickets",deskSearchParam);
+// // 						// 						ticket_ID = deskTicketInfo.get("data").getJSON("id");
+// // 						// 						Ticket_link = "https://desk.zoho.com/agent/accessdoors/all/tickets/details/" + ticket_ID;
+// // 						// 						updateTicket = Map();
+// // 						// 						updateTicket.put("Desk_Ticket_Id",ticketId);
+// // 						// 						updateTicket.put("Ticket_Created",true);
+// // 						// 						updateTicket.put("Desk_Ticket_Link",Ticket_link);
+// // 						// 						zoho.crm.updateRecord("Amazon_Order_Returns",amazonReturnRecId,updateTicket);
+// // 						returnReasonString = "";
+// // 						if(amazonReturnReason.equals("AMZ-PG-BAD-DESC"))
+// // 						{
+// // 							returnReasonString = "Incorrect Description";
+// // 						}
+// // 						else if(amazonReturnReason.equals("CR-DEFECTIVE"))
+// // 						{
+// // 							returnReasonString = "Defective";
+// // 						}
+// // 						else if(amazonReturnReason.equals("CR-SWITCHEROO"))
+// // 						{
+// // 							returnReasonString = "Wrong Item Sent";
+// // 						}
+// // 						else if(amazonReturnReason.equals("CR-DAMAGED_BY_FC"))
+// // 						{
+// // 							returnReasonString = "Product damaged by carrier.";
+// // 						}
+// // 						else if(amazonReturnReason.equals("CR-UNWANTED_ITEM"))
+// // 						{
+// // 							returnReasonString = "Ordered Accidently";
+// // 						}
+// // 						else if(amazonReturnReason.equals("CR-NOT_COMPATIBLE"))
+// // 						{
+// // 							returnReasonString = "product not compatible with application";
+// // 						}
+// // 						else if(amazonReturnReason.equals("CR-DAMAGED_BY_CARRIER"))
+// // 						{
+// // 							returnReasonString = "Damaged By Carrier";
+// // 						}
+// // 						else if(amazonReturnReason.equals("CR-ORDERED_WRONG_ITEM"))
+// // 						{
+// // 							returnReasonString = "Ordered Wrong Item";
+// // 						}
+// // 						else if(amazonReturnReason.equals("CR-UNAUTHORIZED_PURCHASE"))
+// // 						{
+// // 							returnReasonString = "Customer Did Not Authorize";
+// // 						}
+// // 						else if(amazonReturnReason.equals("CR-MISSED_ESTIMATED_DELIVERY"))
+// // 						{
+// // 							returnReasonString = "Delivery Date Missed";
+// // 						}
+// // 						if(vendorEmail != "")
+// // 						{
+// // 							info "1 : vendor contact exists";
+// // 						}
+// // 					}
+// // 					else if(isTicketAlreadyExist)
+// // 					{
+// // 						updateTicket = Map();
+// // 						updateTicket.put("Ticket_Created",true);
+// // 						zoho.crm.updateRecord("Amazon_Order_Returns",amazonReturnRecId,updateTicket);
+// // 						info "Ticket already created!";
+// // 					}
+// // 					else
+// // 					{
+// // 						info "vendor not exist 3";
+// // 					}
+// // 				}
+// // 			}
+// // 			else if(getordertype == "FBA")
+// // 			{
+// // 				vendorname = "";
+// // 				amazonReturnOrderId = amazonReturnOrderInfo.get("Amazon_Order_ID");
+// // 				amazonReturnReason = amazonReturnOrderInfo.get("Return_Reason");
+// // 				amazonReturnRequestDate = amazonReturnOrderInfo.get("Return_Request_Date");
+// // 				POdata = zoho.books.getRecords("salesorders","666840843","cf_amazon_order_id=" + amazonReturnOrderId);
+// // 				SO = POdata.get("salesorders");
+// // 				if(SO.isEmpty() == false)
+// // 				{
+// // 					getpoid = POdata.get("salesorders").getJSON("salesorder_id");
+// // 					SOreq = zoho.books.getRecordsByID("salesorders","666840843",getpoid);
+// // 					getlineitems = SOreq.get("salesorder").getJSON("line_items");
+// // 					for each  getSOlineietems in getlineitems
+// // 					{
+// // 						getitemID = getSOlineietems.get("item_id");
+// // 						getitemsfromINV = zoho.books.getRecordsByID("items","666840843",getitemID);
+// // 						vendorname = getitemsfromINV.get("item").getJSON("custom_field_hash").getJSON("cf_vendor_name");
+// // 					}
+// // 					AmazoninventoryproductID = zoho.crm.getRecordById("Amazon_Order_Returns",amazonReturnRecId);
+// // 					productID = AmazoninventoryproductID.get("FBA_Inventory_Return_Product");
+// // 					INVItemID = productID.remove("https://inventory.zoho.com/app/666840843#/inventory/items/");
+// // 					if(getitemID == INVItemID)
+// // 					{
+// // 						getvendorinfo = zoho.crm.searchRecords("Vendors","Vendor_Name:equals:" + vendorname);
+// // 						vendorId = getvendorinfo.getJSON("id");
+// // 						vendorInfo = zoho.crm.getRecordById("Vendors",vendorId);
+// // 						vendorEmail = vendorInfo.get("Email");
+// // 						deskSearchParam = Map();
+// // 						deskSearchParam.put("customField1","cf_order_number:" + amazonReturnOrderId);
+// // 						deskTicketInfo = zoho.desk.searchRecords(deskOrgId,"tickets",deskSearchParam);
+// // 						if(deskTicketInfo.get("data").size() > 0)
+// // 						{
+// // 							isTicketAlreadyExist = true;
+// // 						}
+// // 					}
+// // 					if(!isTicketAlreadyExist)
+// // 					{
+// // 						deskDepartmentId = 272635000000114056;
+// // 						subject = "[" + amazonReturnOrderId + "]" + " - Return Request - FBA";
+// // 						ticketData = Map();
+// // 						ticketData.put("subject",subject);
+// // 						ticketData.put("departmentId",deskDepartmentId);
+// // 						ticketData.put("contactId",27263500009983001);
+// // 						ticketData.put("status","Open");
+// // 						customFields = Map();
+// // 						customFields.put("cf_type","Return");
+// // 						customFields.put("cf_associated_type","Child");
+// // 						customFields.put("cf_return_reason",amazonReturnReason);
+// // 						customFields.put("cf_vendor",vendorname);
+// // 						customFields.put("cf_store","Amazon");
+// // 						customFields.put("cf_po_number",amazonReturnOrderId);
+// // 						customFields.put("cf_order_number",amazonReturnOrderId);
+// // 						customFields.put("cf_authorization_type","Pre Authorized");
+// // 						ticketData.put("cf",customFields);
+// // 						info ticketData;
+// // 						ticketResponse = zoho.desk.create(deskOrgId,"tickets",ticketData);
+// // 						ticketId = ticketResponse.get("id");
+// // 						info "Ticket Id : " + ticketId;
+// // 						deskSearchParam = Map();
+// // 						deskSearchParam.put("customField1","cf_order_number:" + amazonReturnOrderId);
+// // 						deskTicketInfo = zoho.desk.searchRecords(deskOrgId,"tickets",deskSearchParam);
+// // 						ticket_ID = deskTicketInfo.get("data").getJSON("id");
+// // 						Ticket_link = "https://desk.zoho.com/agent/accessdoors/all/tickets/details/" + ticket_ID;
+// // 						updateTicket = Map();
+// // 						updateTicket.put("Desk_Ticket_Id",ticketId);
+// // 						updateTicket.put("Ticket_Created",true);
+// // 						updateTicket.put("Desk_Ticket_Link",Ticket_link);
+// // 						zoho.crm.updateRecord("Amazon_Order_Returns",amazonReturnRecId,updateTicket);
+// // 						returnReasonString = "";
+// // 						if(amazonReturnReason.equals("UNWANTED_ITEM"))
+// // 						{
+// // 							returnReasonString = "Ordered Accidently";
+// // 						}
+// // 						else if(isTicketAlreadyExist)
+// // 						{
+// // 							updateTicket = Map();
+// // 							updateTicket.put("Ticket_Created",true);
+// // 							zoho.crm.updateRecord("Amazon_Order_Returns",amazonReturnRecId,updateTicket);
+// // 							info "Ticket already created!";
+// // 						}
+// // 					}
+// // 				}
+// // 				else
+// // 				{
+// // 					sendmail
+// // 					[
+// // 						from :zoho.loginuserid
+// // 						to :"notifications@bestaccessdoors.com","dev@bestaccessdoors.com"
+// // 						subject :"The ticket was not created for Amazon return order"
+// // 						message :"Hi Team,<br><br><div>We are not able to find the  Salesorder for the amazon return order with ID : " + amazonReturnOrderId + "<br><br>Because of that ticket creation will not be processed.&nbsp;</div><div><br></div><div>Thanks.</div>"
+// // 					]
+// // 				}
+// // 			}
+// // 		}
+// // 	}
+// // 	else
+// // 	{
+// // 		info "Amazon.ca order won't be processed";
+// // 	}
+// // }
+// // // //Status update script
+// // // Startdatetime = '2024-02-28T00:00:01+05:30';
+// // // enddatetime = '2024-02-28T23:59:59+05:30';
+// // // startDate = '2024-2-1';
+// // // enddate = '2024-2-29';
+// // // ownerID = 3106252000000152052;
+// // // offset = 1;
+// // // latesttestorderDetailQuery = Map();
+// // // latesttestorderDetailQuery.put("select_query","select id, Subject, Quote_Number, Status, Created_Time from Sales_Orders where ((Quote_Number like '%00PR%' OR Quote_Number like '%00YD%') OR Quote_Number like '%00ZN%') and Created_Time between '" + Startdatetime + "' and '" + enddatetime + "' LIMIT 200 OFFSET 0");
+// // // latesttestorderDetailQuery.put("select_query","select Deal_Name,  Stage,Closing_Date, Amount, Account_Name.Account_Name,Contact_Name.id, Contact_Name.Full_Name, Sales_Order_ID.Order_Total_inc_tax  from Deals where  ((Closing_Date between '" + startDate.toString("yyyy-MM-dd") + "' and '" + enddate.toString("yyyy-MM-dd") + "' and Stage = 'WON') and (Owner = " + ownerID + " )) OFFSET " + offset + " LIMIT 200");
+// // // // latesttestorderDetailQuery.put("select_query","select Deal_Name,  Stage,Closing_Date, Amount, Account_Name.Account_Name,Contact_Name.id, Contact_Name.Full_Name, Sales_Order_ID.Order_Total_inc_tax  from Deals where  ((Closing_Date between '" + Startdatetime + "' and '" + enddatetime + "' and Stage = 'WON') and (Owner = " + ownerID + " )) LIMIT 200");
+// // // info latesttestorderDetailQuery;
+// // // latesttestordereDetailList = invokeurl
+// // // [
+// // // 	url :"https://www.zohoapis.com/crm/v6/coql"
+// // // 	type :POST
+// // // 	parameters:latesttestorderDetailQuery.tostring()
+// // // 	connection:"crm_connection"
+// // // ];
+// // // info latesttestordereDetailList;
+// // // deskOrgId = 665802770;
+// // // isTicketAlreadyExist = false;
+// // // // id = data.get("salesorders").getJSON("salesorder_id");
+// // // // rec = zoho.books.getRecordsByID("salesorders","666840843",id);
+// // // // inventorylineitems = rec.get("salesorder").getJSON("line_items");
+// // // // salesOrderTotalQty = 0;
+// // // // for each  getqty in inventorylineitems
+// // // // {
+// // // // 	itemqty = getqty.get("quantity");
+// // // // 	salesOrderTotalQty = salesOrderTotalQty + itemqty;
+// // // // }
+// // // // info "SaleordeQty :" + salesOrderTotalQty.toLong();
+// // // // totalReturnedProductQty = 0;
+// // // // GetAmazonmoduleitemqty = zoho.crm.searchRecords("Amazon_Order_Returns","Amazon_Order_ID:equals:" + searchrec);
+// // // // for each  getcount in GetAmazonmoduleitemqty
+// // // // {
+// // // // 	Amazonreturnqty = getcount.get("Returned_Quantity");
+// // // // 	totalReturnedProductQty = totalReturnedProductQty + Amazonreturnqty.toNumber();
+// // // // }
+// // // // info "totalReturnedProductQty" + totalReturnedProductQty;
+// // // // if(salesOrderTotalQty == totalReturnedProductQty)
+// // // // {
+// // // // 	update = list();
+// // // // 	updatebooksSaleOrder = Map();
+// // // // 	info "All Products are returned";
+// // // // 	updatebooksSaleOrder.put("customfield_id","1324986000002128389");
+// // // // 	updatebooksSaleOrder.put("value","Returned");
+// // // // 	update.add(updatebooksSaleOrder);
+// // // // 	cusfields = Map();
+// // // // 	cusfields.put("custom_fields",update);
+// // // // }
+// // // // else if(salesOrderTotalQty > totalReturnedProductQty)
+// // // // {
+// // // // 	info "Partially Returned";
+// // // // 	updatebooksSaleOrder.put("cf_status","Partially Returned");
+// // // // }
+// // // // updateSaleOrderInfo = zoho.books.updateRecord("salesorders","666840843",id,cusfields.toString());
+// // // // info updateSaleOrderInfo;
+// // // //data = zoho.books.getRecords("salesorders","666840843","cf_amazon_order_id=" + searchrec);
+// // // amazonReturnOrderInfo = zoho.crm.getRecordById("Amazon_Order_Returns",amazonReturnRecId);
+// // // getordertype = amazonReturnOrderInfo.get("Order_Type");
+// // // vendorname = "";
+// // // if(getordertype == "FBA")
+// // // {
+// // // 	amazonReturnOrderId = amazonReturnOrderInfo.get("Amazon_Order_ID");
+// // // 	amazonReturnReason = amazonReturnOrderInfo.get("Return_Reason");
+// // // 	amazonReturnRequestDate = amazonReturnOrderInfo.get("Return_Request_Date");
+// // // 	POdata = zoho.books.getRecords("salesorders","666840843","cf_amazon_order_id=" + amazonReturnOrderId);
+// // // 	SO = POdata.get("salesorders");
+// // // 	if(SO.isEmpty() == false)
+// // // 	{
+// // // 		getpoid = POdata.get("salesorders").getJSON("salesorder_id");
+// // // 		SOreq = zoho.books.getRecordsByID("salesorders","666840843",getpoid);
+// // // 		getlineitems = SOreq.get("salesorder").getJSON("line_items");
+// // // 		for each  getSOlineietems in getlineitems
+// // // 		{
+// // // 			getitemID = getSOlineietems.get("item_id");
+// // // 			getitemsfromINV = zoho.books.getRecordsByID("items","666840843",getitemID);
+// // // 			vendorname = getitemsfromINV.get("item").getJSON("custom_field_hash").getJSON("cf_vendor_name");
+// // // 		}
+// // // 		AmazoninventoryproductID = zoho.crm.getRecordById("Amazon_Order_Returns",amazonReturnRecId);
+// // // 		productID = AmazoninventoryproductID.get("FBA_Inventory_Return_Product");
+// // // 		INVItemID = productID.remove("https://inventory.zoho.com/app/666840843#/inventory/items/");
+// // // 		if(getitemID == INVItemID)
+// // // 		{
+// // // 			getvendorinfo = zoho.crm.searchRecords("Vendors","Vendor_Name:equals:" + vendorname);
+// // // 			vendorId = getvendorinfo.getJSON("id");
+// // // 			vendorInfo = zoho.crm.getRecordById("Vendors",vendorId);
+// // // 			vendorEmail = vendorInfo.get("Email");
+// // // 			deskSearchParam = Map();
+// // // 			deskSearchParam.put("customField1","cf_order_number:" + amazonReturnOrderId);
+// // // 			deskTicketInfo = zoho.desk.searchRecords(deskOrgId,"tickets",deskSearchParam);
+// // // 			if(deskTicketInfo.get("data").size() > 0)
+// // // 			{
+// // // 				isTicketAlreadyExist = true;
+// // // 			}
+// // // 			if(vendorEmail != "" && vendorEmail != null)
+// // // 			{
+// // // 				searchContact = Map();
+// // // 				searchContact.put("email",vendorEmail);
+// // // 				deskContactInfo = zoho.desk.searchRecords(deskOrgId,"contacts",searchContact);
+// // // 				if(deskContactInfo.containKey("data"))
+// // // 				{
+// // // 					deskContactInfoData = deskContactInfo.get("data");
+// // // 					if(deskContactInfoData.size() > 0)
+// // // 					{
+// // // 						for each  deskVendorInfo in deskContactInfoData
+// // // 						{
+// // // 							if(vendorEmail.equals(deskVendorInfo.get("email")))
+// // // 							{
+// // // 								deskVendorContactId = deskVendorInfo.get("id");
+// // // 								break;
+// // // 							}
+// // // 						}
+// // // 					}
+// // // 				}
+// // // 			}
+// // // 			else
+// // // 			{
+// // // 				INVSOLink = "https://inventory.zoho.com/app/666840843#/salesorders/" + getpoid;
+// // // 				productLink = productID;
+// // // 				vendorLink = "https://crm.zoho.com/crm/org663942562/tab/Vendors/" + vendorId;
+// // // 				sendmail
+// // // 				[
+// // // 					from :zoho.loginuserid
+// // // 					to :"vijay.vr@bizappln.com"
+// // // 					subject :"Vendor Contact is not exist in Desk"
+// // // 					message :"<div>Hi Anthony,<br><br>While creating amazon return ticket we have identified vendor doesn't have a email. So kindly please update the email for vendor&nbsp " + vendorname + " </div><div><br></div><div>FBA SalesOrder Link : " + INVSOLink + "<br><br>CRM Product Link :&nbsp;" + productLink + "</div><div><br></div><div>Vendor Info Link :&nbsp;" + vendorLink + "<br></div><div><br></div><div><br></div><div>Thanks.<br></div>"
+// // // 				]
+// // // 			}
+// // // 		}
+// // // 		if(deskVendorContactId != null && deskVendorContactId != "" && !isTicketAlreadyExist)
+// // // 		{
+// // // 			deskDepartmentId = 272635000000114056;
+// // // 			subject = "[" + amazonReturnOrderId + "]" + " - Return Request";
+// // // 			ticketData = Map();
+// // // 			ticketData.put("subject",subject);
+// // // 			ticketData.put("departmentId",deskDepartmentId);
+// // // 			ticketData.put("contactId",deskVendorContactId);
+// // // 			ticketData.put("status","Open");
+// // // 			customFields = Map();
+// // // 			customFields.put("cf_type","Return");
+// // // 			customFields.put("cf_associated_type","Child");
+// // // 			customFields.put("cf_return_reason",amazonReturnReason);
+// // // 			customFields.put("cf_vendor",vendorname);
+// // // 			customFields.put("cf_store","Amazon");
+// // // 			customFields.put("cf_po_number",amazonReturnOrderId);
+// // // 			customFields.put("cf_order_number",amazonReturnOrderId);
+// // // 			customFields.put("cf_authorization_type","Pre Authorized");
+// // // 			ticketData.put("cf",customFields);
+// // // 			info ticketData;
+// // // 			//ticketResponse = zoho.desk.create(deskOrgId,"tickets",ticketData);
+// // // 			// 			 ticketId = ticketResponse.get("id");
+// // // 			// 			 info "Ticket Id : " + ticketId;
+// // // 			// 			 deskSearchParam = Map();
+// // // 			// 			 deskSearchParam.put("customField1","cf_order_number:" + amazonReturnOrderId);
+// // // 			// 			 deskTicketInfo = zoho.desk.searchRecords(deskOrgId,"tickets",deskSearchParam);
+// // // 			// 			 ticket_ID = deskTicketInfo.get("data").getJSON("id");
+// // // 			// 			 Ticket_link = "https://desk.zoho.com/agent/accessdoors/all/tickets/details/" + ticket_ID;
+// // // 			// 			 updateTicket = Map();
+// // // 			// 			 updateTicket.put("Desk_Ticket_Id",ticketId);
+// // // 			// 			 updateTicket.put("Ticket_Created",true);
+// // // 			// 			 updateTicket.put("Desk_Ticket_Link",Ticket_link);
+// // // 			// 			 zoho.crm.updateRecord("Amazon_Order_Returns",amazonReturnRecId,updateTicket);
+// // // 			// 			 returnReasonString = "";
+// // // 			// 			 if(amazonReturnReason.equals("UNWANTED_ITEM"))
+// // // 			// 			 {
+// // // 			// 				 returnReasonString = "Ordered Accidently";
+// // // 			// 			 }
+// // // 			// 			 if(vendorEmail != "")
+// // // 			// 			 {
+// // // 			// 				 mailContent = "<div>Hello,<br></div><div><br></div><div>Please issue RMA for SO " + amazonReturnOrderId + ".<br><br>Customer is requesting to return the door due to " + returnReasonString + "</div>";
+// // // 			// 				 // Send Reply	
+// // // 			// 				 header = Map();
+// // // 			// 				 header.put("orgId",deskOrgId);
+// // // 			// 				 header.put("Content-Type","application/json");
+// // // 			// 				 header.put("Authorization","Zoho-oauthtoken " + accessToken);
+// // // 			// 				 bodyData = Map();
+// // // 			// 				 bodyData.put("channel","EMAIL");
+// // // 			// 				 bodyData.put("to",vendorEmail);
+// // // 			// 				 bodyData.put("fromEmailAddress","help@bestaccessdoors.zohodesk.com");
+// // // 			// 				 bodyData.put("contentType","html");
+// // // 			// 				 bodyData.put("content",mailContent);
+// // // 			// 				 bodyData.put("isForward","true");
+// // // 			// 				 sendReplyUrl = "https://desk.zoho.com/api/v1/tickets/" + ticketId + "/sendReply";
+// // // 			// 				 respose = invokeurl
+// // // 			// 				 [
+// // // 			// 				 url :sendReplyUrl
+// // // 			// 				 type :POST
+// // // 			// 				 parameters:bodyData.toString()
+// // // 			// 				 headers:header
+// // // 			// 				 ];
+// // // 			// 				 info "Reply Response : " + respose;
+// // // 			// 			}
+// // // 		}
+// // // 		else if(isTicketAlreadyExist)
+// // // 		{
+// // // 			updateTicket = Map();
+// // // 			updateTicket.put("Ticket_Created",true);
+// // // 			zoho.crm.updateRecord("Amazon_Order_Returns",amazonReturnRecId,updateTicket);
+// // // 			info "Ticket already created!";
+// // // 		}
+// // // 		else
+// // // 		{
+// // // 			// Vendor Not Exist in Desk & send Email
+// // // 			INVSOLink = "https://inventory.zoho.com/app/666840843#/salesorders/" + getpoid;
+// // // 			productLink = productID;
+// // // 			vendorLink = "https://crm.zoho.com/crm/org663942562/tab/Vendors/" + vendorId;
+// // // 			sendmail
+// // // 			[
+// // // 				from :zoho.loginuserid
+// // // 				to :"vijay.vr@bizappln.com"
+// // // 				subject :"Vendor Contact is not exist in Desk"
+// // // 				message :"<div>Hi Anthony,<br><br>While creating amazon return ticket we have identified vendor specific contact is not exist in desk. Please create contact in desk with vendor email : " + vendorEmail + ".</div><div><br></div><div><div>Purchase Order Link : " + INVSOLink + "<br></div><div><br></div><div>CRM Product Link :&nbsp;" + productLink + "<br></div></div><div><br></div><div>Vendor Info Link :&nbsp;" + vendorLink + "<br></div><div><br></div><div><br></div><div>Thanks.<br></div>"
+// // // 			]
+// // // 		}
+// // // 	}
+// // // 	else
+// // // 	{
+// // // 		sendmail
+// // // 		[
+// // // 			from :zoho.loginuserid
+// // // 			to :"vijay.vr@bizappln.com"
+// // // 			subject :"SalesOrder Not Found"
+// // // 			message :"Hi Team,<br><br><div>We are not able to find the  Salesorder for the amazon return order with ID : " + amazonReturnOrderId + "<br><br>Because of that ticket creation will not be processed.&nbsp;</div><div><br></div><div>Thanks.</div>"
+// // // 		]
+// // // 	}
+// // // }
+info zoho.adminuserid;
+}

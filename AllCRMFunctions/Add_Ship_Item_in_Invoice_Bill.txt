@@ -1,0 +1,100 @@
+string standalone.Add_Ship_Item_in_Invoice_Bill()
+{
+Org_ID = "666840843";
+// processing shipping line item for Invoice module Zoho Books
+Page_count = 150;
+Record_count = 50;
+get_invoices = getUrl("https://www.zohoapis.com/books/v3/invoices?page=" + Page_count + "&per_page=" + Record_count + "&date_start=2020-02-01&organization_id=666840843&sort_column=created_time",{"Authorization":"Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2"});
+info get_invoices.get("invoices").size();
+get_all_invoice = get_invoices.get("invoices");
+counter = 0;
+for each  invoice in get_all_invoice
+{
+	paidflag = false;
+	add_shipping_line_item_flag = true;
+	line_item_list = List();
+	request_map = Map();
+	info invoice.get("status");
+	info "Invoice ID:" + invoice.get("invoice_id");
+	if(invoice.get("shipping_charge") > 0.0 && invoice.get("status") != "paid")
+	{
+		info "Shipping Charge Exist";
+		get_invoice = zoho.books.getRecordsByID("invoices",Org_ID,invoice.get("invoice_id"));
+		invoice_details = get_invoice.get("invoice");
+		for each  invoice_item in invoice_details.get("line_items")
+		{
+			lineitem_temp_map = Map();
+			lineitem_temp_map.put("item_id",invoice_item.get("item_id"));
+			lineitem_temp_map.put("name",invoice_item.get("name"));
+			lineitem_temp_map.put("quantity",invoice_item.get("quantity"));
+			if(invoice_item.get("item_id") == "1324986000026491995" || invoice_item.get("item_id") == "1324986000026491965")
+			{
+				if(invoice_item.get("rate") == invoice.get("shipping_charge"))
+				{
+					info "Just set the shipping charges as zero";
+				}
+				else
+				{
+					info "Set this line item name rate as shipping charges amount and set the shipping charges as Zero";
+					lineitem_temp_map.put("rate",invoice.get("shipping_charge"));
+				}
+				add_shipping_line_item_flag = false;
+			}
+			else
+			{
+				lineitem_temp_map.put("rate",invoice_item.get("rate"));
+			}
+			line_item_list.add(lineitem_temp_map);
+		}
+		if(add_shipping_line_item_flag == true)
+		{
+			info "Add a line item based on the invoice store currency and set the rate as shipping charge and then set the shipping charges as Zero";
+			if(invoice.get("currency_code") == "CAD")
+			{
+				lineitem_temp_map = Map();
+				lineitem_temp_map.put("item_id","1324986000026491995");
+				lineitem_temp_map.put("name","Shipping In - CAD");
+				lineitem_temp_map.put("quantity",1.0);
+				lineitem_temp_map.put("rate",invoice.get("shipping_charge"));
+				line_item_list.add(lineitem_temp_map);
+			}
+			else if(invoice.get("currency_code") == "USD")
+			{
+				lineitem_temp_map = Map();
+				lineitem_temp_map.put("item_id","1324986000026491965");
+				lineitem_temp_map.put("name","Shipping In - USD");
+				lineitem_temp_map.put("quantity",1.0);
+				lineitem_temp_map.put("rate",invoice.get("shipping_charge"));
+				line_item_list.add(lineitem_temp_map);
+			}
+		}
+		counter = counter + 1;
+		request_map.put("line_items",line_item_list);
+		request_map.put("shipping_charge",0.0);
+		request_map.put("reason","Update shipping charges in line item");
+		info "Update Request: " + request_map;
+		update_response = zoho.books.updateRecord("invoices",Org_ID,invoice.get("invoice_id"),request_map);
+		info "Update Response" + update_response;
+	}
+	else
+	{
+		info "No shipping charges in this invoice!!!!";
+	}
+	//Re-Create Customer Payment in Zoho Books
+	if(paidflag == true)
+	{
+		info "Recreating customer payment.";
+	}
+	info "*************************************";
+	if(counter == 1)
+	{
+		break;
+	}
+}
+// info counter;
+//
+//
+//
+//
+return "";
+}

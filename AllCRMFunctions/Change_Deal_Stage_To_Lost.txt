@@ -1,0 +1,16 @@
+string button.Change_Deal_Status_To_Lost(String Deal_Id)
+{
+info Deal_Id;
+Deal = zoho.crm.getRecordById("Deals",Deal_Id);
+info Deal.get("Stage");
+if(Deal.get("Stage") != "WON")
+{
+	Deal_Update = zoho.crm.updateRecord("Deals",Deal_Id,{"Stage":"LOST"});
+	info Deal_Update;
+	return "Status has been changed to 'LOST' Successfully " + Deal_Id;
+}
+else
+{
+	return "Status cannot be changed from Won to Lost " + Deal_Id;
+}
+}

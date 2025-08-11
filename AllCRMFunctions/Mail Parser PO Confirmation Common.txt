@@ -1,0 +1,192 @@
+string standalone.acudor_canada_po_confirmation(String crmAPIRequest)
+{
+crm_api_map = crmAPIRequest.toMap();
+params = crm_api_map.get("body");
+// info params;
+// params = {"id":"78f1bd9b3008b59a9f78ef74a1d3b7d9","received_at":"2020-10-20 16:40:45","processed_at":"2020-10-20 16:41:33","confirmation_number":"ACNC0","dropship_number":"583731","estimated_ship_date":"2020-10-19","attachment_url":{{"att_id":"vuVik8uLVPXAgKubidoBkg","att_name":"Sales_Order_1046217.PDF","att_url":"https:\/\/files.mailparser.io\/f\/vuVik8uLVPXAgKubidoBkg","att_size":"18870","att_mime":"application\/pdf"}}};
+ds_no = ifnull(params.get("dropship_number"),"");
+info ds_no;
+if(ds_no != "")
+{
+	ds_no = ds_no.getAlphaNumeric().removeAllAlpha();
+}
+confirmation_no = ifnull(params.get("confirmation_number"),"");
+estimated_ship_date = ifnull(params.get("estimated_ship_date"),today.toString("yyyy-MM-dd"));
+shipping_location_for_Cendrex = ifnull(params.get("shipping_location_for_cendrex"),"");
+shipping_location_for_Acudor = ifnull(params.get("shipping_location_for_acudor"),"");
+shipping_location_for_FFsystem = ifnull(params.get("shipping_location_for_ff_system_inc"),"");
+shipping_location_for_Elmdor = ifnull(params.get("shipping_location_for_elmdor"),"");
+shipping_location_for_DGM = ifnull(params.get("shipping_location_for_dgm"),"");
+shipping_location_for_jl = ifnull(params.get("shipping_location_for_jl"),"");
+shipping_location_for_babcock = ifnull(params.get("shipping_location_for_babcock"),"");
+shipping_location_for_hart_cooley = ifnull(params.get("shipping_location_for_hart_cooley"),"");
+shipping_location_for_williams = ifnull(params.get("shipping_location_for_williams_brothers"),"");
+shipping_location_for_mifab = ifnull(params.get("shipping_location_for_mifab"),"");
+shipping_location_for_bilco = ifnull(params.get("shipping_location_for_bilco"),"");
+shipping_location_for_ElmdorCA = "321 Cityview Blvd.,Unit #4 Vaughan, ON L4H 3M3";
+// estimated_ship_date = '2020-7-7';
+if(ds_no != "" && confirmation_no != "")
+{
+	//  	drop_ship_orders = zoho.crm.searchRecords("Purchase_Orders","(Dropship_Number:equals:" + ds_no + ")");
+	drop_ship_orders = zoho.crm.searchRecords("Purchase_Orders","(Dropship_Number:equals:" + ds_no + ")",1,200,Map(),"mailparserzoho");
+	info drop_ship_orders;
+	vendor_name = drop_ship_orders.getJSON("Vendor_Name").getJSON("name");
+	if(vendor_name == "Cendrex")
+	{
+		shipping_location = shipping_location_for_Cendrex;
+	}
+	else if(vendor_name == "Acudor USA")
+	{
+		shipping_location = shipping_location_for_Acudor;
+	}
+	else if(vendor_name == "FF Systems Inc USA")
+	{
+		shipping_location = shipping_location_for_FFsystem;
+	}
+	else if(vendor_name == "Elmdor USA")
+	{
+		shipping_location = shipping_location_for_Elmdor;
+	}
+	else if(vendor_name == "DGM Enterprises")
+	{
+		shipping_location = shipping_location_for_DGM;
+	}
+	else if(vendor_name == "JL Industries")
+	{
+		shipping_location = shipping_location_for_jl;
+		// code to remove the customer PO number
+		if(shipping_location.contains(ds_no) == true)
+		{
+			shipping_location = shipping_location.replaceFirst(ds_no,'');
+		}
+		else
+		{
+			shipping_location = shipping_location;
+		}
+	}
+	else if(vendor_name == "Babcock Davis")
+	{
+		shipping_location = shipping_location_for_babcock;
+	}
+	else if(vendor_name == "Milcor")
+	{
+		shipping_location = shipping_location_for_hart_cooley;
+	}
+	else if(vendor_name == "Williams Brothers Canada")
+	{
+		shipping_location = shipping_location_for_williams;
+	}
+	else if(vendor_name == "MIFAB USA")
+	{
+		shipping_location = shipping_location_for_mifab;
+	}
+	else if(vendor_name == "Elmdor Canada")
+	{
+		shipping_location = shipping_location_for_ElmdorCA;
+	}
+	else if(vendor_name == "Bilco" || vendor_name == "Bilco Residential" || vendor_name == "Bilco Canada")
+	{
+		get_prefix = shipping_location_for_bilco.getPrefix("\/");
+		info "shipping_location: " + get_prefix;
+		if(get_prefix == "002")
+		{
+			shipping_location = "536 Highway 463 S Trumann, AR 72472";
+		}
+		else if(get_prefix == "007")
+		{
+			shipping_location = "2750 Airport Rd Santa Teresa, NM 88008";
+		}
+		else if(get_prefix == "005")
+		{
+			shipping_location = "8043 Dixie Rd, Brampton ON L6T3V1";
+		}
+		else if(get_prefix == "003")
+		{
+			shipping_location = "3400 Jim Granger Dr Zanesville, OH 43701";
+		}
+	}
+	if(vendor_name == "Elmdor Canada")
+	{
+		Lead_time = params.get("estimated_ship_date");
+		info "time" + Lead_time;
+		Lead_time = Lead_time.contains("weeks");
+		Lead_time1 = Lead_time.contains("4");
+		info "lead" + Lead_time;
+		if(Lead_time == true || Lead_time1 == true)
+		{
+			currentdate = zoho.currentdate;
+			estimated_ship_date = currentdate.addDay(28);
+		}
+		else
+		{
+			currentdate = zoho.currentdate;
+			estimated_ship_date = currentdate.addDay(2);
+		}
+	}
+	upd_map = Map();
+	upd_map.put("Confirmation_Number","C " + confirmation_no);
+	for each  drop_ship_order in drop_ship_orders
+	{
+		conf_num = "C " + confirmation_no;
+		if(crm_api_map.get("params") != null && crm_api_map.get("params").get("skip_ship_date") == "1")
+		{
+			upd_resp = zoho.crm.updateRecord("Purchase_Orders",drop_ship_order.get("id"),{"Confirmation_Number":conf_num},{"trigger":{"workflow"}},"mailparserzoho");
+		}
+		else
+		{
+			if(drop_ship_order.get("Estimated_Ship_Date") == null)
+			{
+				upd_map.put("Estimated_Ship_Date",estimated_ship_date);
+			}
+			else if(drop_ship_order.get("Estimated_Ship_Date_2") == null)
+			{
+				upd_map.put("Estimated_Ship_Date_2",estimated_ship_date);
+			}
+			else if(drop_ship_order.get("Estimated_Ship_Date_3") == null)
+			{
+				upd_map.put("Estimated_Ship_Date_3",estimated_ship_date);
+			}
+			else
+			{
+				upd_map.put("Estimated_Ship_Date_4",estimated_ship_date);
+			}
+			upd_map.put("Shipping_Location",shipping_location);
+			//upd_resp = zoho.crm.updateRecord("Purchase_Orders",drop_ship_order.get("id"),{"Confirmation_Number":conf_num,"Estimated_Ship_Date":estimated_ship_date},{"trigger":{"workflow"}},"mailparserzoho");
+			upd_resp = zoho.crm.updateRecord("Purchase_Orders",drop_ship_order.get("id"),upd_map,{"trigger":{"workflow"}},"mailparserzoho");
+		}
+		info upd_resp;
+		if(upd_resp.get("code") != null)
+		{
+			sendmail
+			[
+				from :zoho.loginuserid
+				to :"hello@bestaccessdoors.com"
+				subject :"MailParser Automation Error"
+				message :"<p>Hi,&nbsp;</p><p>Received error for automation for order confirmations/tracking in MailParser:</p><p>Error Code: " + upd_resp.get("code") + " </p><p>Error Message: " + upd_resp.get("message") + " </p><p>Date and Time of error: " + now.toString("yyyy-MM-dd HH:mm:ss") + " </p><p>Dropship Order ID : " + drop_ship_order.get("id") + " </p><p>Please check this and re-test for all vendors.&nbsp;</p><p>Thank you!</p>"
+			]
+		}
+		else
+		{
+			// Code updated successfully
+			// Upload the file
+			attachment_urls = ifnull(params.get("attachment_url"),list());
+			for each  attachment_url_map in attachment_urls
+			{
+				if(attachment_url_map.get("att_mime") != null && attachment_url_map.get("att_mime").containsIgnoreCase("pdf") || attachment_url_map.get("att_name").containsIgnoreCase("PDF") != null && attachment_url_map.get("att_name").containsIgnoreCase("PDF"))
+				{
+					attachment_url = attachment_url_map.get("att_url");
+					attachment_url = attachment_url.replaceAll("\\","");
+					file_stream = invokeurl
+					[
+						url :attachment_url
+						type :GET
+					];
+					info zoho.crm.attachFile("Purchase_Orders",drop_ship_order.get("id"),file_stream,"mailparserzoho");
+				}
+			}
+		}
+	}
+}
+conf_num = "";
+return ds_no;
+}

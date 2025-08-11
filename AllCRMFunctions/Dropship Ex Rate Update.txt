@@ -1,0 +1,15 @@
+void automation.dropshipOrderExRateUpdate()
+{
+leads = zoho.crm.getRecords("Purchase_Orders",1,200,{"cvid":3106252000088884223});
+for each  lead in leads
+{
+	if(lead.get("Exchange_Rate") != null)
+	{
+		updatedummyCurrency = zoho.crm.updateRecord("Purchase_Orders",lead.get("id"),{"Actual_Currency":lead.get("Currency"),"Currency":"CAD","Previous_Exchange_Rate":lead.get("Exchange_Rate").toString()});
+		info "----Lead ID-----" + lead.get("id");
+		info "updatedummyCurrency " + updatedummyCurrency;
+		updateOriginalCurrency = zoho.crm.updateRecord("Purchase_Orders",lead.get("id"),{"Currency":"USD"});
+		info "updateOriginalCurrency " + updateOriginalCurrency;
+	}
+}
+}

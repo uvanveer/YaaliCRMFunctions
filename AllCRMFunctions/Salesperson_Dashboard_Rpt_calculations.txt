@@ -1,0 +1,358 @@
+string standalone.Salesperson_Dashboard_Rpt_calculations(String salesperson_email,String ownerID,String module,String time,Int offset,String status)
+{
+//---------------- today paid deal count --------------------//
+currentYear = now.getYear();
+Firstday = currentYear + "-01-01";
+FirstDayOfTheYear = Firstday.toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'");
+monthly = now.toStartOfMonth().toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'");
+weekly = now.toStartOfWeek().toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'");
+yesterday = zoho.currentdate.subDay(1).toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'");
+today = zoho.currentdate.toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'");
+currenttime = now.toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'");
+firstday_of_this_week = zoho.currentdate.toStartOfWeek().toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'");
+firstday_of_last_week = firstday_of_this_week.subDay(7).toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'");
+beforeSixMonth = zoho.currentdate.subMonth(6).toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'");
+firstday_of_this_month = zoho.currentdate.toStartOfMonth().toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'");
+firstday_of_last_month = zoho.currentdate.subMonth(1).toStartOfMonth().toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'");
+//date based filter
+FirstDayOfTheYearDate = Firstday.toString("yyyy-MM-dd");
+monthlyDate = now.toStartOfMonth().toString("yyyy-MM-dd");
+weeklyDate = now.toStartOfWeek().toString("yyyy-MM-dd");
+yesterdayDate = zoho.currentdate.subDay(1).toString("yyyy-MM-dd");
+todayDate = zoho.currentdate.toString("yyyy-MM-dd");
+currenttimeDate = now.toString("yyyy-MM-dd");
+firstday_of_this_weekDate = zoho.currentdate.toStartOfWeek().toString("yyyy-MM-dd");
+firstday_of_last_weekDate = firstday_of_this_week.subDay(7).toString("yyyy-MM-dd");
+beforeSixMonthDate = zoho.currentdate.subMonth(6).toString("yyyy-MM-dd");
+firstday_of_this_monthDate = zoho.currentdate.toStartOfMonth().toString("yyyy-MM-dd");
+firstday_of_last_monthDate = zoho.currentdate.subMonth(1).toStartOfMonth().toString("yyyy-MM-dd");
+// info "Timing --> " + monthlyDate + " -weekly-> " + weeklyDate + " sterday--> " + yesterdayDate + " today " + todayDate + " current date " + zoho.currentdate.toString("yyyy-MM-dd") + " current time " + currenttimeDate;
+if(module == "Deals")
+{
+	if(time == "Today")
+	{
+		// 		info "today -module- " + module + " -time- " + time + " -ownerid- " + ownerID + " -status- " + status + " -offset- " + offset;
+		Offset_val = offset;
+		data = "select Contact_Name,Creator_Deal_RecordID,Deal_Name,Stage,Type,Amount,Owner from Deals where ((Closing_Date >=  '" + todayDate + "') and (Stage = '" + status + "')) and Owner = '" + ownerID + "' OFFSET " + offset + " LIMIT 200";
+		coql_map = Map();
+		coql_map.put("select_query",data);
+	}
+	else if(time == "Yesterday")
+	{
+		// 		info "yesterday -module- " + module + " -time- " + time + " -ownerid- " + ownerID + " -status- " + status + " -offset- " + offset;
+		Offset_val = offset;
+		//data = "select Contact_Name,Creator_Deal_RecordID,Deal_Name,Stage,Type,Amount,Owner from Deals where ((Created_Time >=  '" + yesterday + "') and (Stage = '" + status + "')) and Owner = '" + ownerID + "'";
+		data = "select Contact_Name,Creator_Deal_RecordID,Deal_Name,Stage,Type,Amount,Owner from Deals where ((Stage = '" + status + "') and (Owner = '" + ownerID + "')) and Closing_Date between '" + yesterdayDate + "' and '" + todayDate + "' OFFSET " + offset + " LIMIT 200";
+		coql_map = Map();
+		coql_map.put("select_query",data);
+	}
+	else if(time == "Weekly")
+	{
+		Offset_val = offset;
+		data = "select Contact_Name,Creator_Deal_RecordID,Deal_Name,Stage,Type,Amount,Owner from Deals where ((Stage = '" + status + "') and (Owner = '" + ownerID + "')) and Closing_Date between '" + weeklyDate + "' and '" + todayDate + "' OFFSET " + offset + " LIMIT 200";
+		// 		info "weekly " + data;
+		coql_map = Map();
+		coql_map.put("select_query",data);
+	}
+	else if(time == "Monthly")
+	{
+		// 		info "monthly";
+		Offset_val = offset;
+		data = "select Contact_Name,Creator_Deal_RecordID,Deal_Name,Stage,Type,Amount,Owner from Deals where ((Stage = '" + status + "') and (Owner = '" + ownerID + "')) and Closing_Date between '" + monthlyDate + "' and '" + todayDate + "' OFFSET " + offset + " LIMIT 200";
+		coql_map = Map();
+		coql_map.put("select_query",data);
+	}
+	else if(time == "Stage")
+	{
+		// 		info "stage based deal";
+		Offset_val = offset;
+		if(status.equalsIgnoreCase("pending"))
+		{
+			statusPending = "('Sent','Opened','Cheque Received','pending','Cheque Delivered')";
+			data = "select Contact_Name,Creator_Deal_RecordID,Deal_Name,Stage,Type,Amount,Owner from Deals where ((Stage in " + statusPending + ") and (Owner = '" + ownerID + "')) OFFSET " + offset + " LIMIT 200";
+		}
+		else
+		{
+			data = "select Contact_Name,Creator_Deal_RecordID,Deal_Name,Stage,Type,Amount,Owner from Deals where ((Stage = '" + status + "') and (Owner = '" + ownerID + "')) OFFSET " + offset + " LIMIT 200";
+		}
+		coql_map = Map();
+		coql_map.put("select_query",data);
+	}
+	// 	else if(time == "BeforeSix")
+	else if(time == "BeforeSix")
+	{
+		// 		info "stage based deal";
+		Offset_val = offset;
+		data = "select Contact_Name,Creator_Deal_RecordID,Deal_Name,Stage,Type,Amount,Owner from Deals where ((Stage = '" + status + "') and (Owner = '" + ownerID + "')) and Closing_Date between '" + beforeSixMonthDate + "' and '" + todayDate + "' OFFSET " + offset + " LIMIT 200";
+		coql_map = Map();
+		coql_map.put("select_query",data);
+	}
+}
+if(module == "Quotes")
+{
+	if(time == "Today")
+	{
+		// 		{"select_query" :  "select Sales_Quote_Number,Owner,Date,Quote_Stage,Created_Time,Grand_Total from Quotes where (Owner = '3106252000014929001') and ((Created_Time >= '2020-06-20T00:01:00-04:00') and (Created_Time <= '2020-06-24T00:01:00-04:00'))"}
+		Offset_val = offset;
+		// 		data = "select Sales_Quote_Number,Owner,Date,Quote_Stage,Created_Time,Grand_Total,Contact_Name from Quotes where (Owner = '" + ownerID + "') and Created_Time between '" + yesterday + "' and '" + currenttime + "' OFFSET " + offset + " LIMIT 200";
+		data = "select Sales_Quote_Number,Owner,Date,Valid_Till,Quote_Stage,Created_Time,Grand_Total,Contact_Name from Quotes where ((Owner = '" + ownerID + "') and (Created_Time>='" + today + "')) OFFSET " + offset + " LIMIT 200";
+		// 		data = "Select Who_Id,Status,Owner from Tasks where ((Status != 'Completed') and (Owner = '3106252000014929001')) and Due_Date >= '2020-06-20'";
+		// 		info " today quotes req: " + data;
+		coql_map = Map();
+		coql_map.put("select_query",data);
+	}
+	if(time == "Yesterday")
+	{
+		Offset_val = offset;
+		data = "select Sales_Quote_Number,Owner,Date,Valid_Till,Quote_Stage,Created_Time,Grand_Total,Contact_Name from Quotes where (Owner = '" + ownerID + "') and Created_Time between '" + yesterday + "' and '" + today + "' OFFSET " + offset + " LIMIT 200";
+		// 		info " today quotes req: " + data;
+		coql_map = Map();
+		coql_map.put("select_query",data);
+	}
+	else if(time == "Weekly")
+	{
+		Offset_val = offset;
+		data = "select Sales_Quote_Number,Owner,Date,Valid_Till,Quote_Stage,Created_Time,Grand_Total,Contact_Name from Quotes where (Owner = '" + ownerID + "') and Created_Time between '" + weekly + "' and '" + currenttime + "' OFFSET " + offset + " LIMIT 200";
+		// 		info "weekly quotes req: " + data;
+		coql_map = Map();
+		coql_map.put("select_query",data);
+	}
+	else if(time == "Last_Week")
+	{
+		Offset_val = offset;
+		// 		data = "select Sales_Quote_Number,Owner,Date,Quote_Stage,Created_Time,Grand_Total,Contact_Name from Quotes where (Owner = '" + ownerID + "') and Created_Time between '" + firstday_of_last_week + "' and '" + firstday_of_this_week + "' OFFSET " + offset + " LIMIT 200";
+		data = "select Sales_Quote_Number,Owner,Date,Valid_Till,Quote_Stage,Created_Time,Grand_Total,Contact_Name from Quotes where (Owner = '" + ownerID + "') and ((Created_Time >= '" + firstday_of_last_week + "') and (Created_Time < '" + firstday_of_this_week + "')) OFFSET " + offset + " LIMIT 200";
+		// 		info "weekly quotes req: " + data;
+		coql_map = Map();
+		coql_map.put("select_query",data);
+	}
+	else if(time == "Monthly")
+	{
+		Offset_val = offset;
+		data = "select Sales_Quote_Number,Owner,Date,Valid_Till,Quote_Stage,Created_Time,Grand_Total,Contact_Name from Quotes where (Owner = '" + ownerID + "') and Created_Time between '" + monthly + "' and '" + currenttime + "' OFFSET " + offset + " LIMIT 200";
+		// 		data = "select Sales_Quote_Number,Owner,Date,Quote_Stage,Created_Time,Grand_Total,Contact_Name.Contact_Name from Quotes AS Q LEFT JOIN Contacts AS C ON (Q.id = C.id) where (Owner = '" + ownerID + "') and Created_Time between '" + monthly + "' and '" + currenttime + "' OFFSET " + offset + " LIMIT 200";
+		// 		info " monthly quotes req: " + data;
+		coql_map = Map();
+		coql_map.put("select_query",data);
+	}
+	else if(time == "Last_Month")
+	{
+		Offset_val = offset;
+		data = "select Sales_Quote_Number,Owner,Date,Valid_Till,Quote_Stage,Created_Time,Grand_Total,Contact_Name from Quotes where (Owner = '" + ownerID + "') and Created_Time between '" + firstday_of_last_month + "' and '" + firstday_of_this_month + "' OFFSET " + offset + " LIMIT 200";
+		// 		data = "select Sales_Quote_Number,Owner,Date,Quote_Stage,Created_Time,Grand_Total,Contact_Name.Contact_Name from Quotes AS Q LEFT JOIN Contacts AS C ON (Q.id = C.id) where (Owner = '" + ownerID + "') and Created_Time between '" + monthly + "' and '" + currenttime + "' OFFSET " + offset + " LIMIT 200";
+		// 		info " monthly quotes req: " + data;
+		coql_map = Map();
+		coql_map.put("select_query",data);
+	}
+	else if(time == "Yearly")
+	{
+		Offset_val = offset;
+		data = "select Sales_Quote_Number,Owner,Date,Valid_Till,Quote_Stage,Created_Time,Grand_Total,Contact_Name from Quotes where (Owner = '" + ownerID + "') and Created_Time between '" + FirstDayOfTheYear + "' and '" + currenttime + "' OFFSET " + offset + " LIMIT 200";
+		// 		data = "select Sales_Quote_Number,Owner,Date,Quote_Stage,Created_Time,Grand_Total,Contact_Name.Contact_Name from Quotes AS Q LEFT JOIN Contacts AS C ON (Q.id = C.id) where (Owner = '" + ownerID + "') and Created_Time between '" + monthly + "' and '" + currenttime + "' OFFSET " + offset + " LIMIT 200";
+		// 		info " monthly quotes req: " + data;
+		coql_map = Map();
+		coql_map.put("select_query",data);
+	}
+	else if(time == "All")
+	{
+		Offset_val = offset;
+		data = "select Sales_Quote_Number,Owner,Date,Valid_Till,Quote_Stage,Created_Time,Grand_Total,Contact_Name, Contact_Name.First_Name,Contact_Name.Last_Name,Contact_Name.Account_Name.Account_Name,Contact_Name.Full_Name from Quotes where Owner = '" + ownerID + "' OFFSET " + offset + " LIMIT 200";
+		// 		info " All quotes req: " + data;
+		coql_map = Map();
+		coql_map.put("select_query",data);
+	}
+}
+else if(module == "Calls")
+{
+	if(time = "Today")
+	{
+		Offset_val = offset;
+		data = "select Who_Id,Owner,Due_Date1 from Calls where ((Status != 'Completed') and (Owner = '" + ownerID + "')) and Due_Date1 = '" + zoho.currentdate.toString("yyyy-MM-dd") + "' OFFSET " + offset + " LIMIT 200";
+		// 		data = "Select Who_Id,Status,Owner from Tasks where ((Status != 'Completed') and (Owner = '3106252000014929001')) and Due_Date >= '2020-06-20'";
+		// 		info " today calls req: " + data;
+		coql_map = Map();
+		coql_map.put("select_query",data);
+	}
+	else if(time == "Tomorrow")
+	{
+		Offset_val = offset;
+		data = "select Who_Id,Owner,Due_Date from Calls where ((Status != 'Completed') and (Owner = '" + ownerID + "')) and Due_Date1 = '" + zoho.currentdate.addDay(1).toString("yyyy-MM-dd") + "' OFFSET " + offset + " LIMIT 200";
+		// 		info " tomorrow calls req: " + data;
+		coql_map = Map();
+		coql_map.put("select_query",data);
+	}
+	else if(time == "Overdue")
+	{
+		Offset_val = offset;
+		data = "select Who_Id,Owner,Due_Date from Calls where ((Status != 'Completed') and (Owner = '" + ownerID + "')) and Due_Date1 <= '" + zoho.currentdate.subDay(1).toString("yyyy-MM-dd") + "' OFFSET " + offset + " LIMIT 200";
+		// 		info " overdue calls req: " + data;
+		coql_map = Map();
+		coql_map.put("select_query",data);
+	}
+	else if(time == "All")
+	{
+		Offset_val = offset;
+		data = "select Subject, Call_Duration,Call_Purpose,Call_Result,Created_Time, Call_Type from Calls where (Owner = '" + ownerID + "') and ((Who_Id is null) and (Call_Duration_in_seconds > 30)) OFFSET " + offset + " LIMIT 200";
+		coql_map = Map();
+		coql_map.put("select_query",data);
+	}
+}
+else if(module == "Tasks")
+{
+	if(time = "Today")
+	{
+		Offset_val = offset;
+		data = "select Who_Id,Status,Owner,Due_Date from Tasks where ((Status != 'Completed') and (Owner = '" + ownerID + "')) and Due_Date = '" + zoho.currentdate.toString("yyyy-MM-dd") + "' OFFSET " + offset + " LIMIT 200";
+		// 		data = "Select Who_Id,Status,Owner from Tasks where ((Status != 'Completed') and (Owner = '3106252000014929001')) and Due_Date >= '2020-06-20'";
+		// 		info " today tasks due req: " + data;
+		coql_map = Map();
+		coql_map.put("select_query",data);
+	}
+	else if(time == "Tomorrow")
+	{
+		Offset_val = offset;
+		data = "select Who_Id,Status,Owner,Due_Date from Tasks where ((Status != 'Completed') and (Owner = '" + ownerID + "')) and Due_Date = '" + zoho.currentdate.addDay(1).toString("yyyy-MM-dd") + "' OFFSET " + offset + " LIMIT 200";
+		// 		info " tomorrow tasks due req: " + data;
+		coql_map = Map();
+		coql_map.put("select_query",data);
+	}
+	else if(time == "Overdue")
+	{
+		Offset_val = offset;
+		data = "select Who_Id,Status,Owner,Due_Date from Tasks where ((Status != 'Completed') and (Owner = '" + ownerID + "')) and Due_Date <= '" + zoho.currentdate.subDay(1).toString("yyyy-MM-dd") + "' OFFSET " + offset + " LIMIT 200";
+		// 		info " overdue tasks due req: " + data;
+		coql_map = Map();
+		coql_map.put("select_query",data);
+	}
+}
+else if(module == "Call")
+{
+	if(time = "Today")
+	{
+		Offset_val = offset;
+		data = "select Call_Agenda,Due_Date1,Call_Duration,Call_Type,Caller_ID,Who_Id,What_Id from Calls where ((Owner = '" + ownerID + "')) and Due_Date1 = '" + zoho.currentdate.toString("yyyy-MM-dd") + "' OFFSET " + offset + " LIMIT 200";
+		// 		data = "Select Who_Id,Status,Owner from Tasks where ((Status != 'Completed') and (Owner = '3106252000014929001')) and Due_Date >= '2020-06-20'";
+		// 		info " today tasks due req: " + data;
+		coql_map = Map();
+		coql_map.put("select_query",data);
+	}
+	else if(time == "Tomorrow")
+	{
+		Offset_val = offset;
+		data = "select Call_Agenda,Due_Date1,Call_Duration,Call_Type,Caller_ID,Who_Id,What_Id from Calls where ((Owner = '" + ownerID + "')) and Due_Date1 = '" + zoho.currentdate.addDay(1).toString("yyyy-MM-dd") + "' OFFSET " + offset + " LIMIT 200";
+		// 		info " tomorrow tasks due req: " + data;
+		coql_map = Map();
+		coql_map.put("select_query",data);
+	}
+	else if(time == "Overdue")
+	{
+		Offset_val = offset;
+		data = "select Call_Agenda,Due_Date1,Call_Duration,Call_Type,Caller_ID,Who_Id,What_Id from Calls where ((Owner = '" + ownerID + "')) and Due_Date1 <= '" + zoho.currentdate.subDay(1).toString("yyyy-MM-dd") + "' OFFSET " + offset + " LIMIT 200";
+		// 		info " overdue tasks due req: " + data;
+		coql_map = Map();
+		coql_map.put("select_query",data);
+	}
+}
+else if(module == "SalesOrder")
+{
+	Offset_val = offset;
+	data = "select Order_Total_inc_tax from Sales_Orders where ((Owner = '" + ownerID + "') and (Phone_SA = true)) OFFSET " + offset + " LIMIT 200";
+	coql_map = Map();
+	coql_map.put("select_query",data);
+}
+else if(module == "Employee_Evaluations")
+{
+	if(time == "All")
+	{
+		Offset_val = offset;
+		data = "select Name,Scoring_Agent_Name,Agent_Name,Type_of_Call,Total_Score,ZOHO_CRM_Links,Agent_Feedback,Created_Time from Employee_Evaluations where Owner = '" + ownerID + "' OFFSET " + offset + " LIMIT 200";
+		coql_map = Map();
+		coql_map.put("select_query",data);
+	}
+	else if(time == "ThisMonth")
+	{
+		Offset_val = offset;
+		data = "select Name,Scoring_Agent_Name,Agent_Name,Type_of_Call,Total_Score,ZOHO_CRM_Links,Agent_Feedback,Created_Time from Employee_Evaluations where (Owner = '" + ownerID + "') and Call_Date_Time between '" + monthly + "' and '" + currenttime + "' OFFSET " + offset + " LIMIT 200";
+		coql_map = Map();
+		coql_map.put("select_query",data);
+	}
+	else if(time == "LastMonth")
+	{
+		Offset_val = offset;
+		data = "select Name,Scoring_Agent_Name,Agent_Name,Type_of_Call,Total_Score,ZOHO_CRM_Links,Agent_Feedback,Created_Time from Employee_Evaluations where (Owner = '" + ownerID + "') and Call_Date_Time between '" + firstday_of_last_month + "' and '" + firstday_of_this_month + "' OFFSET " + offset + " LIMIT 200";
+		coql_map = Map();
+		coql_map.put("select_query",data);
+	}
+	else if(time == "ThisWeek")
+	{
+		Offset_val = offset;
+		data = "select Name,Scoring_Agent_Name,Agent_Name,Type_of_Call,Total_Score,ZOHO_CRM_Links,Agent_Feedback,Created_Time from Employee_Evaluations where (Owner = '" + ownerID + "') and Call_Date_Time between '" + weekly + "' and '" + currenttime + "' OFFSET " + offset + " LIMIT 200";
+		coql_map = Map();
+		coql_map.put("select_query",data);
+	}
+	else if(time == "LastWeek")
+	{
+		Offset_val = offset;
+		data = "select Name,Scoring_Agent_Name,Agent_Name,Type_of_Call,Total_Score,ZOHO_CRM_Links,Agent_Feedback,Created_Time from Employee_Evaluations where (Owner = '" + ownerID + "') and ((Call_Date_Time >= '" + firstday_of_last_week + "') and (Call_Date_Time < '" + firstday_of_this_week + "')) OFFSET " + offset + " LIMIT 200";
+		coql_map = Map();
+		coql_map.put("select_query",data);
+	}
+	else if(time == "OverAll")
+	{
+		Offset_val = offset;
+		// 		data = "select Name,Scoring_Agent_Name,Agent_Name,Type_of_Call,Total_Score,ZOHO_CRM_Links,Agent_Feedback,Created_Time from Employee_Evaluations where Owner = '" + ownerID + "' OFFSET " + offset + " LIMIT 200";
+		// 		data = "select Name,Scoring_Agent_Name,Agent_Name,Type_of_Call,Total_Score,ZOHO_CRM_Links,Agent_Feedback,Created_Time from Employee_Evaluations OFFSET " + offset + " LIMIT 200";
+		data = "select Name,Scoring_Agent_Name,Agent_Name,Type_of_Call,Total_Score,ZOHO_CRM_Links,Agent_Feedback,Created_Time,Owner from Employee_Evaluations where Created_Time is not null OFFSET " + offset + " LIMIT 200";
+		coql_map = Map();
+		coql_map.put("select_query",data);
+	}
+}
+else if(module == "Chat_Quality_Scorecard")
+{
+	if(time == "All")
+	{
+		Offset_val = offset;
+		data = "select Customer_Name,Scoring_Agent_Name,Agent_Name,Type_of_Chat,Total_Score,ZOHO_CRM_Links,Agent_Feedback,Created_Time from Chat_Quality_Scorecard where Owner = '" + ownerID + "' OFFSET " + offset + " LIMIT 200";
+		coql_map = Map();
+		coql_map.put("select_query",data);
+	}
+}
+// else if(module == "Activities")
+// {
+// 	if(time == "All")
+// 	{
+// 		Offset_val = offset;
+// 		data = "select Subject, Call_Duration,Call_Purpose,Call_Result,Created_Time, Call_Type from Calls where (Owner = '" + ownerID + "') and ((Who_Id is null) and (Call_Duration_in_seconds > 30)) OFFSET " + offset + " LIMIT 200";
+// 		coql_map = Map();
+// 		coql_map.put("select_query",data);
+// 	}
+// }
+// // coql_map.put("select_query","select Last_Name, First_Name, Account_Name from Contacts where Account_Name is null ORDER BY First_Name DESC LIMIT " + Limit_val + " OFFSET " + Offset_val);
+// // 	coql_map.put("select_query","select Email Full_Name, Created_Time from Contacts where Email is not null and Created_Time >= '2020-03-19T10:33:32+05:30' LIMIT " + Limit_val + " OFFSET " + Offset_val);
+// coql_map.put("select_query","select Email Full_Name, Created_Time from Contacts where Email is not null and Merged = false LIMIT " + Limit_val + " OFFSET " + Offset_val);
+// // coql_map.put("select_query","select Email Full_Name, Created_Time from Contacts where (((Email is not null) and (Merged = false)) and (Created_Time >= '" + dateR + "')) OFFSET " + Offset_val);
+maillist = invokeurl
+[
+	url :"https://www.zohoapis.com/crm/v2/coql"
+	type :POST
+	parameters:coql_map.tostring()
+	connection:"crm_connection"
+];
+// info " --- " + maillist.get("data").size();
+// info "mrec " + maillist.get("data");
+// sendmail
+// [
+// 	from :zoho.loginuserid
+// 	to :"prashanth@bizappln.com"
+// 	subject :"getting function call in mail "
+// 	message :"response data " + salesperson_email + " response " + maillist.get("data").size() + " -- " + module + " -- " + time + " -- " + ownerID + " " + status + " offset " + offset
+// ]
+// if(maillist.get("data").size() > 0)
+// {
+// 	maillist.get("data").put("response", <OBJECT>)
+// 	return maillist;
+// }else 
+// {
+// }
+return maillist;
+}

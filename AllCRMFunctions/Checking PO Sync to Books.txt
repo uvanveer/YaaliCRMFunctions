@@ -1,0 +1,57 @@
+string standalone.Testing_Function_Books()
+{
+count = 2;
+OrganizationID = "666840843";
+getting_Purchase_orders = zoho.crm.getRecords("Purchase_Orders",count,100,{"cvid":3106252000123075077});
+Count = 2;
+missed_list = LIST();
+for each  rec_po in getting_Purchase_orders
+{
+	Po_map = rec_po.tomap();
+	Get_dropship_number = Po_map.get("Dropship_Number");
+	//Get_Books_SO_ID = Po_map.get("Sales_Order");
+	if(!isNull(Po_map.get("Sales_Order")))
+	{
+		getPO = zoho.books.getRecords("Purchaseorders",OrganizationID,"cf_crm_rec_id=" + Po_map.get("id").totext());
+		//info getPO;
+		//info "getPO" + getPO + "\n\nCount" + getPO.getJSON("purchaseorders").size();
+		if(getPO.getjson("purchaseorders").size() > 0)
+		{
+		}
+		else
+		{
+			missed_list.add(Po_map.get("id"));
+			Count = Count + 1;
+			info Get_dropship_number;
+			// 		callWebhook = invokeurl
+			// 		[
+			// 			url :"https://1.door-pay.com/api/zcrm/poWebhookListener?poID=" + Po_map.get("id")
+			// 			type :POST
+			// 		];
+			// 		info callWebhook;
+			//info Po_map.get("Vendor_Name").get("name");
+			// //uncomment to create a po in books		
+			// 						PurchaseOrder_ID = Po_map.get("id");
+			// 						Books_PO_map = Map();
+			// 						Books_PO_map.put("id",PurchaseOrder_ID);
+			// 						Books_PO_Reponse = invokeurl
+			// 						[
+			// 							url :"https://www.zohoapis.com/crm/v2/functions/create_po_to_books_from_crm/actions/execute?auth_type=oauth"
+			// 							type :GET
+			// 							parameters:Books_PO_map
+			// 							connection:"crm_connection"
+			// 						];
+			// 						info "Books_PO_Reponse" + Books_PO_Reponse;	
+		}
+		// //uncomment to create a po in books	
+		// 					if(Count == 5)
+		// 					{
+		// 						break;
+		// 					}
+	}
+}
+info "Misses_list:" + missed_list;
+//info Get_dropship_number;
+info "Count:" + Count;
+return "";
+}

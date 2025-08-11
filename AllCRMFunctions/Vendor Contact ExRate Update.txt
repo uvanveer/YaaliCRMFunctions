@@ -1,0 +1,12 @@
+void automation.vendorContactExRateUpdate()
+{
+leads = zoho.crm.getRecords("Vendor_Contact",1,1,{"cvid":3106252000088884322});
+for each  lead in leads
+{
+	updatedummyCurrency = zoho.crm.updateRecord("Vendor_Contact",lead.get("id"),{"Actual_Currency":lead.get("Currency"),"Currency":"CAD","Previous_Exchange_Rate":lead.get("Exchange_Rate").toString()});
+	info "----Contact ID-----" + lead.get("id");
+	info "updatedummyCurrency " + updatedummyCurrency;
+	updateOriginalCurrency = zoho.crm.updateRecord("Vendor_Contact",lead.get("id"),{"Currency":"USD"});
+	info "updateOriginalCurrency " + updateOriginalCurrency;
+}
+}

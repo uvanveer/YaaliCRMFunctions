@@ -1,0 +1,156 @@
+string standalone.CRM_Testingg()
+{
+/*dealid = 3106252000891159035;
+//3106252001083601128 3106252000891159035 3106252001088028597
+Dealsinfo = zoho.crm.getRecordById("deals",dealid);
+gclid = Dealsinfo.get("Created_Time");
+info gclid;
+//Deal_created_time = gclid.toTime("yyyy-MM-dd'T'HH:mm:ss-05:00");
+//info Deal_created_time;
+//a = "2023-08-21T06:25:21-04:00";
+b = gclid.toTime("yyyy-MM-dd'T'HH:mm:ss");
+Deal_created_time = b.toString("yyyy-MM-dd HH:mm:ss","America/Toronto").toTime("yyyy-MM-dd HH:mm:ss");
+Deal_created_with_in_24_hours = Deal_created_time.addHour(24);
+info Deal_created_with_in_24_hours;
+Current_date_time = zoho.currenttime;
+// 19-Dec-2023 11:15:37
+info Current_date_time;
+if(Deal_created_with_in_24_hours > Current_date_time)
+{
+	info "newDate";
+}
+//info Get_data;*/
+contactid = 3106252000905124161;
+contact_details = zoho.crm.getRecordById("Contacts",contactid);
+task_owner = contact_details.get("Owner").get("id");
+RR_task_details = zoho.crm.getRecordById("Tasks",3106252001141808934);
+task_dupl_owner = task_owner;
+info task_dupl_owner;
+getuser = zoho.crm.getRecordById("users",task_owner);
+user = getuser.getjson("users");
+userstatus = user.getJSON("status");
+// if(task_dupl_owner==3106252000004512006 || task_dupl_owner == 3106252000138625046)
+// {
+// 	task_owner = 3106252000037668001;
+// 	task_dupl_owner = task_owner;
+// 	info "CRM" + task_dupl_owner;
+// 	getuser = zoho.crm.getRecordById("users",task_owner);
+// 	user = getuser.getjson("users");
+// 	userstatus = user.getJSON("status");
+// 	info RR_task_details;
+// // 	Owner_id = RR_task_details.get("Owner").get("id");
+// // 	info Owner_id;
+// }
+//inactive user 3106252000659644001 Gianna Ferzan
+sales_verify = user.getJSON("role").get("name");
+roundRobinReps = {3106252000037668001,3106252000045664001,3106252000281644001,3106252000000152052,3106252000058241283,3106252001065915001,3106252001065908001,3106252000360808021};
+listSize = roundRobinReps.size();
+Owner_id = RR_task_details.get("Owner").get("id");
+info Owner_id;
+if((userstatus != "active" || sales_verify != "Sales") && (task_dupl_owner == 3106252000004512006 || task_dupl_owner == 3106252000138625046))
+{
+	info "sds";
+	for each  userid in roundRobinReps
+	{
+		if(Owner_id == userid)
+		{
+			info "test12";
+			useridIndex = roundRobinReps.indexOf(userid);
+			nextIndex = useridIndex + 1;
+			if(nextIndex >= listSize)
+			{
+				nextIndex = 0;
+			}
+			task_owner = roundRobinReps.get(nextIndex);
+			info task_owner;
+			referownerupdate = zoho.crm.updateRecord("Tasks",3106252001141808934,{"Owner":task_owner});
+		}
+	}
+}
+info "test" + task_owner;
+if(task_dupl_owner == task_owner)
+{
+	username = user.getjson("full_name");
+	info "teeee" + username;
+	//info getuser;
+}
+else
+{
+	getuser = zoho.crm.getRecordById("users",task_owner);
+	user = getuser.getjson("users");
+	username = user.getjson("full_name");
+	info username;
+}
+contactmap = Map();
+if(task_dupl_owner == 3106252000004512006 || task_dupl_owner == 3106252000138625046)
+{
+	username = user.getjson("full_name");
+	info "teeeeCRM" + username;
+	info getuser;
+	contactmap.put("Owner",task_owner);
+}
+contactmap.put("AE_SQL_is_assigned_to",username);
+gettime = today;
+contactmap.put("Sales_Qualified_Lead_Date",gettime);
+sdr_notes = ifNull(contact_details.get("SDR_Notes"),"");
+Number_of_doors = ifNull(contact_details.get("Number_of_doors"),"");
+Needed_Onsite_by_date = ifNull(contact_details.get("Needed_Onsite_by_date"),"");
+Project_Name = ifNull(contact_details.get("Project_Name"),"");
+Type_of_products = ifNull(contact_details.get("Type_of_products"),"");
+SDR_Owner = ifNull(contact_details.get("SDR_Owner"),"");
+SDR_Qualified_Lead = ifNull(contact_details.get("SDR_Qualified_Lead1"),"");
+Reason_for_Not_Qualified = ifNull(contact_details.get("Reason_for_Not_Qualified"),"");
+task_notes = "SDR Notes : " + sdr_notes + ",\nNumber of doors : " + Number_of_doors + ",\nNeeded Onsite by date : " + Needed_Onsite_by_date + ",\nProject Name : " + Project_Name + ",\nType of products : " + Type_of_products + ",\nSDR Owner : " + SDR_Owner + "\n ***REMINDER FOR SALES REP TO UPDATE THE FOLLOWING FIELDS***\n SDR Qualified Lead - YES or NO,\n Reason for Not Qualified - If NO, what is the reason / Feedback to SDR";
+//info task_notes;
+tMap = Map();
+tMap.put("$se_module","Contacts");
+tMap.put("Who_Id",contactid);
+tMap.put("Subject","SDR Lead - Follow up");
+tMap.put("Task_Notes",task_notes);
+tMap.put("Owner",task_owner);
+tMap.put("Status","Not Started");
+tMap.put("Priority","High");
+tMap.put("Due_Date",zoho.currentdate);
+info tMap;
+info contactmap;
+createResp = zoho.crm.createRecord("Tasks",tMap);
+noteMap = Map();
+noteMap.put("Note_Title","SDR Lead - Follow up - See notes for details");
+noteMap.put("Note_Content",task_notes);
+noteMap.put("Parent_Id",contactid);
+noteMap.put("$se_module","Contacts");
+info "notesdata" + noteMap;
+create_notes_in_contact = zoho.crm.createRecord("Notes",noteMap);
+//Task creatation No#2 19-09-23 by barani
+task_notes_Description = "- Keep task open until you Verify with the customer \n - Once verified, update the field “SDR Qualified Lead” as YES or NO \n - If “NO” complete the “Reason for Not Qualified” with the reason / Feedback which is sent back to the SDR, \n -YES = Customer is ready to purchase now, or receive a quote but ready to purchase within 3 months. (everything else is NO with a reason)";
+tMap_1 = Map();
+tMap_1.put("$se_module","Contacts");
+tMap_1.put("Who_Id",contactid);
+tMap_1.put("Subject","Mark “SDR Qualified Lead” as YES or NO");
+tMap_1.put("Task_Notes",task_notes_Description);
+tMap_1.put("Owner",task_owner);
+tMap_1.put("Status","Not Started");
+tMap_1.put("Priority","High");
+tMap_1.put("Due_Date",zoho.currentdate);
+info tMap_1;
+createtask_1 = zoho.crm.createRecord("Tasks",tMap_1);
+// createResp = null;
+if(createResp.get("id") != null)
+{
+	update_owner_id = Map();
+	update_owner_id.put("Task_Notes",task_owner);
+	update_default_rec = zoho.crm.updateRecord("Tasks",3106252000719126072,update_owner_id);
+	updatecontact = zoho.crm.updateRecord("Contacts",contactid,contactmap,{"trigger":{}});
+}
+else
+{
+	sendmail
+	[
+		from :zoho.loginuserid
+		to :"surya.k@bizappln.com"
+		subject :"Sales Qualified Task Creation Failed"
+		message :createResp
+	]
+}
+return "";
+}

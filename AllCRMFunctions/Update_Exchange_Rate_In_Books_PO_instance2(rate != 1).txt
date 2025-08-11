@@ -1,0 +1,47 @@
+string standalone.Update_Exchange_Rate_In_Books_PO1()
+{
+organizationID = 666840843;
+info zoho.books.getRecordsByID("purchaseorders",organizationID,"1324986000014403411");
+/*getBooksPage = zoho.crm.getRecordById("Merger_Schedule",3106252000061961343);
+last_page = getBooksPage.get("Books_PO_Last_Page_2").toLong();
+processed_count = getBooksPage.get("Books_Processed_PO_2").toLong();
+getting_purchase_orders = zoho.books.getRecords("purchaseorders",organizationID,"currency_code='USD'&page=" + last_page + "&sort_column=created_time");
+// info getting_purchase_orders;
+if(last_page <= 150)
+{
+	if(getting_purchase_orders.get("message") == "success")
+	{
+		purchaseorder_list = getting_purchase_orders.get("purchaseorders");
+		for each  each_purchase_order in purchaseorder_list
+		{
+			if(each_purchase_order.get("currency_code") == "USD")
+			{
+				response = zoho.books.getRecordsByID("purchaseorders",organizationID,each_purchase_order.get("purchaseorder_id").toString());
+				if(response.get("message") == "success")
+				{
+					if(response.get("purchaseorder").get("exchange_rate") != null)
+					{
+						if(response.get("purchaseorder").get("exchange_rate") != 1)
+						{
+							processed_count = processed_count + 1;
+							update_response = zoho.books.updateRecord("purchaseorders",organizationID,response.get("purchaseorder").get("purchaseorder_id"),{"exchange_rate":1});
+							info "update_response" + update_response;
+							log_creation = Map();
+							log_creation.put("Source","Books-Purchaseorder");
+							log_creation.put("Currency",each_purchase_order.get("currency_code"));
+							log_creation.put("Message",response.get("purchaseorder").get("purchaseorder_number") + "_" + response.get("purchaseorder").get("purchaseorder_id"));
+							log_creation.put("Error_Details",response.get("purchaseorder").get("exchange_rate") + "_" + each_purchase_order.get("currency_code"));
+							create_response = zoho.crm.createRecord("Duplicate_Moderation_Log",log_creation);
+							info "create_response" + create_response;
+						}
+					}
+				}
+			}
+		}
+	}
+	last_page = last_page + 1;
+	updateMerger = zoho.crm.updateRecord("Merger_Schedule",3106252000061961343,{"Books_PO_Last_Page_2":last_page.toString(),"Books_Processed_PO_2":processed_count.toString()});
+	info "updateMerger" + updateMerger;
+}*/
+return "completed";
+}

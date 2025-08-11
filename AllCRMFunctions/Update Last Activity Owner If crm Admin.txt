@@ -1,0 +1,57 @@
+string standalone.updateLastActivityOwnerForContact()
+{
+/* scheduleRecordID="3106252000061961343";
+pageIndexRec = zoho.crm.getRecordById("Merger_Schedule",scheduleRecordID);
+pageIndex = ifnull(pageIndexRec.get("Last_Activity_Owner_Update_Contact"),"");
+if(pageIndex != "")
+{ 
+	pageIndex=pageIndex.tolong();
+	pageIndex=pageIndex+1;*/
+contacts = zoho.crm.getRecords("Contacts",13,100,{"cvid":3106252000093689011});
+//info contacts;
+for each  contact in contacts
+{
+	contactId = contact.get("id");
+	sortedOrder = list();
+	sortedMap = Map();
+	openActivities = zoho.crm.getRelatedRecords("Activities","Contacts",contactId);
+	openActivities = openActivities.tolist();
+	info "contactid " + contactId + " open activity " + openActivities;
+	if(openActivities.size() > 0)
+	{
+		for each  openActivity in openActivities
+		{
+			if(openActivity.get("Owner") != null && openActivity.get("Owner") != "")
+			{
+				gmt = openActivity.get("Created_Time").toTime("yyyy-MM-dd'T'HH:mm:ss","GMT");
+				sortedOrder.add(gmt);
+				sortedMap.put(gmt,openActivity.get("Owner").get("id"));
+			}
+		}
+	}
+	closedActivities = zoho.crm.getRelatedRecords("Activities_History","Contacts",contactId);
+	closedActivities = closedActivities.tolist();
+	info "contactid " + contactId + " closed activity " + closedActivities;
+	if(closedActivities.size() > 0)
+	{
+		for each  closedActivity in closedActivities
+		{
+			gmt1 = closedActivity.get("Created_Time").toTime("yyyy-MM-dd'T'HH:mm:ss","GMT");
+			sortedOrder.add(gmt1);
+			sortedMap.put(gmt1,closedActivity.get("Owner").get("id"));
+		}
+	}
+	if(sortedOrder.size() > 0)
+	{
+		sortedOrder = sortedOrder.sort(false);
+		ownerId = sortedMap.get(sortedOrder.get(0));
+		info "Sortes order " + sortedOrder + " owner " + ownerId;
+		updateContactOwner = zoho.crm.updateRecord("Contacts",contactId,{"Owner":ownerId,"Updated_Last_Activity_Owner":true});
+		info "updateContactOwner" + updateContactOwner;
+	}
+}
+/* 	updatePageIndex = zoho.crm.updateRecord("Merger_Schedule",scheduleRecordID,{"Last_Activity_Owner_Update_Contact":pageIndex.tostring()});
+	info "updatePageIndex" + updatePageIndex;	 
+}*/
+return "";
+}

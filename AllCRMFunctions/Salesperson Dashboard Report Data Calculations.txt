@@ -1,0 +1,70 @@
+void automation.Salesperson_Dashboard_Report_Data_Calculations(Int deal_ID)
+{
+info deal_ID + " --> 3106252000094645417";
+deal_data = zoho.crm.getRecordById("Deals",deal_ID);
+info "deal response " + deal_data;
+owner = deal_data.get("Owner");
+owner_id = owner.get("id");
+owner_email = owner.get("email");
+salesperson_data = zoho.crm.searchRecords("Salesperson_Dashboard_Rpt","(Email:equals:" + owner_email + ")");
+salesperson_data = salesperson_data.sort(false);
+saleperson_data = salesperson_data.get(0);
+User_recordID = saleperson_data.get("id");
+Deals_Count_Today = ifnull(saleperson_data.get("Deals_Count_Today"),"");
+Deals_Count_Today = IF(Deals_Count_Today != "",Deals_Count_Today,0);
+Deals_Count_Weekly = ifnull(saleperson_data.get("Deals_Count_Weekly"),"");
+Deals_Count_Weekly = IF(Deals_Count_Weekly != "",Deals_Count_Weekly,0);
+Deals_Count_Monthly = ifnull(saleperson_data.get("Deals_Count_Monthly"),"");
+Deals_Count_Monthly = IF(Deals_Count_Monthly != "",Deals_Count_Monthly,0);
+Won_Amount_Today = ifnull(saleperson_data.get("Won_Amount_Today"),"");
+Won_Amount_Today = IF(Won_Amount_Today != "",Won_Amount_Today,0);
+Won_Amount_Weekly = ifnull(saleperson_data.get("Won_Amount_Weekly"),"");
+Won_Amount_Weekly = IF(Won_Amount_Weekly != "",Won_Amount_Weekly,0);
+Won_Amount_Monthly = ifnull(saleperson_data.get("Won_Amount_Monthly"),"");
+Won_Amount_Monthly = IF(Won_Amount_Monthly != "",Won_Amount_Monthly,0);
+//overall won amount -------
+Overall_Won_Amount = ifnull(saleperson_data.get("Overall_Won_Amount"),"");
+Overall_Won_Amount = IF(Overall_Won_Amount != "",Won_Amount_Monthly,0);
+//overall pending amount --------
+Overall_Pending_Amount = ifnull(saleperson_data.get("Overall_Won_Amount"),"");
+Overall_Pending_Amount = IF(Overall_Pending_Amount != "",Overall_Pending_Amount,0);
+//overall pending amount -------
+Overall_Pending_Amount = ifnull(saleperson_data.get("Overall_Won_Amount"),"");
+Overall_Pending_Amount = IF(Overall_Pending_Amount != "",Overall_Pending_Amount,0);
+//overall lost amount
+Overall_Lost_Amount = ifnull(saleperson_data.get("Overall_Lost_Amount"),"");
+Overall_Lost_Amount = IF(Overall_Lost_Amount != "",Overall_Lost_Amount,0);
+data_map = Map();
+if(deal_data.get("Stage") == "LOST")
+{
+	//update counts on deal creatiion
+	data_map.put("Overall_Lost_Amount",Overall_Lost_Amount + deal_data.get("Amount"));
+	data_map.put("Overall_Lost_Amount",Overall_Lost_Amount + deal_data.get("Amount"));
+}
+if(deal_data.get("Stage") == "Pending")
+{
+	data_map.put("Overall_Pending_Amount",Overall_Pending_Amount + deal_data.get("Amount"));
+	data_map.put("Overall_Pending_Amount",Overall_Pending_Amount + deal_data.get("Amount"));
+}
+else if(deal_data.get("Stage") == "WON")
+{
+	Won_Amount_Today = Won_Amount_Today + deal_data.get("Amount");
+	Won_Amount_Weekly = Won_Amount_Weekly + deal_data.get("Amount");
+	Won_Amount_Monthly = Won_Amount_Monthly + deal_data.get("Amount");
+	Overall_Won_Amount = Overall_Won_Amount + deal_data.get("Amount");
+	Deals_Count_Today = Deals_Count_Today + 1;
+	Deals_Count_Weekly = Deals_Count_Weekly + 1;
+	Deals_Count_Monthly = Deals_Count_Monthly + 1;
+	data_map.put("Won_Amount_Today",Won_Amount_Today);
+	data_map.put("Won_Amount_Weekly",Won_Amount_Weekly);
+	data_map.put("Won_Amount_Monthly",Won_Amount_Monthly);
+	data_map.put("Deals_Count_Today",Won_Amount_Today);
+	data_map.put("Deals_Count_Weekly",Won_Amount_Weekly);
+	data_map.put("Deals_Count_Monthly",Won_Amount_Monthly);
+	data_map.put("Overall_Won_Amount",Overall_Won_Amount);
+}
+//update report module
+info "postdata " + data_map;
+updateData = zoho.crm.updateRecord("Salesperson_Dashboard_Rpt",User_recordID,data_map);
+info "update response " + updateData;
+}

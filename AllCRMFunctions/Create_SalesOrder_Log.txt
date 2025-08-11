@@ -1,0 +1,32 @@
+void automation.Create_SalesOrder_Log(Int SalesOrderID)
+{
+start_time = now.toLong();
+Get_data = zoho.crm.getRecordById("Sales_Orders",SalesOrderID);
+Get_Owner = Get_data.get("Owner").get("name");
+Get_subject = Get_data.get("Subject");
+if(Get_subject.contains("#"))
+{
+	Sales_Order_Number = Get_subject.getSuffix("#");
+}
+else
+{
+	Sales_Order_Number = Get_subject;
+}
+Get_contact = Get_data.get("Contact_Name").get("name");
+Get_salesOrder_ID = Get_data.get("id");
+Get_store = Get_data.get("Store").get("name");
+logMap = Map();
+logMap.put("Name","Sales Orders");
+logMap.put("Sales_Order_Number",Sales_Order_Number);
+logMap.put("SalesOrder_Record_ID",Get_salesOrder_ID.toString());
+logMap.put("SalesOrder_Request",Get_data);
+logMap.put("SO_Workflow_Name","Sales Order Create/Edit");
+logMap.put("Created_Edited_By",Get_Owner);
+logMap.put("SalesOrder_Contact",Get_contact);
+logMap.put("SalesOrder_Store",Get_store);
+end_time = now.toLong();
+logMap.put("Start_Time",start_time.toString());
+logMap.put("End_Time",end_time.toString());
+Create_log = zoho.crm.createRecord("Sales_Order_PO_Log",logMap);
+info Create_log;
+}

@@ -1,0 +1,163 @@
+string standalone.Update_Purchase_Information_Books(Int Dropship_OrderId)
+{
+/* Created By Ezhil on 11 March 2021 */
+/* Moving CRM Function To PHP -  Update_Purchase_Information_Books */
+/* To Update Purchase Order Items In Books */
+response = invokeurl
+[
+	url :"https://www.1.door-pay.com/api/zohocrm/updatebookspo/info?purchaseOrderId=" + Dropship_OrderId
+	type :POST
+];
+return response;
+/*
+OrganizationID = "666840843";
+Flag = 0;
+getdropshiporder = zoho.crm.getRecordById("Purchase_Orders",Dropship_OrderId);
+// info getdropshiporder;
+items = getdropshiporder.get("Product_Details");
+for each  singleitem in items
+{
+	crm_itemid = singleitem.get("product").get("id");
+	book_item = zoho.books.getRecords("Items",OrganizationID,"cf_crmrecorid=" + crm_itemid.toText());
+	if(book_item.get("items").size() > 0)
+	{
+		Get_items = book_item.get("items");
+		for each  rec_item in Get_items
+		{
+			Get_purchase_rate = rec_item.get("purchase_rate");
+			Get_purchase_account_name = rec_item.get("purchase_account_name");
+			Get_purchase_account_id = rec_item.get("purchase_account_id");
+			Get_Books_itemid = rec_item.get("item_id");
+			if(isNull(Get_purchase_account_name) && isNull(Get_purchase_account_id))
+			{
+				Get_crm_product = zoho.crm.getRecordById("Products",crm_itemid);
+				Get_crm_price = Get_crm_product.get("Cost_Price");
+				vendor_name = rec_item.get("cf_vendor_name");
+				purchase_account_id = "1324986000025149419";
+				if(!isNull(vendor_name))
+				{
+					if(vendor_name.contains("Acudor USA"))
+					{
+						purchase_account_id = "1324986000025149419";
+					}
+					if(vendor_name.contains("Acudor Canada"))
+					{
+						purchase_account_id = "1324986000025149419";
+					}
+					if(vendor_name.contains("Babcock Davis"))
+					{
+						purchase_account_id = "1324986000025149419";
+					}
+					if(vendor_name.contains("Castle"))
+					{
+						purchase_account_id = "1324986000025149419";
+					}
+					if(vendor_name.contains("Cendrex"))
+					{
+						purchase_account_id = "1324986000025149419";
+					}
+					if(vendor_name.contains("DGM Enterprises"))
+					{
+						purchase_account_id = "1324986000000034003";
+					}
+					if(vendor_name.contains("Elmdor Canada"))
+					{
+						purchase_account_id = "1324986000000034003";
+					}
+					if(vendor_name.contains("Elmdor UAE"))
+					{
+						purchase_account_id = "1324986000025149419";
+					}
+					if(vendor_name.contains("Elmdor USA"))
+					{
+						purchase_account_id = "1324986000025149419";
+					}
+					if(vendor_name.contains("FF Systems Canada"))
+					{
+						purchase_account_id = "1324986000025149419";
+					}
+					if(vendor_name.contains("FF Systems Inc USA"))
+					{
+						purchase_account_id = "1324986000025149419";
+					}
+					if(vendor_name.contains("JL Industries"))
+					{
+						purchase_account_id = "1324986000025149419";
+					}
+					if(vendor_name.contains("Karp Associates"))
+					{
+						purchase_account_id = "1324986000025149419";
+					}
+					if(vendor_name.contains("MIFAB Canada"))
+					{
+						purchase_account_id = "1324986000025149419";
+					}
+					if(vendor_name.contains("MIFAB USA"))
+					{
+						purchase_account_id = "1324986000025149419";
+					}
+					if(vendor_name.contains("Milcor"))
+					{
+						purchase_account_id = "1324986000025149419";
+					}
+					if(vendor_name.contains("Omni Containment"))
+					{
+						purchase_account_id = "1324986000025149419";
+					}
+					if(vendor_name.contains("StrikeFirst"))
+					{
+						purchase_account_id = "1324986000025149419";
+					}
+					if(vendor_name.contains("Bilco"))
+					{
+						purchase_account_id = "1324986000025149419";
+					}
+					if(vendor_name.contains("Williams Brothers USA"))
+					{
+						purchase_account_id = "1324986000025149419";
+					}
+					if(vendor_name.contains("Williams Brothers Canada"))
+					{
+						purchase_account_id = "1324986000000034003";
+					}
+					if(vendor_name.contains("Wind-lock USA"))
+					{
+						purchase_account_id = "1324986000025149419";
+					}
+					if(vendor_name.contains("Wind-lock Canada"))
+					{
+						purchase_account_id = "1324986000025149419";
+					}
+				}
+				if(purchase_account_id == "1324986000025149419")
+				{
+					Purchase_account_name = "Cost of Goods Sold - USD";
+				}
+				else
+				{
+					Purchase_account_name = "Cost of Goods Sold - CAD";
+				}
+				Product_map = Map();
+				Product_map.put("purchase_rate",Get_crm_price);
+				Product_map.put("purchase_account_id",purchase_account_id);
+				// 				Product_map.put("purchase_account_name",Purchase_account_name);
+				Product_map.put("item_type","sales_and_purchases");
+				Update_Product = zoho.books.updateRecord("Items",OrganizationID,Get_Books_itemid,Product_map);
+				if(Update_Product.get("code") == 0)
+				{
+					Flag = 1;
+				}
+			}
+		}
+	}
+}
+if(Flag = 1)
+{
+	return "Item_Updated";
+}
+else
+{
+	return "Item_NotUpdated";
+}
+*/
+}

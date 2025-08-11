@@ -1,0 +1,181 @@
+string standalone.Books_MasterDuplicate_Finder_wrt_books_Isprocessed()
+{
+getBooksPage = zoho.crm.getRecordById("Merger_Schedule",3106252000061961343);
+Books_Contact_Index = getBooksPage.get("Books_Contact_RP_Index").toLong();
+processed_count = getBooksPage.get("Books_Duplicate_Contact_RP_Count").toLong();
+starttime = now.toLong();
+if(Books_Contact_Index < 8)
+{
+	Processed_contact_list = List();
+	customer_list = zoho.books.getRecords("contacts","666840843","contact_type=customer&page=1&per_page=50&cf_is_processed=false");
+	// 	customer_list = zoho.books.getRecords("contacts","666840843","contact_type=customer&cf_master_contactid=1324986000022436859&page=1");
+	info customer_list.get("contacts").size();
+	if(customer_list.get("message") == "success")
+	{
+		counter = 0;
+		for each  customer in customer_list.get("contacts")
+		{
+			counter = counter + 1;
+			info counter + "--------Starting point " + counter + "--email " + customer.get("email") + "--id " + customer.get("contact_id") + "- ||\n";
+			if(Processed_contact_list.toString().contains(customer.get("email")) == true)
+			{
+				info "true";
+			}
+			else
+			{
+				info "false";
+				Processed_contact_list.add(customer.get("email"));
+				// 				info Processed_contact_list;
+				info customer.get("contact_id") + " " + customer.get("contact_name") + " processed : " + customer.get("cf_is_processed") + " " + customer.get("contact_type");
+				booksContactID = customer.get("contact_id");
+				syncdcrmMasterID = customer.get("cf_crm_contact_id");
+				booksContactEmail = ifnull(customer.get("email"),"");
+				billEmail = booksContactEmail;
+				if(booksContactEmail != "" && (customer.get("cf_is_processed") == false || customer.get("cf_is_processed") == null) && customer.get("contact_type") == "customer")
+				{
+					// 				if(booksContactEmail != "" && customer.get("contact_type") == "customer")
+					// 				{
+					booksContactEmail = zoho.encryption.urlEncode(booksContactEmail);
+					Get_all_contactslist = zoho.books.getRecords("contacts","666840843","contact_type=customer&email=" + booksContactEmail);
+					info "books contact size " + Get_all_contactslist.get("contacts").size();
+					Get_contact_details = Get_all_contactslist.get("contacts");
+					if(Get_all_contactslist.get("contacts").size() > 1)
+					{
+						info "inside code deletion - list size > 1";
+						//----	
+						masterRecId = 0;
+						latestRecId = 0;
+						masterFound = false;
+						sortedOrder = list();
+						sortedMap = Map();
+						bigCommerceSortedList = list();
+						bigCommerceSortedMap = Map();
+						for each  rec in Get_contact_details
+						{
+							// 	info rec.get("contact_id") + " " +rec.get("email") + " "+ rec.get("contact_name");
+							gmt = rec.get("created_time").toTime("yyyy-MM-dd'T'HH:mm:ss","GMT");
+							sortedOrder.add(gmt);
+							sortedMap.put(gmt,rec.get("contact_id"));
+							Get_bc_Id = "";
+							Get_custom_data = rec.get("custom_fields");
+							for each  custom_rec in Get_custom_data
+							{
+								if(custom_rec.get("customfield_id") == "1324986000000327003")
+								{
+									Get_bc_Id = ifnull(custom_rec.get("value"),"");
+									// 					info "BC ID: " + Get_bc_Id;
+									if(Get_bc_Id != "")
+									{
+										masterFound = true;
+										bigCommerceSortedList.add(gmt);
+										bigCommerceSortedMap.put(gmt,rec.get("contact_id"));
+									}
+								}
+							}
+						}
+						sortedOrder = sortedOrder.sort(false);
+						bigCommerceSortedList = bigCommerceSortedList.sort(false);
+						// 			info "bigcommerce record sorted " + bigCommerceSortedList;
+						if(!masterFound)
+						{
+							masterRecId = sortedMap.get(sortedOrder.get(0));
+							info "master not found condition " + masterRecId;
+						}
+						else
+						{
+							info "master found -- " + bigCommerceSortedMap.get(bigCommerceSortedList.get(0));
+							masterRecId = bigCommerceSortedMap.get(bigCommerceSortedList.get(0));
+						}
+						//update Master contact --if master already updated then should not update again
+						update_contactresponse = "Error";
+						update_masterdata_map = Map();
+						// crm master id - custom field --- >  {"customfield_id":"1324986000001053007","value":crmRecordID}
+						update_masterdata_map.put("custom_fields",{{"customfield_id":"1324986000022494833","value":true},{"customfield_id":"1324986000022555479","value":masterRecId},{"customfield_id":"1324986000020148916","value":true}});
+						masterresponse_update_status = zoho.books.updateRecord("Contacts","666840843",masterRecId,update_masterdata_map);
+						info "Update master contact Response: " + masterresponse_update_status.get("message");
+						if(masterresponse_update_status.get("message") == "Contact information has been saved.")
+						{
+							update_contactresponse = "Success";
+						}
+						flag1 = 0;
+						numberof_records = 0;
+						duplicates_contactID = "";
+						for each  record in Get_contact_details
+						{
+							numberof_records = numberof_records + 1;
+							if(record.get("contact_id").toLong() != masterRecId.toLong())
+							{
+								info "--" + processed_count + " dupl contact id -- " + record.get("contact_id");
+								// 							duplicates_contactID = duplicates_contactID+ "<--> contactID: "+record.get("contact_id") + " masterID: "+record.get("cf_master_contactid")+" crmID: "+ record.get("cf_crm_contact_id");
+								//update contact wuth master CRM id   - {"customfield_id":"1324986000001053007","value":crmRecordID}
+								update_data_map = Map();
+								update_data_map.put("custom_fields",{{"customfield_id":"1324986000022494833","value":false},{"customfield_id":"1324986000022555479","value":masterRecId},{"customfield_id":"1324986000020148916","value":true}});
+								if(record.get("cf_is_processed") == true)
+								{
+									info "already Updated duplicate contact -- ";
+									update_contactresponse = "Success";
+								}
+								else
+								{
+									response_update_status = zoho.books.updateRecord("Contacts","666840843",record.get("contact_id"),update_data_map);
+									info "Update duplicate contact Response: " + response_update_status.get("message") + " code: " + response_update_status.get("code");
+									processed_count = processed_count + 1;
+									duplicatesProcessing = " contactID: " + record.get("contact_id") + " masterID: " + record.get("cf_master_contactid") + " crmID: " + record.get("cf_crm_contact_id") + " response: " + response_update_status.get("message") + " |<-->| \n";
+									duplicates_contactID = duplicates_contactID + duplicatesProcessing;
+									if(response_update_status.get("message") == "Contact information has been saved.")
+									{
+										update_contactresponse = "Success";
+									}
+								}
+							}
+						}
+						//only if no contact is processed -ends
+						logs = zoho.crm.createRecord("Log_ContactQuoteDeals",{"Which_Module":"Books-Contacts","Status":update_contactresponse,"Action":"Books- Duplicate Master Finder","Contact_Data":customer,"What_Time":now.toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'"),"Name":"custom function - Books_MasterDuplicate_Finder_wrt_cfIsprocessed / contact size is > 1","Contact_Response":duplicates_contactID + " || Master update response: " + masterresponse_update_status.get("message"),"Created_Edited_By":zoho.loginuserid,"Start_Time":starttime.toString(),"End_Time":now.toLong().toString(),"Books_Record_ID":booksContactID,"Contact_Record_ID":"crmID: " + syncdcrmMasterID + " -- booksmaster: " + masterRecId,"Email":billEmail,"Contact_Name":customer.get("contact_name")});
+						info "log: " + logs.get("id");
+					}
+					else if(Get_all_contactslist.get("contacts").size() == 1)
+					{
+						info "only one contact is found - list size == 1";
+						ProcessedCount = 0;
+						for each  s_contact in Get_contact_details
+						{
+							ProcessedCount = ProcessedCount + 1;
+							info "only one contact is found for contact_id -- " + s_contact.get("contact_id") + " || email -- " + s_contact.get("email");
+							update_masterdata_map = Map();
+							// {"customfield_id":"1324986000001053007","value":crmRecordID.toLong()}
+							update_masterdata_map.put("custom_fields",{{"customfield_id":"1324986000022494833","value":true},{"customfield_id":"1324986000022555479","value":booksContactID},{"customfield_id":"1324986000020148916","value":true}});
+							masterresponse_update_status = zoho.books.updateRecord("Contacts","666840843",booksContactID,update_masterdata_map);
+							info "Update master contact Response: " + masterresponse_update_status.get("message");
+							update_contactreponse = "";
+							if(masterresponse_update_status.get("message") == "Contact information has been saved.")
+							{
+								update_contactreponse = "Success";
+							}
+							else
+							{
+								update_contactreponse = "Error";
+							}
+							logs = zoho.crm.createRecord("Log_ContactQuoteDeals",{"Which_Module":"Books-Contacts","Status":update_contactreponse,"Action":"Books- Duplicate Master Finder","Contact_Data":customer,"What_Time":now.toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'"),"Name":"custom function - Books_MasterDuplicate_Finder_wrt_cfIsprocessed / contact size is 1","Contact_Response":"masterID: " + s_contact.get("cf_master_contactid") + " || crmID: " + s_contact.get("cf_crm_contact_id") + " || master res " + masterresponse_update_status.get("message"),"Created_Edited_By":zoho.loginuserid,"Start_Time":starttime.toString(),"End_Time":now.toLong().toString(),"Books_Record_ID":s_contact.get("contact_id"),"Contact_Record_ID":"crmID: " + s_contact.get("cf_crm_contact_id") + " -- booksmaster: " + s_contact.get("contact_id"),"Email":billEmail,"Contact_Name":customer.get("contact_name")});
+							info "log: " + logs.get("id");
+						}
+					}
+					else
+					{
+						info "no contact found for " + booksContactID;
+						logs = zoho.crm.createRecord("Log_ContactQuoteDeals",{"Which_Module":"Books-Contacts","Status":update_contactreponse,"Action":"Books- Duplicate Master Finder","Contact_Data":customer,"What_Time":now.toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'"),"Name":"custom function - Books_MasterDuplicate_Finder_wrt_cfIsprocessed / contact size is 1","Contact_Response":"","Created_Edited_By":zoho.loginuserid,"Start_Time":starttime.toString(),"End_Time":now.toLong().toString(),"Books_Record_ID":customer.get("contact_id"),"Contact_Record_ID":"crmID" + customer.get("cf_crm_contact_id") + " -- booksmaster: " + customer.get("contact_id"),"Email":billEmail,"Contact_Name":customer.get("contact_name")});
+						info "logs " + logs.get("id");
+					}
+				}
+			}
+		}
+		if(counter == 50)
+		{
+			update_last_page = Books_Contact_Index + 1;
+			update_last_page = update_last_page.toString();
+			updateMerger = zoho.crm.updateRecord("Merger_Schedule",3106252000061961343,{"Books_Contact_RP_Index":update_last_page,"Books_Duplicate_Contact_RP_Count":processed_count.toString()});
+			info " merger res || " + updateMerger.get("id");
+		}
+	}
+}
+return "completed page " + Books_Contact_Index + " -- " + " next page " + update_last_page;
+}

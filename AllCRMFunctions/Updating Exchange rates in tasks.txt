@@ -1,0 +1,37 @@
+string standalone.Updating_Exchange_rates_in_tasks()
+{
+schdule = zoho.crm.getRecordById("Merger_Schedule","3106252000061961343");
+last_page = schdule.get("Task_Last_Page").toLong();
+task_processed_count = schdule.get("Task_Processed_Count").toLong();
+task_list = zoho.crm.getRecords("Tasks",last_page,200,{"cvid":3106252000000087637});
+if(!task_list.isEmpty() && last_page != 0)
+{
+	create_map = Map();
+	for each  each_task in task_list
+	{
+		if(each_task.get("Currency") != null && each_task.get("Exchange_Rate") != null)
+		{
+			if(each_task.get("Currency") == "USD" && each_task.get("Exchange_Rate") != 1)
+			{
+				zoho.crm.updateRecord("Tasks",each_task.get("id"),{"Currency":"CAD"});
+				task_processed_count = task_processed_count + 1;
+				create_map.put("Old_Exchange_Rate",each_task.get("Exchange_Rate"));
+				create_map.put("New_Exchange_Rate",1);
+				create_map.put("Name",each_task.get("id").toString());
+				zoho.crm.updateRecord("Tasks",each_task.get("id"),{"Currency":"USD"});
+				zoho.crm.createRecord("Task_Log",create_map);
+			}
+		}
+	}
+	info "last_page" + last_page;
+	info "task_processed_count" + task_processed_count;
+	last_page = last_page + 1;
+	zoho.crm.updateRecord("Merger_Schedule","3106252000061961343",{"Task_Last_Page":last_page.toString(),"Task_Processed_Count":task_processed_count.toString()});
+}
+else
+{
+	last_page = 0;
+	zoho.crm.updateRecord("Merger_Schedule","3106252000061961343",{"Task_Last_Page":last_page.toString(),"Task_Processed_Count":task_processed_count.toString()});
+}
+return "";
+}

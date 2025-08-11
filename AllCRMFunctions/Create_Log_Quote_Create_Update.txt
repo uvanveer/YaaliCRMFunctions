@@ -1,0 +1,43 @@
+void automation.Create_Log_Quote_Create_Update(Int Quote_Id)
+{
+Get_data = zoho.crm.getRecordById("Quotes",Quote_Id);
+info Get_data;
+if(!isEmpty(Get_data) && Get_data != NULL)
+{
+	Get_Owner = Get_data.get("Owner").get("name");
+	info Get_Owner;
+	Get_creatorID = Get_data.get("Creator_Record_ID");
+	info Get_creatorID;
+	if(!isNull(Get_creatorID))
+	{
+		Get_Quote_number = Get_data.get("Sales_Quote_Number");
+		Log_map = Map();
+		Log_map.put("Which_Module","Quotes");
+		Log_map.put("Salesperson",Get_Owner);
+		Log_map.put("Quote_Number",Get_Quote_number);
+		Log_map.put("Quote_Request",Get_data);
+		Log_map.put("Creator_Quote_ID",Get_creatorID);
+		Log_map.put("Quote_Record_ID",Quote_Id.toString());
+		Log_map.put("Name","Quotes Create/Edit");
+		Create_log = zoho.crm.createRecord("Log_ContactQuoteDeals",Log_map);
+		info Create_log;
+		//capture salesperson report data - rpr 6-11-2020
+		info Get_Owner + " " + Get_data.get("Owner").get("email");
+		Owner_email = Get_data.get("Owner").get("email");
+		coql_map = Map();
+		coql_map.put("select_query","select Name,Quotes_Monthly,Quotes_Today,Quotes_Weekly,Total_Quotes from Salesperson_Dashboard_Rpt where Email is Owner_email");
+	}
+}
+// maillist = invokeurl
+// [
+// 	url :"https://www.zohoapis.com/crm/v2/coql"
+// 	type :POST
+// 	parameters:coql_map.tostring()
+// 	connection:"crm_connection"
+// ];
+// info " --- " + maillist.get("data").size();
+// info "mrec " + maillist.get("data");
+// if(maillist.get("data").size() == 1){
+// 	info "quotes working part";
+// }
+}

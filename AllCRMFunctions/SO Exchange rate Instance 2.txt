@@ -1,0 +1,35 @@
+string standalone.SO_Exchange_rate_Instance_2()
+{
+getting_last = zoho.crm.getRecordById("Merger_Schedule","3106252000061961343");
+last_page = getting_last.get("Sales_Order_Last_Page_Instance2").toLong();
+info "last_page" + last_page;
+if(last_page > 0 && last_page <= 280)
+{
+	sales_orders = zoho.crm.getRecords("Sales_Orders",last_page,200,{"cvid":3106252000088652316});
+	for each  sales_order in sales_orders
+	{
+		// 	info "----SO ID-----" + sales_order.get("id");
+		if(sales_order.get("Exchange_Rate") != null)
+		{
+			updatedummyCurrency = zoho.crm.updateRecord("Sales_Orders",sales_order.get("id"),{"Actual_Currency":sales_order.get("Currency"),"Currency":"CAD","Previous_Exchange_Rate":sales_order.get("Exchange_Rate").toString()});
+			info "----SO ID-----" + sales_order.get("id");
+			info "updatedummyCurrency " + updatedummyCurrency;
+			create_map = Map();
+			create_map.put("Name",sales_order.get("id").toString());
+			create_map.put("New_Exchange_Rate",1);
+			create_map.put("Old_Exchange_Rate",sales_order.get("Exchange_Rate").toLong());
+			create_map.put("Source","Sales Order");
+			info "Creation" + zoho.crm.createRecord("Lead_Log",create_map);
+			updateOriginalCurrency = zoho.crm.updateRecord("Sales_Orders",sales_order.get("id"),{"Currency":"USD"});
+			info "updateOriginalCurrency " + updateOriginalCurrency;
+		}
+	}
+	last_page = last_page + 1;
+}
+else
+{
+	last_page = 0;
+}
+getting_last = zoho.crm.updateRecord("Merger_Schedule","3106252000061961343",{"Sales_Order_Last_Page_Instance2":last_page.toString()});
+return "";
+}

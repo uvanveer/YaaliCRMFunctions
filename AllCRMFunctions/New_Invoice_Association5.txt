@@ -1,0 +1,518 @@
+string standalone.New_Invoice_association5()
+{
+Get_Pagination_details = zoho.crm.getRecordById("Tag_syncing_schedule","3106252000106962004");
+Page_Count = Get_Pagination_details.get("Function_Execution");
+Page_Count = Page_Count.toLong();
+Updated_Page_Count = Page_Count + 1;
+Update_log = Map();
+Update_log.put("Function_Execution",Updated_Page_Count.toString());
+Get_Updated_Page = zoho.crm.updateRecord("Tag_syncing_schedule","3106252000106962004",Update_log);
+info Get_Updated_Page;
+Record_count = 10;
+organizationID = "666840843";
+// Get_data = getUrl("https://books.zoho.com/api/v3/invoices?page=" + Page_Count + "&per_page=" + Record_count + "&sort_column=date&sort_order=A&date_start=2020-06-02&date_end=2020-07-01&organization_id=666840843",{"Authorization":"Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2"});
+Count = 0;
+Get_data = zoho.crm.searchRecords("IdentifiedInvoices_Bills","(Latest_Check:equals:true)",Page_Count,50);
+info Get_data;
+// Get_all_Invoices = Get_data.get("invoices");
+for each  rec_Inv in Get_data
+{
+	Inv_map = rec_Inv.toMap();
+	Get_Invoice_Id = Inv_map.get("Bill_Invoice_Record_ID");
+	Get_customrec_id = Inv_map.get("id");
+	Get_So_flag = Inv_map.get("SO_Flag");
+	Get_lineitem_flag = Inv_map.get("Line_Item_flag");
+	Get_processed = Inv_map.get("Latest_Processed");
+	if(Get_processed == false && (Get_So_flag == true || Get_lineitem_flag == true))
+	{
+		Count = Count + 1;
+		info Get_Invoice_Id;
+		Sales_Order_id = "";
+		Get_Invoices = zoho.books.getRecordsByID("Invoices","666840843",Get_Invoice_Id);
+		info "inv_obt" + Get_Invoices;
+		if(Get_Invoices.get("code") != "1002")
+		{
+			get_status = Get_Invoices.get("invoice").get("status");
+			Get_BC_Unique_Id = Get_Invoices.get("invoice").get("custom_field_hash").get("cf_bigcommerce_unique_id");
+			info Get_BC_Unique_Id;
+			if(!isNull(Get_BC_Unique_Id))
+			{
+				search_salesorder = zoho.books.getRecords("salesorders",organizationID,"cf_bigcommerce_unique_id=" + Get_BC_Unique_Id);
+				// 			info search_salesorder;
+				Get_salesorders = search_salesorder.get("salesorders");
+				for each  salesorders_obt in Get_salesorders
+				{
+					Sales_Order_id = salesorders_obt.get("salesorder_id");
+					info Sales_Order_id;
+				}
+			}
+		}
+		if(Sales_Order_id != "")
+		{
+			info "Sales_orders" + Sales_Order_id;
+			Get_Idt_salesorders = zoho.books.getRecordsByID("salesorders",organizationID,Sales_Order_id);
+			salesorder = Get_Idt_salesorders.get("salesorder");
+			payment_list = getUrl("https://www.zohoapis.com/books/v3/invoices/" + Get_Invoice_Id + "/payments?organization_id=666840843",{"Authorization":"Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2"});
+			header_data = Map();
+			header_data.put("Authorization","Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2");
+			// 	info payment_list;
+			if(payment_list.get("message") == "success")
+			{
+				if(payment_list.get("payments").size() > 0)
+				{
+					for each  Invpayment in payment_list.get("payments")
+					{
+						info "payment --> " + Invpayment.get("payment_id") + " " + Invpayment.get("invoice_id");
+						delete_payment = invokeurl
+						[
+							url :"https://www.zohoapis.com/books/v3/customerpayments/" + Invpayment.get("payment_id") + "?organization_id=666840843"
+							type :DELETE
+							headers:header_data
+						];
+						info delete_payment;
+					}
+					////delete invoice
+					delete_invoice = invokeurl
+					[
+						url :"https://www.zohoapis.com/books/v3/invoices/" + Get_Invoice_Id + "?organization_id=666840843"
+						type :DELETE
+						headers:header_data
+					];
+					info delete_invoice;
+				}
+				else if(payment_list.get("payments").size() == 0)
+				{
+					info "delete invoice and re-associate saleorder part without payments";
+					delete_invoice = invokeurl
+					[
+						url :"https://www.zohoapis.com/books/v3/invoices/" + Get_Invoice_Id + "?organization_id=666840843"
+						type :DELETE
+						headers:header_data
+					];
+					info delete_invoice;
+				}
+			}
+			//Generate New Invoices
+			/* Updated Script to create invoice for amazon orders */
+			salesorderID = salesorder.get("salesorder_id");
+			salesorderdate = salesorder.get("date").toDate();
+			organizationID = "666840843";
+			bc_unique_id = salesorder.get("custom_field_hash").get("cf_bigcommerce_unique_id");
+			amazonOrderId = salesorder.get("custom_field_hash").get("cf_amazon_order_id");
+			Order_Status = salesorder.get("custom_field_hash").get("cf_status");
+			Payment_Gateway = salesorder.get("custom_field_hash").get("cf_gateway");
+			gateway_trans_id = salesorder.get("custom_field_hash").get("cf_gateway_transaction_id");
+			card_last_4digit = salesorder.get("custom_field_hash").get("cf_credit_card_type_inn_last_4");
+			salesorder_number = salesorder.get("salesorder_number");
+			storename = salesorder_number.getPrefix("-");
+			date1 = salesorder.get("date");
+			search_invoice = "";
+			salesorderSource = salesorder.get("custom_field_hash").get("cf_source");
+			info "saleorderID " + salesorderID + " source" + salesorderSource;
+			search_invoice = zoho.books.getRecords("Invoices",organizationID,"cf_bigcommerce_unique_id=" + bc_unique_id);
+			// info search_invoice;
+			invoice_count = search_invoice.get("invoices").size();
+			info "Invoice Count : " + invoice_count;
+			info "Order Status : " + Order_Status;
+			// info "Amazon Order Id : " + amazonOrderId;
+			if(invoice_count <= 0)
+			{
+				header = Map();
+				header.put("authtoken","62821be1f52aaa5a1e3c658edba059cf");
+				header.put("Content-Type","application/x-www-form-urlencoded;charset=UTF-8");
+				converinvoice = postUrl("https://www.zohoapis.com/books/v3/invoices/fromsalesorder?organization_id=" + organizationID + "&salesorder_id=" + salesorderID,header);
+				info "converinvoice:" + converinvoice;
+				if(converinvoice.get("invoice").size() > 0)
+				{
+					invoice = converinvoice.get("invoice");
+					invoiceID = invoice.get("invoice_id");
+					invoicedate = invoice.get("date").toDate();
+					only_store_hash = bc_unique_id.toList('_').get(1);
+					payment_mode = invoice.get("custom_field_hash").get("cf_payment_method");
+					is_reconciled = invoice.get("custom_field_hash").get("cf_invoice_reconciled");
+					if(only_store_hash == "jdq9dzd")
+					{
+						//BADC
+						storename = "Best_Access_Doors_Canada";
+						if(payment_mode == "mastercard" || payment_mode == "visa" || payment_mode == "american_express" || payment_mode == "Credit Card")
+						{
+							if(Payment_Gateway == "braintree")
+							{
+								account = "1324986000002663780";
+								mode = "Card";
+							}
+							else if(Payment_Gateway == "stripe")
+							{
+								account = "1324986000017116636";
+								mode = "Card";
+							}
+						}
+						else if(payment_mode == "PayPal powered by Braintree")
+						{
+							account = "1324986000002716128";
+							mode = "Paypal";
+						}
+						else if(payment_mode == "Check" || payment_mode == "Cheque")
+						{
+							account = "1324986000002521128";
+							mode = "Cheque";
+						}
+					}
+					else if(only_store_hash == "ekrllr")
+					{
+						//ADC
+						storename = "Access_Doors_Canada";
+						if(payment_mode == "mastercard" || payment_mode == "visa" || payment_mode == "american_express" || payment_mode == "Credit Card")
+						{
+							if(Payment_Gateway == "braintree")
+							{
+								account = "1324986000002663772";
+								mode = "Card";
+							}
+							else if(Payment_Gateway == "stripe")
+							{
+								info "inside ther stripe";
+								account = "1324986000017116619";
+								mode = "Card";
+							}
+						}
+						else if(payment_mode == "PayPal powered by Braintree")
+						{
+							account = "1324986000002716128";
+							mode = "Paypal";
+						}
+						else if(payment_mode == "Check" || payment_mode == "Cheque")
+						{
+							account = "1324986000002521128";
+							mode = "Cheque";
+						}
+					}
+					else if(only_store_hash == "sy018d9yee")
+					{
+						//AAP
+						storename = "Acudor_Access_Panels";
+						if(payment_mode == "mastercard" || payment_mode == "visa" || payment_mode == "american_express" || payment_mode == "Credit Card")
+						{
+							if(Payment_Gateway == "braintree")
+							{
+								account = "1324986000002663784";
+								mode = "Card";
+							}
+							else if(Payment_Gateway == "stripe")
+							{
+								account = "1324986000017116640";
+								mode = "Card";
+							}
+						}
+						else if(payment_mode == "PayPal powered by Braintree")
+						{
+							account = "1324986000002716124";
+							mode = "Paypal";
+						}
+						else if(payment_mode == "Check" || payment_mode == "Cheque")
+						{
+							account = "1324986000002521134";
+							mode = "Cheque";
+						}
+					}
+					else if(only_store_hash == "v5cbc8ee")
+					{
+						//CAD
+						storename = "California_Access_Doors";
+						if(payment_mode == "mastercard" || payment_mode == "visa" || payment_mode == "american_express" || payment_mode == "Credit Card")
+						{
+							if(Payment_Gateway == "braintree")
+							{
+								account = "1324986000003791013";
+								mode = "Card";
+							}
+							else if(Payment_Gateway == "stripe")
+							{
+								account = "1324986000017116613";
+								mode = "Card";
+							}
+						}
+						else if(payment_mode == "PayPal powered by Braintree")
+						{
+							account = "1324986000002716128";
+							mode = "Paypal";
+						}
+						else if(payment_mode == "Check" || payment_mode == "Cheque")
+						{
+							account = "1324986000002521128";
+							mode = "Cheque";
+						}
+					}
+					else if(only_store_hash == "d6xnuf")
+					{
+						//ADAP
+						storename = "Access_Doors_And_Panels";
+						if(payment_mode == "mastercard" || payment_mode == "visa" || payment_mode == "american_express" || payment_mode == "Credit Card")
+						{
+							if(Payment_Gateway == "braintree")
+							{
+								account = "1324986000003791009";
+								mode = "Card";
+							}
+							else if(Payment_Gateway == "stripe")
+							{
+								account = "1324986000017116644";
+								mode = "Card";
+							}
+						}
+						else if(payment_mode == "PayPal powered by Braintree")
+						{
+							account = "1324986000002716124";
+							mode = "Paypal";
+						}
+						else if(payment_mode == "Check" || payment_mode == "Cheque")
+						{
+							account = "1324986000002521134";
+							mode = "Cheque";
+						}
+					}
+					else if(only_store_hash == "73d62")
+					{
+						//BAD
+						storename = "Best_Access_Doors";
+						if(payment_mode == "mastercard" || payment_mode == "visa" || payment_mode == "american_express" || payment_mode == "Credit Card")
+						{
+							if(Payment_Gateway == "braintree")
+							{
+								account = "1324986000002663788";
+								mode = "Card";
+							}
+							else if(Payment_Gateway == "stripe")
+							{
+								account = "1324986000017206115";
+								mode = "Card";
+							}
+						}
+						else if(payment_mode == "PayPal powered by Braintree")
+						{
+							account = "1324986000002716124";
+							mode = "Paypal";
+						}
+						else if(payment_mode == "Check" || payment_mode == "Cheque")
+						{
+							account = "1324986000002521134";
+							mode = "Cheque";
+						}
+					}
+					else if(only_store_hash == "dh5771")
+					{
+						//MAX
+						storename = "Max_Supply";
+						if(payment_mode == "mastercard" || payment_mode == "visa" || payment_mode == "american_express" || payment_mode == "Credit Card")
+						{
+							if(Payment_Gateway == "braintree")
+							{
+								account = "1324986000003791017";
+								mode = "Card";
+							}
+							else if(Payment_Gateway == "stripe")
+							{
+								account = "1324986000017116632";
+								mode = "Card";
+							}
+						}
+						else if(payment_mode == "PayPal powered by Braintree")
+						{
+							account = "1324986000002716124";
+							mode = "Paypal";
+						}
+						else if(payment_mode == "Check" || payment_mode == "Cheque")
+						{
+							account = "1324986000002521134";
+							mode = "Cheque";
+						}
+					}
+					else if(only_store_hash == "p56begf")
+					{
+						//PUB
+						storename = "Public_Furniture";
+						if(payment_mode == "mastercard" || payment_mode == "visa" || payment_mode == "american_express" || payment_mode == "Credit Card")
+						{
+							if(Payment_Gateway == "braintree")
+							{
+								account = " ";
+								mode = "Card";
+							}
+							else if(Payment_Gateway == "stripe")
+							{
+								account = "1324986000017116628";
+								mode = "Card";
+							}
+						}
+						else if(payment_mode == "PayPal powered by Braintree")
+						{
+							account = "1324986000002716124";
+							mode = "Paypal";
+						}
+						else if(payment_mode == "Check" || payment_mode == "Cheque")
+						{
+							account = "1324986000002521134";
+							mode = "Cheque";
+						}
+					}
+					Updatemap = Map();
+					custom_fields = List();
+					custom_fields1 = Map();
+					custom_fields1.put("label","Store Name");
+					custom_fields1.put("value",storename);
+					custom_fields.add(custom_fields1);
+					custom_fields2 = Map();
+					custom_fields2.put("label","Gateway");
+					custom_fields2.put("value",ifnull(Payment_Gateway,""));
+					custom_fields.add(custom_fields2);
+					custom_fields3 = Map();
+					custom_fields3.put("label","Gateway Transaction ID");
+					custom_fields3.put("value",ifnull(gateway_trans_id,""));
+					custom_fields.add(custom_fields3);
+					if(!amazonOrderId.isNull())
+					{
+						// Sync Amazon Order ID
+						custom_fields4 = Map();
+						custom_fields4.put("label","Amazon Order ID");
+						custom_fields4.put("value",amazonOrderId);
+						custom_fields.add(custom_fields4);
+						// End		
+					}
+					info "Custom Fields : " + custom_fields;
+					Updatemap.put("custom_fields",custom_fields);
+					soID = salesorder.get("salesorder_id");
+					// 					salesorder = zoho.books.getRecordsByID("Salesorders",organizationID,soID).get("salesorder");
+					line_item_list_description = List();
+					info "salesorder=" + salesorder;
+					descriptionMap = Map();
+					for each  line_item in salesorder.get("line_items")
+					{
+						lineItemID = line_item.get("line_item_id");
+						des = line_item.get("description");
+						descriptionMap.put(lineItemID,des);
+					}
+					lineItems = invoice.get("line_items");
+					for each  findItems in lineItems
+					{
+						soLineItemID = findItems.get("salesorder_item_id");
+						lineItemDescription = descriptionMap.get(soLineItemID);
+						line_item_create = Map();
+						findItems.remove("description");
+						findItems.put("description",lineItemDescription);
+						line_item_list_description.add(findItems);
+					}
+					// 		line_item_list_description = List();
+					// 		for each  line_item in salesorder.getJSON("line_items")
+					// 		{
+					// 			line_item_create = Map();
+					// 			line_item_create.put("item_id",line_item.get("item_id"));
+					// 			line_item_create.put("description",line_item.get("description"));
+					// 			line_item_create.put("salesorder_item_id",line_item.get("line_item_id"));
+					// 			line_item_list_description.add(line_item_create);
+					// 		}
+					Updatemap.put("line_items",line_item_list_description);
+					Updateinvoice = zoho.books.updateRecord("Invoices",organizationID,invoiceID,Updatemap);
+					info "Update Invoice:" + Updateinvoice;
+					logMap = Map();
+					logMap.put("Name","Regenerate New Invoices");
+					logMap.put("SalesOrder_Record_ID",invoiceID.toString());
+					logMap.put("SalesOrder_Request",Updatemap);
+					logMap.put("SO_Workflow_Name","Update COA in Invoices");
+					logMap.put("SalesOrder_Response",Updateinvoice);
+					end_time = now.toLong();
+					logMap.put("Start_Time",end_time.toString());
+					logMap.put("End_Time",end_time.toString());
+					Create_log = zoho.crm.createRecord("Sales_Order_PO_Log",logMap);
+					// 		if(Payment_Gateway == "stripe")
+					// 		{
+					// 			getfee = getUrl("https://1.door-pay.com/pq/p/ph/stripereconciliation/process_payout.php?s=" + storename + "&transid=" + gateway_trans_id + "&expense");
+					// 			info "getfee response:" + getfee;
+					// 		}
+					invoicemap = Map();
+					invoicemap.put("invoice_id",invoiceID);
+					invoicemap.put("amount_applied",invoice.get("total"));
+					Paymentupdate = Map();
+					Paymentupdate.put("customer_id",salesorder.get("customer_id"));
+					Paymentupdate.put("payment_mode",payment_mode);
+					Paymentupdate.put("amount",invoice.get("total"));
+					Paymentupdate.put("account_id",account);
+					Paymentupdate.put("invoices",invoicemap.toList());
+					info "\nPaymentupdate" + Paymentupdate;
+					getpayment = zoho.books.getRecords("Customerpayments",organizationID,"cf_bigcommerce_unique_id=" + bc_unique_id);
+					info "getpayment : " + getpayment;
+					if(getpayment.get("customerpayments").size() > 0)
+					{
+						customerpayment = getpayment.get("customerpayments");
+						payment_id = customerpayment.getJSON("payment_id");
+						update_paymentresponse = zoho.books.updateRecord("Customerpayments",organizationID,payment_id.toText(),Paymentupdate);
+						info "\nupdatepaymentresponse" + update_paymentresponse;
+					}
+					else
+					{
+						info "create new payment";
+						Paymentupdate.put("reference_number",salesorderID);
+						Paymentupdate.put("date",date1);
+						Paymentupdate.put("description",payment_mode);
+						Paymentupdate.put("gateway_transaction_id",gateway_trans_id);
+						Paymentupdate.put("last_four_digits",card_last_4digit);
+						Paymentupdate.put("tax_account_id",salesorder.get("tax_id"));
+						Paymentupdate.put("tax_account_name",salesorder.get("tax_name"));
+						custom_fields = List();
+						customfieldmap1 = Map();
+						customfieldmap1.put("label","Store Name");
+						customfieldmap1.put("value",storename);
+						custom_fields.add(customfieldmap1);
+						customfieldmap = Map();
+						customfieldmap.put("label","Bigcommerce Unique ID");
+						customfieldmap.put("value",ifnull(bc_unique_id,""));
+						custom_fields.add(customfieldmap);
+						Paymentupdate.put("custom_fields",custom_fields.toList());
+						info "Paymentupdate" + Paymentupdate;
+						createpayment = zoho.books.createRecord("Customerpayments",organizationID,Paymentupdate);
+						info "createpayment" + createpayment;
+					}
+					custom_field_hash = converinvoice.getJSON("invoice").getJSON("custom_field_hash");
+					is_reconciled = custom_field_hash.getJSON("cf_invoice_reconciled");
+					if(is_reconciled == false && Payment_Gateway == "stripe")
+					{
+						invoicedata = Map();
+						invoicedata.put("storename",storename);
+						invoicedata.put("transid",gateway_trans_id);
+						checkreconciled = postUrl("https://www.1.door-pay.com/api/zbooks/invoicetrans",invoicedata);
+						info "while creation checkreconciled" + checkreconciled;
+					}
+				}
+				else
+				{
+					info "Please Create Invoice First";
+				}
+			}
+			else
+			{
+				// 			custom_field_hash = search_invoice.getJSON("invoices").getJSON("custom_field_hash");
+				// 			is_reconciled = custom_field_hash.getJSON("cf_invoice_reconciled");
+				// 			info "Invoice Already Generated or The order has not shipped all items..." + is_reconciled;
+				// 			if(is_reconciled == false && Payment_Gateway == "stripe")
+				// 			{
+				// 				invoicedata = Map();
+				// 				invoicedata.put("storename",storename);
+				// 				invoicedata.put("transid",gateway_trans_id);
+				// 				// 		getfee = getUrl("https://1.door-pay.com/pq/p/ph/stripereconciliation/process_payout.php?s=" + storename + "&transid=" + gateway_trans_id);
+				// 				checkreconciled = postUrl("https://www.1.door-pay.com/api/zbooks/invoicetrans",invoicedata);
+				// 				info "checkreconciled" + checkreconciled;
+				// 			}
+			}
+		}
+		Update_custom_map = Map();
+		Update_custom_map.put("Latest_Processed",true);
+		Update_custom_map.put("Latest_Check",false);
+		Update_custom_map.put("Completed",true);
+		Update_custom_data = zoho.crm.updateRecord("IdentifiedInvoices_Bills",Get_customrec_id,Update_custom_map);
+	}
+	if(Count >= 10)
+	{
+		break;
+	}
+}
+return "";
+}

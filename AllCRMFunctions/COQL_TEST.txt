@@ -1,0 +1,45 @@
+string standalone.COQL_TEST()
+{
+/* Ezhilarasu 12/06/2020 */
+/* COQL TEST */
+modifiedTime = now;
+info modifiedTime;
+date = zoho.currenttime.subHour(2).toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'");
+info date;
+coql_map = Map();
+coql_map.put("select_query","select Type_of_Call, Due_Date1, Call_Type, Call_Duration_in_seconds, Created_Time, Who_Id from Calls where (Owner = '3106252000024509019') AND ( Created_Time between '2020-12-01T00:00:00-04:00' and '2020-12-31T23:59:59-04:00') ");
+maillist = invokeurl
+[
+	url :"https://zylkercorp.zohoplatform.com/crm/v6/coql"
+	type :POST
+	parameters:coql_map.tostring()
+	connection:"crm_connection"
+];
+info maillist;
+//            "parameters": { "select_query": "select Deal_Name,  Stage,Closing_Date, Amount, Account_Name.Account_Name, Contact_Name.Full_Name  from Deals where  ((Closing_Date between '" + startDate + "' and '" + enddate + "' and Stage = 'won') and (Owner = " + ownerID + " )) OFFSET " + offset + " LIMIT 200" },
+//limit = 1;
+offset = 0;
+coql_map = Map();
+//coql_map.put("select_query","select Dropship_Number from Purchase_Orders where Created_Time between '2021-02-01T00:00:00-04:00' and '2021-02-28T23:59:59-04:00' limit " + limit + " OFFSET " + offset);
+//coql_map.put("select_query","select Deal_Name,  Stage,Closing_Date, Amount, Account_Name.Account_Name, Contact_Name.Full_Name  from Deals where  (Closing_Date between '" + "2022-11-02" + "' and '" + "2022-11-02" + "' ) OFFSET " + offset + " LIMIT 200");
+//coql_map.put("select_query","select Deal_Name,  Stage,Closing_Date, Amount, Account_Name.Account_Name, Contact_Name.Full_Name  from Deals where  Deal_Name  = '00MP3558' OFFSET " + offset + " LIMIT 200");
+//coql_map.put("select_query","select Deal_Name, Stage,Closing_Date, Amount, Account_Name.Account_Name, Contact_Name.Full_Name  from Deals where  ((Closing_Date between '" + "2022-11-01" + "' and '" + "2022-11-15" + "') and (Stage = 'Signed')) OFFSET " + offset + " LIMIT 200");
+//coql_map.put("select_query","select Deal_Name,  Stage,Closing_Date, Amount, Account_Name.Account_Name, Contact_Name.Full_Name  from Deals where  ( Deal_Name  = '00MP3558' ) OFFSET " + offset + " LIMIT 200");
+startdate_est_time = '2024-01-01T00:00:00-04:00';
+enddate_est_time = '2024-01-31T23:59:59-04:00';
+ownerID = '3106252000053002001';
+//coql_map.put("select_query","select Type_of_Call, Call_Type, Subject, Call_Duration_in_seconds,Created_Time,Who_Id from Calls where (((Owner =" + ownerID + "  and Created_Time between '" + startdate_est_time  + "' and '" + enddate_est_time + "') and (Call_Type = 'Outbound')) and Type_of_Call = 'External') and  OFFSET " + offset + " LIMIT 200");
+//            // "parameters": { "select_query": "select Type_of_Call, Call_Type, Subject, Call_Duration_in_seconds,Created_Time,Who_Id, Who_Id.Full_Name from Calls where (((((Owner = " + ownerID + ") and (Call_Type=Inbound)) and Call_Duration_in_seconds > 30) and Type_of_Call = 'External') and Created_Time between '" + startDateTime + "' and '" + endDateTime + "') OFFSET " + offset + " LIMIT 200" },
+coql_map.put("select_query","select Type_of_Call, Call_Type, Subject, Call_Duration_in_seconds,Created_Time,Who_Id from Calls where ((((Owner = " + ownerID + ") and (Call_Type='Outbound'))  and Type_of_Call = 'External') and Created_Time between '" + startdate_est_time + "' and '" + enddate_est_time + "') OFFSET " + offset + " LIMIT 200");
+maillist = invokeurl
+[
+	url :"https://www.zohoapis.com/crm/v2/coql"
+	type :POST
+	parameters:coql_map.tostring()
+	connection:"crm_connection"
+];
+info "data" + maillist;
+//response = zoho.crm.getRecordById("Deals",3106252000543545449); 
+//info response ;
+return "";
+}

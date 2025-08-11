@@ -1,0 +1,99 @@
+void automation.Zoho_Books_CRM_ID_Sync()
+{
+OrganizationID = "666840843";
+Query = "select Subject,Store,BigCommerce_Unique_ID from Sales_Orders where Order_Date between '2020-05-01T00:00:01-04:00' and '2020-05-01T23:59:59-04:00' limit 50 OFFSET 150";
+Get_map = Map();
+Get_map.put("select_query",Query);
+data = Map();
+data.put("JSONString",Get_map);
+Get_Sales_Orders = invokeurl
+[
+	url :"https://www.zohoapis.com/crm/v2/coql"
+	type :POST
+	parameters:Get_map.toString()
+	connection:"crm_connection"
+];
+// info Get_Sales_Orders;
+// Get_data = zoho.books.getRecords("Salesorders")
+Get_records = Get_Sales_Orders.get("data");
+for each  rec in Get_records
+{
+	Get_Id = rec.get("id");
+	Get_store_id = rec.get("Store").get("id");
+	Get_store = zoho.crm.getRecordById("Stores",Get_store_id);
+	Get_store_channel = Get_store.get("Channel");
+	Books_update_map = Map();
+	Books_update_map.put("customfield_id","1324986000023846835");
+	Books_update_map.put("value",Get_Id);
+	Custom_field_list = List();
+	Custom_field_list.add(Books_update_map);
+	Custom_field_map = Map();
+	Custom_field_map.put("custom_fields",Custom_field_list);
+	Update_map = Map();
+	Update_map.put("JSONString",Custom_field_map);
+	// 	info Get_store_channel;
+	if(Get_store_channel == "BigCommerce")
+	{
+		Get_Bigcommerce_ID = rec.get("BigCommerce_Unique_ID");
+		info Get_Bigcommerce_ID;
+		Get_BC_Order = zoho.books.getRecords("Salesorders",OrganizationID,"cf_bigcommerce_unique_id=" + Get_Bigcommerce_ID.toText());
+		// 		info Get_BC_Order;
+		if(Get_BC_Order.containKey("salesorders"))
+		{
+			Get_Books_salesorders = Get_BC_Order.get("salesorders");
+			if(Get_Books_salesorders.size() > 0)
+			{
+				Get_Books_salesorders_map = Get_Books_salesorders.tomap();
+				Get_Books_OrderID = Get_Books_salesorders_map.get("salesorder_id");
+				info Get_Books_OrderID;
+				info Update_map;
+				Update_response = invokeurl
+				[
+					url :"https://www.zohoapis.com/books/v3/salesorders/" + Get_Books_OrderID + "?organization_id=666840843"
+					type :PUT
+					parameters:Update_map
+					connection:"zoho_books_oauth2"
+				];
+			}
+			// 			info Update_response;
+		}
+	}
+	else if(Get_store_channel == "Amazon")
+	{
+		Get_Amazon_OrderId = rec.get("Subject");
+		info Get_Amazon_OrderId;
+		Get_Amazon_Order = zoho.books.getRecords("Salesorders",OrganizationID,"cf_amazon_order_id=" + Get_Amazon_OrderId.toText());
+		if(Get_Amazon_Order.containKey("salesorders"))
+		{
+			Get_Books_salesorders = Get_Amazon_Order.get("salesorders");
+			if(Get_Books_salesorders.size() > 0)
+			{
+				Get_Books_salesorders_map = Get_Books_salesorders.tomap();
+				Get_Books_OrderID = Get_Books_salesorders_map.get("salesorder_id");
+				info Get_Books_OrderID;
+				info Update_map;
+				Order_Update_response = invokeurl
+				[
+					url :"https://www.zohoapis.com/books/v3/salesorders/" + Get_Books_OrderID + "?organization_id=666840843"
+					type :PUT
+					parameters:Update_map
+					connection:"zoho_books_oauth2"
+				];
+			}
+			// 				info Order_Update_response;
+		}
+	}
+	// Get_Id = CRM_Record_ID;
+	// 	orderid = Map();
+	// 	orderid.put("crmOrderId",Get_Id);
+	// 	// 	info orderid;
+	// 	response = invokeurl
+	// 	[
+	// 		url :"https://www.1.door-pay.com/api/zohocrm/updateOrder"
+	// 		type :POST
+	// 		parameters:orderid
+	// 		detailed:true
+	// 	];
+	// 	info response;
+}
+}

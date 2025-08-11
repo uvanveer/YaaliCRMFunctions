@@ -1,0 +1,83 @@
+string standalone.DeleteDuplicateVendor()
+{
+duplicateRecords = zoho.crm.getRecords("Vendors",1,0,{"cvid":3106252000086787636,"sort_by":"Created_Time","sort_order":"asc"});
+for each  duplicate_vendor in duplicateRecords
+{
+	delete_flag = 1;
+	if(duplicate_vendor.get("Master_Vendor") == false && !isNull(duplicate_vendor.get("Master_Vendor_ID")))
+	{
+		VendorID = duplicate_vendor.get("id");
+		coql_POmap = Map();
+		coql_POmap.put("select_query","select Dropship_Number from Purchase_Orders where Vendor_Name = '" + VendorID + "'");
+		poList = invokeurl
+		[
+			url :"https://www.zohoapis.com/crm/v2/coql"
+			type :POST
+			parameters:coql_POmap.tostring()
+			connection:"crm_connection"
+		];
+		if(poList.get("data").size() > 0)
+		{
+			info "Not Allowed The Delete this Vendors. This vendor have some PO with it.";
+			delete_flag = 0;
+		}
+		else
+		{
+			info "PO - OK Proceed!!!";
+			coql_Promap = Map();
+			coql_Promap.put("select_query","select Product_Code from Products where Vendor_Name = '" + VendorID + "'");
+			proList = invokeurl
+			[
+				url :"https://www.zohoapis.com/crm/v2/coql"
+				type :POST
+				parameters:coql_Promap.tostring()
+				connection:"crm_connection"
+			];
+			if(proList.get("data").size() > 0)
+			{
+				info "Not Allowed The Delete this Vendors. This vendor have some Products with it.";
+				delete_flag = 0;
+			}
+			else
+			{
+				info "Products - OK Proceed!!!";
+				coql_VCmap = Map();
+				coql_VCmap.put("select_query","select Name from Vendor_Contact where Vendor = '" + VendorID + "'");
+				VCList = invokeurl
+				[
+					url :"https://www.zohoapis.com/crm/v2/coql"
+					type :POST
+					parameters:coql_VCmap.tostring()
+					connection:"crm_connection"
+				];
+				if(VCList.get("data").size() > 0)
+				{
+					info "Not Allowed The Delete this Vendors. This vendor have some Vendor Contacts with it.";
+					delete_flag = 0;
+				}
+				else
+				{
+					info "Vendor Contact - OK Proceed to Deletion!!!";
+				}
+			}
+		}
+	}
+	if(delete_flag == 1)
+	{
+		delete_vendor = invokeurl
+		[
+			url :"https://www.zohoapis.com/crm/v2/Vendors/" + duplicate_vendor.get("id")
+			type :DELETE
+			connection:"crm_connection"
+		];
+		info duplicate_vendor.get("id");
+		info delete_vendor;
+	}
+	else
+	{
+		info "Vendor Not Deleted";
+	}
+	info "********************";
+}
+return "";
+}

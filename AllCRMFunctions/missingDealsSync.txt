@@ -1,0 +1,248 @@
+string standalone.missingDealsSync()
+{
+// //code done by pooja L on 28/5/2020
+// //User list of highrise and its corresponding highrise user
+// userlist = List();
+// userlist.add({"name":"Andria Ramelli","crm_id":3106252000000152034,"hr_id":"1218118"});
+// userlist.add({"name":"Anthony La Rocca","crm_id":3106252000000147711,"hr_id":"1254582"});
+// userlist.add({"name":"Carlo  Citrigno","crm_id":3106252000000147013,"hr_id":"937881"});
+// userlist.add({"name":"Chesia Melisa","crm_id":3106252000000152046,"hr_id":"1262788"});
+// userlist.add({"name":"Christie Best","crm_id":3106252000025726001,"hr_id":"1395960"});
+// userlist.add({"name":"Deborah Warner","crm_id":3106252000045664001,"hr_id":"1411870"});
+// userlist.add({"name":"Dennon Koziol","crm_id":3106252000049990001,"hr_id":"1413375"});
+// userlist.add({"name":"Zoho Zoho Developer","crm_id":3106252000014929001,"hr_id":"1415142"});
+// userlist.add({"name":"Emma Burns","crm_id":3106252000025727001,"hr_id":"1382543"});
+// userlist.add({"name":"Fern Citrigno","crm_id":3106252000000152052,"hr_id":"1082383"});
+// userlist.add({"name":"Kristopher Clark","crm_id":3106252000058241283,"hr_id":"1414362"});
+// userlist.add({"name":"Lauren Fisher","crm_id":3106252000064218001,"hr_id":"1417806"});
+// userlist.add({"name":"Marko Savic","crm_id":3106252000037668001,"hr_id":"1406845"});
+// userlist.add({"name":"Nicole Cashin","crm_id":3106252000067155001,"hr_id":"1418587"});
+// userlist.add({"name":"Rheanne Trottier","crm_id":3106252000024509019,"hr_id":"1382762"});
+// userlist.add({"name":"Shah Rai","crm_id":3106252000037644001,"hr_id":"1398583"});
+// userlist.add({"name":"Zyarina Zya","crm_id":3106252000026453004,"hr_id":"1377113"});
+// highriseAuth = "Basic OWZiYjY1ODg2NWY5MTUyODlmN2U5ZDNiM2E3MWNkYmI6WA==";
+// logs = zoho.crm.getRecords("Duplicate_Moderation_Log",1,1,{"cvid":3106252000089067034});
+// for each  log in logs
+// {
+// 	try 
+// 	{
+// 		highriseID=log.get("HR_Deal_Id");
+// 		highriseDeals = geturl("https://bestaccessdoors.highrisehq.com/deals/" + highriseID + ".xml",{"Authorization":highriseAuth});
+// 		info highriseDeals;
+// 		dealContactError = "";
+// 		HRdealMap = Map();
+// 		DealMap = Map();
+// 		user = ifnull(highriseDeals.executeXPath("deal/responsible-party-id/text()"),"");
+// 		for each  userrec in userlist
+// 		{
+// 			if(user == userrec.get("hr_id"))
+// 			{
+// 				hr_id = userrec.get("hr_id");
+// 				owner = userrec.get("crm_id");
+// 				DealMap.put("Owner",owner);
+// 				info " owner  " + owner.toLong() + " hr id " + hr_id;
+// 			}
+// 		}
+// 		hrAccount_id = ifnull(highriseDeals.executeXPath("deal/account-id/text()"),"");
+// 		if(hrAccount_id != "")
+// 		{
+// 			DealMap.put("HR_AccountID",hrAccount_id);
+// 			//DealMap.put("Account_Name",hrAccount_id);
+// 		}
+// 		partyData = highriseDeals.executeXPath("deal/party");
+// 		// info "----- party data "+ partyData +" -----";
+// 		partEmailList = partyData.executeXPath("party/contact-data/email-addresses/email-address").toXmlList();
+// 		info "----- emailslist " + partEmailList.size() + " ------";
+// 		emailindex = 0;
+// 		for each  singleemail in partEmailList
+// 		{
+// 			emailindex = emailindex + 1;
+// 			if(emailindex == 1)
+// 			{
+// 				getEmail = singleemail.executexpath("email-address/address/text()");
+// 			}
+// 		}
+// 		info "email " + getEmail + " name : " + highriseDeals.executeXPath("deal/name/text()");
+// 		hrContact_id = ifnull(highriseDeals.executeXPath("deal/party-id/text()"),"");
+// 		hrEmail = ifnull(getEmail,"");
+// 		// if(hrContact_id != "")
+// 		if(hrEmail != "")
+// 		{
+// 			DealMap.put("HR_ContactID",hrContact_id);
+// 			// 	getContacts = zoho.crm.searchRecords("Contacts","((HighriseID:equals:" + hrContact_id + "))");
+// 			masterFound = false;
+// 			getContacts = zoho.crm.searchRecords("Contacts","((Email:equals:" + hrEmail + "))");
+// 			info " search res " + getContacts + " - size " + getContacts.size();
+// 			if(getContacts.size() == 1)
+// 			{
+// 				info "rec found in crm rec id for given highrise id " + hrContact_id + " - " + getContacts.get(0).get("id");
+// 				crmContactID = getContacts.get(0).get("id");
+// 				DealMap.put("Contact_Name",{"id":crmContactID});
+// 			}
+// 			else if(getContacts.size() == 0)
+// 			{
+// 				info "Contact is not found for highrise id";
+// 				dealContactError = "No contact was found for the given highriseid " + hrContact_id;
+// 			}
+// 			else if(getContacts.size() > 1)
+// 			{
+// 				info "multiple Contact found";
+// 				for each  master in getContacts
+// 				{
+// 					if(master.get("Master") == true)
+// 					{
+// 						crmContactID = master.get("id");
+// 						masterFound = true;
+// 						full_name = master.get("Full_Name");
+// 					}
+// 				}
+// 				if(masterFound != true)
+// 				{
+// 					dealContactError = "more than 1 contact was found in crm with no master for the given highriseID " + hrContact_id;
+// 				}
+// 			}
+// 		}
+// 		else if(hrContact_id == "")
+// 		{
+// 			info "contact is empty " + hrContact_id;
+// 			dealContactError = "No contact was added in this deal from highrise";
+// 		}
+// 		if(hrContact_id == "" && hrAccount_id != "")
+// 		{
+// 			dealContactError = "No contact was added in this deal from highrise. Account was added";
+// 		}
+// 		hrprice = ifnull(highriseDeals.executeXPath("deal/price/text()"),"");
+// 		if(hrprice != "")
+// 		{
+// 			DealMap.put("Amount",hrprice);
+// 		}
+// 		hrcurrency = ifnull(highriseDeals.executeXPath("deal/currency/text()"),"");
+// 		if(hrcurrency != "")
+// 		{
+// 			DealMap.put("Currency",hrcurrency);
+// 		}
+// 		hrdeal_name = ifnull(highriseDeals.executeXPath("deal/name/text()"),"");
+// 		if(hrdeal_name != "")
+// 		{
+// 			DealMap.put("Deal_Name",hrdeal_name);
+// 		}
+// 		status = ifnull(highriseDeals.executeXPath("deal/status/text()"),"");
+// 		if(status != "")
+// 		{
+// 			DealMap.put("Stage",status);
+// 		}
+// 		category = ifnull(highriseDeals.executeXPath("deal/category/name/text()"),"");
+// 		if(category != "")
+// 		{
+// 			if(category == "Instagram")
+// 			{
+// 				category = "Instagram";
+// 			}
+// 			else if(category == "BestAccessDoors.com")
+// 			{
+// 				category = "BestAccessDoors.com";
+// 			}
+// 			else if(category == "BestAccessDoors.ca")
+// 			{
+// 				category = "BestAccessDoors.ca";
+// 			}
+// 			else if(category == "AccessDoorsAndPanels.com")
+// 			{
+// 				category = "AccessDoorsAndPanels.com";
+// 			}
+// 			else if(category == "Existing Business")
+// 			{
+// 				category = "Existing Business";
+// 			}
+// 			else if(category == "New Business")
+// 			{
+// 				category = "New Business";
+// 			}
+// 			DealMap.put("Type",category);
+// 		}
+// 		description = ifnull(highriseDeals.executeXPath("deal/background/text()"),"");
+// 		if(description != "")
+// 		{
+// 			DealMap.put("Description",description);
+// 		}
+// 		info "--------------------------------------------";
+// 		DealMap.put("HighriseID",highriseID);
+// 		if(dealContactError == "")
+// 		{
+// 			coql_map = Map();
+// 			coql_map.put("select_query","select Contact_Name, Deal_Name, HR_ContactID from Deals where Deal_Name = '" + hrdeal_name + "'");
+// 			deallist = invokeurl
+// 			[
+// 				url :"https://www.zohoapis.com/crm/v2/coql"
+// 				type :POST
+// 				parameters:coql_map.tostring()
+// 				connection:"crm_connection"
+// 			];
+// 			info " --- " + deallist.get("data").size();
+// 			info "mrec " + deallist.get("data");
+// 			if(deallist.get("data").size() == 0)
+// 			{
+// 				info "created:";
+// 				createDeal = zoho.crm.createRecord("Deals",DealMap);
+// 				newDealID = createDeal.get("id");
+// 			}
+// 			else if(deallist.get("data").size() == 1)
+// 			{
+// 				info "updated: ";
+// 				dealRecord = deallist.get("data");
+// 				dealcrmID = dealRecord.get(0).get("id");
+// 				createDeal = zoho.crm.updateRecord("Deals",dealcrmID,DealMap);
+// 				newDealID = createDeal.get("id");
+// 			}
+// 			info "----------  deal res " + createDeal + " - " + createDeal.get("id") + " ----------";
+// 			//get notes from highrise
+// 			// 	highrisenotesURL = geturl("https://bestaccessdoors.highrisehq.com/deals/" + highriseID + "/notes.xml",{"Authorization":highriseAuth});
+// 			// 	notesExists = highrisenotesURL.containsIgnoreCase("notes/note");
+// 			// 	if(notesExists == true)
+// 			// 	{
+// 			// 		notesResponse = highrisenotesURL.executexpath("notes/note").toXmlList();
+// 			// 		notesList = List();
+// 			// 		for each  index_item in notesResponse
+// 			// 		{
+// 			// 			notesMap = Map();
+// 			// 			notesMap.put("Parent_Id",newDealID);
+// 			// 			notesMap.put("se_module","Deals");
+// 			// 			notesMap.put("Note_Title",index_item.executexpath("note/subject-name/text()"));
+// 			// 			notesMap.put("Note_Content",index_item.executexpath("note/body/text()").replaceAll("\n"," ").toString());
+// 			// 			if(index_item.containsIgnoreCase("attachments"))
+// 			// 			{
+// 			// 				noteAttachmentFound = true;
+// 			// 				info "attachments exists";
+// 			// 				notesAttachment = "," + index_item.executexpath("note/id/text()");
+// 			// 			}
+// 			// 			else
+// 			// 			{
+// 			// 				info "attachments not exists";
+// 			// 				noteCreate = zoho.crm.createRecord("Notes",notesMap);
+// 			// 				info " -- noteCreate " + noteCreate + " - " + index_item.executexpath("note/body/text()");
+// 			// 			}
+// 			// 		}
+// 			// 	}
+// 			// 	HRdealMap.put("Notes_Attachment",notesAttachment);
+// 			HRdealMap.put("Zoho_CRM_ID",newDealID);
+// 			HRdealMap.put("Status","Created Newly");
+// 			HRdealMap.put("Conflict_Message","");
+// 			updateHR_Data = zoho.crm.updateRecord("Highrise_Data",crmRecordID,HRdealMap);
+// 			info "deal contact error is empty";
+// 		}
+// 		else
+// 		{
+// 			HRdealMap.put("Conflict_Message",dealContactError);
+// 			HRdealMap.put("Status","Error");
+// 			updateHR_Data = zoho.crm.updateRecord("Highrise_Data",crmRecordID,HRdealMap);
+// 			info "deal contact error is not empty";
+// 		}
+// 		// info "res :" + createDeal;
+// 		info "--------------------------------------------";
+// 	}
+// 	catch(e)
+// 	{
+// 	}
+// }
+return "";
+}

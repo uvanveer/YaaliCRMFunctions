@@ -1,0 +1,101 @@
+string standalone.Identifying_Historical_Improperly_Updated_Bill()
+{
+pageCount = 1;
+recordCount = 25;
+Get_Pagination_details = zoho.crm.getRecordById("Tag_syncing_schedule","3106252000106622065");
+Page_Count = Get_Pagination_details.get("Function_Execution");
+Page_Count = Page_Count.toLong();
+Updated_Page_Count = Page_Count + 1;
+Update_log = Map();
+Update_log.put("Function_Execution",Updated_Page_Count.toString());
+Get_Updated_Page = zoho.crm.updateRecord("Tag_syncing_schedule","3106252000106622065",Update_log);
+info Get_Updated_Page;
+booksAuthToken = "352b62ac379a71fe6f7524fe107ebdd2";
+header = Map();
+header.put("Authorization","Zoho-authtoken " + booksAuthToken);
+getBillUrl = "https://www.zohoapis.com/books/v3/bills?page=" + Page_Count + "&per_page=" + recordCount + "&date_start=2020-02-01&date_end=2020-07-07&organization_id=666840843";
+billsDataResponse = getUrl(getBillUrl,header);
+// info billsDataResponse;
+Bills_List = LIST();
+Get_Bill_details = billsDataResponse.get("bills");
+for each  Books_Bill in Get_Bill_details
+{
+	Bill_Map = Books_Bill.toMap();
+	Bill_ID = Bill_Map.get("bill_id");
+	info Bill_Map;
+	Get_Bill_Data = zoho.books.getRecordsByID("bills","666840843",Bill_ID);
+	// info "Bill_Data:" + Get_Bill_Data;
+	Get_Purchase_Orders = Get_Bill_Data.get("bill").get("purchaseorders");
+	// info Get_Purchase_Orders;
+	Get_Bill_Line_Items = Get_Bill_Data.get("bill").get("line_items");
+	Bill_Line_itemsize = Get_Bill_Line_Items.size();
+	info "Bill_Line_Item:" + Bill_Line_itemsize;
+	Flag = 0;
+	if(Get_Purchase_Orders.size() > 0)
+	{
+		Purchase_Order_Map = Get_Purchase_Orders.toMap();
+		Purchase_Order_Id = Purchase_Order_Map.get("purchaseorder_id");
+		info "Po_Id:" + Purchase_Order_Id;
+		Get_Purchase_OrderDetails = zoho.books.getRecordsByID("purchaseorders","666840843",Purchase_Order_Id);
+		// 	info "Po datat:" + Get_Purchase_OrderDetails;
+		Get_Purchase_Lineitems = Get_Purchase_OrderDetails.get("purchaseorder").get("line_items");
+		Purchase_Line_Itemsize = Get_Purchase_Lineitems.size();
+		info "Purchase_line_items:" + Purchase_Line_Itemsize;
+		info "Bills_line_items:" + Get_Bill_Data;
+		if(Purchase_Line_Itemsize == Bill_Line_itemsize)
+		{
+			for each  rec_Bill in Get_Bill_Line_Items
+			{
+				rec_Bill_Map = rec_Bill.toMap();
+				Get_item_rate = rec_Bill_Map.get("rate");
+				Get_item_Quantity = rec_Bill_Map.get("quantity");
+				Get_line_item_sku = rec_Bill_Map.get("sku");
+				billItemId = rec_Bill_Map.get("item_id");
+				Get_account_id = rec_Bill_Map.get("account_id");
+				for each  rec_Inv in Get_Purchase_Lineitems
+				{
+					rec_Inv_Map = rec_Inv.toMap();
+					Get_po_itemrate = rec_Inv_Map.get("rate");
+					Get_po_itemQuantity = rec_Inv_Map.get("quantity");
+					Get_po_sku = rec_Inv_Map.get("sku");
+					Get_po_item_id = rec_Inv_Map.get("item_id");
+					// info "Books Product Data : " + booksProductData;
+					if(billItemId == Get_po_item_id)
+					{
+						booksProductData = zoho.books.getRecordsByID("Items","666840843",billItemId);
+						if(!isempty(booksProductData))
+						{
+							productInfoRes = booksProductData.get("item");
+							newAccountId = productInfoRes.get("account_id");
+							purchaseAccountId = productInfoRes.get("purchase_account_id");
+							if(Get_item_rate != Get_po_itemrate || Get_item_Quantity != Get_po_itemQuantity || Get_account_id != purchaseAccountId)
+							{
+								Flag = 1;
+							}
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			Flag = 1;
+		}
+	}
+	else
+	{
+		Flag = 1;
+	}
+	if(Flag == 1)
+	{
+		create_map = Map();
+		create_map.put("SO_PO_ID",Purchase_Order_Id);
+		create_map.put("Invoice_Bill","Bill");
+		create_map.put("Bill_Invoice_Record_ID",Bill_ID);
+		create_map.put("Name","Bills/PO");
+		Create_Record = zoho.crm.createRecord("IdentifiedInvoices_Bills",create_map);
+		info Create_Record;
+	}
+}
+return "";
+}

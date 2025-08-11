@@ -1,0 +1,16 @@
+void automation.sheela_update_all_contact_url()
+{
+get_contacts = zoho.crm.getRecords("Contacts",2,200);
+for each  get_contact_info in get_contacts
+{
+	contact_id = get_contact_info.get("id");
+	First_Name = get_contact_info.get("First_Name");
+	Last_Name = get_contact_info.get("Last_Name");
+	Full_Name = ifnull(First_Name,"") + " " + ifnull(Last_Name,"");
+	update_map = Map();
+	update_map.put("Contact_Nam",Full_Name);
+	update_map.put("Contact_URL","https://crm.zoho.com/crm/org663942562/tab/Contacts/" + contact_id + "/edit");
+	update_contact_record = zoho.crm.updateRecord("Contacts",contact_id,update_map);
+	info update_contact_record;
+}
+}

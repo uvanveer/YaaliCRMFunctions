@@ -1,0 +1,160 @@
+string standalone.testingg1()
+{
+/*query_map = Map();
+query_map.put("Payment_Method","Stripe (applepay)");
+response = zoho.crm.searchRecords("Sales_Orders",1,200,query_map);
+info response;
+flag = 0;
+for each res in response
+{
+	getbc = res.get("BigCommerce_Unique_ID");
+	info res.get("Payment_Method");
+	if(getbc != null){
+		info getbc;
+		flag = flag + 1;
+	}
+}
+	info flag;
+*/
+/*logs = zoho.crm.getRecords("Sales_Orders",0,200,{"cvid":3106252000447503178,"sort_by":"Created_Time","sort_order":"asc"});
+info logs.size();
+postdetails = Map();
+postlist = List();
+if(logs.size() > 0){
+	info 'yes';
+	for each res in logs
+    {
+		Bc_unique_id = res.get("BigCommerce_Unique_ID");
+		postlist.add(Bc_unique_id);
+    }
+	postdetails.put("BC_unique_id", postlist);
+}
+BADAuthorization = zoho.crm.getOrgVariable("OAuthHashCode");
+header_map = Map();
+header_map.put("Content-Type","application/json");
+header_map.put("BADAuthorization",BADAuthorization);
+response = invokeurl
+[
+	url :"https://www.1.door-pay.com/api/zohocrm/updatedbforstripeapplpay"
+	type :POST
+	parameters:postdetails
+	headers:header_map
+];
+info response;*/
+/*BADAuthorization = zoho.crm.getOrgVariable("OAuthHashCode");
+info BADAuthorization;
+mailmap = Map();
+mailmap.put("mail","yogesh@bizappln.com");
+mailmap.put("subject","BAD auth notify");
+mailmap.put("BADAuthorization",BADAuthorization);
+info mailmap;
+mailres = postURL("https://1.door-pay.com/api/zohocrm/getoauthhashy",mailmap);
+//info "mailres:" + mailres;*/
+//GET OAUTHHASHCODE FROM ZOHO CRM VARIABLE
+// BADAUTHORIZATION = ZOHO.CRM.GETORGVARIABLE("OAUTHHASHCODE");
+// HEADER_MAP = MAP();
+// HEADER_MAP.PUT("CONTENT-TYPE","APPLICATION/JSON");
+// HEADER_MAP.PUT("BADAUTHORIZATION",BADAUTHORIZATION);
+// SENDDATA = INVOKEURL
+// [
+// 	URL :"HTTPS://1.DOOR-PAY.COM/API/ZCRM/DROPTRACKING"
+// 	TYPE :POST
+// 	HEADERS:HEADER_MAP
+// ];
+// INFO SENDDATA;
+// string String.TwoDigitWords(int num)
+// {
+//}
+// getd = zoho.crm.getRecordById("Purchase_Orders",3106252000369680125);
+// Get_order_date = getd.get("Order_Date");
+// Get_created_time = getd.get("Created_Time");
+// Get_order_date = Get_order_date.toDate();
+// Get_created_time = Get_created_time.toDate();
+// if(Get_order_date.daysBetween(zoho.currenttime) < 11 && Get_created_time.daysBetween(zoho.currenttime) < 11 || zoho.loginuser != "Zoho Zoho Developer")
+// {
+// 	valus = zoho.loginuser;
+// 	info valus;
+// }
+// else
+// {
+// 	valus = 2;
+// 	info valus;
+// }
+// return "";
+/*ownerID = 3106252000355271001;
+//data = "SELECT Type_of_Call, Due_Date1, Call_Type, Call_Duration_in_seconds, Created_Time, Who_Id FROM Calls where (Created_Time > '2022-08-01T00:00:00-04:00' AND Owner = " + ownerID + ") AND Call_Type = 'Outbound' ORDER BY Created_Time OFFSET 0 limit 200";
+data = "SELECT Type_of_Call, Due_Date1, Call_Type, Call_Duration_in_seconds, Created_Time, Who_Id FROM Calls  where (((Owner = 3106252000053002001 AND (Created_Time >= '2022-08-01T00:00:00+05:30' AND Created_Time <= '2022-08-30T23:59:59+05:30')) AND Call_Type = 'Outbound')) OFFSET 0 LIMIT 200";
+coql_map = Map();
+coql_map.put("select_query",data);
+info coql_map;
+maillist = invokeurl
+[
+	url :"https://www.zohoapis.com/crm/v2/coql"
+	type :POST
+	parameters:coql_map.tostring()
+	connection:"crm_connection"
+];
+info "maillist" + maillist;*/
+// data = "SELECT Type_of_Call, Due_Date1, Call_Type, Call_Duration_in_seconds, Created_Time, Who_Id FROM Calls WHERE Owner = 3106252000053002001  AND ( Created_Time BETWEEN '2022-08-01T00:00:00-04:00' AND '2022-08-30T00:00:00-04:00' ) AND Call_Type = 'Outbound' AND Owner = OFFSET LIMIT 200";
+//  coql_map = Map();
+//  coql_map.put("select_query",data);
+//  info coql_map;
+//  maillist = invokeurl
+//  [
+//  	url :"https://www.zohoapis.com/crm/v2/coql"
+//  	type :POST
+//  	parameters:coql_map.tostring()
+//  	connection:"crm_connection"
+//  ];
+// info "maillist" + maillist ;
+// arr = {"Access_Doors_Canada":[1549,1561,1562,1566,1609,1777,1876,1881,1886,1887,1888,1902,1906,1923,1937,1941,1951,1954,1956,1959,1963,1964,1971,1974,1973,1975,1978,1992,2023,2026,2028,2036,2041,2051,2071,2074,2079,2083,2136,2243,2291,2299,2322,2324,2323,2328,2330,2349,2356,2402,2430,2469,2510,2608,2675,2677]};
+// arrget = arr.get("Access_Doors_Canada");
+// for each eachrec in arrget
+// {
+// 	getrec = zoho.crm.searchRecords("Sales_Orders", "Subject:equals:1561");
+// 	info getrec;
+// }
+// OrganizationID = "666840843";
+// getd = zoho.crm.getRecordById("Purchase_Orders",po_id.toLong());
+// DSO_sent_to_Vendor = getd.get("DSO_sent_to_Vendor");
+// info DSO_sent_to_Vendor;
+// DSO_sent_to_update = {"DSO_sent_to_Vendor":true};
+// response = zoho.crm.updateRecord("Purchase_Orders",po_id.toLong(),leadinfo);
+// info response;
+// info zoho.currenttime.addHour(2);
+// info zoho.loginuserid;
+// response = zoho.crm.getRelatedRecords("Sales_Orders","Purchase_Orders","3106252000586905820");
+response = zoho.crm.getRecordById("Purchase_Orders","3106252000591925154");
+test_flag = FALSE;
+contact_name = response.get("Contact_Name").get("name");
+contact_id = response.get("Contact_Name").get("id");
+contactres = zoho.crm.getRecordById("contacts",contact_id);
+contactEmail = contactres.get("Email");
+emailpre = contactEmail.getPrefix("@");
+info emailpre;
+pre = contact_name.getPrefix(" ");
+suf = contact_name.getSuffix(" ");
+testnamelist = {"test","yaali","bizappln","tharma","dinesh","nirmal","balaji","jegan","yopmail","prashanth","sankar","ezhil"};
+checkprefix = testnamelist.containsIgnoreCase(pre);
+// contact first half name
+checksuffix = testnamelist.containsIgnoreCase(suf);
+// contact second half name
+info pre;
+info suf;
+mailname = list();
+for each  eachmailname in testnamelist
+{
+	retValue = containsIgnoreCase(emailpre,eachmailname);
+	// 	info "yes" + retValue;
+	if(retValue == true)
+	{
+		mailname.add(retValue);
+	}
+}
+if(checkprefix || checksuffix == true || mailname.size() > 0)
+{
+	test_flag = TRUE;
+}
+info test_flag;
+return "";
+}

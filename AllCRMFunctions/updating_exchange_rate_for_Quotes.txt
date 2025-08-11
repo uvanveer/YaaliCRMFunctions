@@ -1,0 +1,15 @@
+string standalone.updating_exchange_rate_for_Quotes()
+{
+quotes = zoho.crm.getRecords("Quotes",1,200,{"cvid":3106252000088884057});
+// each_quote=zoho.crm.getRecordById("Quotes",3106252000069646539);
+// updatedummyCurrency = zoho.crm.updateRecord("Quotes",each_quote.get("id"),{"Actual_Currency":each_quote.get("Currency"),"Currency":"CAD","Previous_Exchange_Rate":each_quote.get("Exchange_Rate").toString()});
+// 	info "first_update"+updatedummyCurrency;
+// 	updateOriginalCurrency = zoho.crm.updateRecord("Quotes",each_quote.get("id"),{"Currency":"USD"});
+// 	info "second_update"+updateOriginalCurrency;
+for each  each_quote in quotes
+{
+	updatedummyCurrency = zoho.crm.updateRecord("Quotes",each_quote.get("id"),{"Actual_Currency":each_quote.get("Currency"),"Currency":"CAD","Previous_Exchange_Rate":each_quote.get("Exchange_Rate").toString()});
+	updateOriginalCurrency = zoho.crm.updateRecord("Quotes",each_quote.get("id"),{"Currency":"USD"});
+}
+return "";
+}

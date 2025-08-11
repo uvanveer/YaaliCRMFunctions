@@ -1,0 +1,99 @@
+string standalone.Books_Salesorder_One_Time_Check()
+{
+try 
+{
+	getBooksPage = zoho.crm.getRecordById("Merger_Schedule",3106252000061961343);
+	Tax_Current_Page = getBooksPage.get("Tax_Current_Page").toLong();
+	Tax_Last_Page = getBooksPage.get("Tax_Last_Page").toLong();
+	Tax_Processed = getBooksPage.get("Tax_Processed").toLong();
+	starttime = now.toLong();
+	info "start time " + now;
+	if(Tax_Current_Page < 3)
+	{
+		counter = 0;
+		Record_count = 1;
+		Tax_Current_Page = 1;
+		Get_Salesorder_data = getUrl("https://www.zohoapis.com/books/v3/salesorders?page=" + Tax_Current_Page + "&per_page=" + Record_count + "&sort_column=date&sort_order=A&date_start=2020-02-01&date_end=2020-07-16&organization_id=666840843",{"Authorization":"Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2"});
+		info Get_Salesorder_data.get("salesorders").size();
+		for each  sorder in Get_Salesorder_data.get("salesorders")
+		{
+			counter = counter + 1;
+			Tax_Processed = Tax_Processed + 1;
+			info counter + " salesorder id-->" + sorder.get("salesorder_id");
+			salesorderDetails = getUrl("https://www.zohoapis.com/books/v3/salesorders/" + sorder.get("salesorder_id") + "?organization_id=666840843",{"Authorization":"Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2"});
+			// 	 info salesorderDetails;
+			// 	 info salesorderDetails.get("salesorder").get("tax_id") + " -- "+ salesorderDetails.get("salesorder").get("shipping_address");
+			salesorderDetails = salesorderDetails.get("salesorder");
+			saleorderID = sorder.get("salesorder_id");
+			shippingAddress = salesorderDetails.get("shipping_address");
+			taxID = salesorderDetails.get("tax_id");
+			taxName = salesorderDetails.get("tax_name");
+			taxRate = salesorderDetails.get("tax_percentage");
+			customer = salesorderDetails.get("customer_id");
+			if(!isnull(shippingAddress.get("state")))
+			{
+				//get tax for states
+				salestax_details = zoho.creator.v1.getRecords("zoho_zoho1502","quotes","All_Province","Province=\"" + shippingAddress.get("state") + "\"");
+				info " shipping address - state: " + shippingAddress.get("state") + " === salestax details " + salestax_details;
+				salestax_details = salestax_details.toMap();
+				info "Creator Province: " + salestax_details.get("Province") + " --- Salesorder Shipping State: " + shippingAddress.get("state");
+				if(salestax_details.get("Province") == shippingAddress.get("state"))
+				{
+					info "province matched";
+					getTaxes = getUrl("https://www.zohoapis.com/books/v3/settings/taxes/" + taxID.toLong() + "?organization_id=666840843",{"Authorization":"Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2"});
+					getTax = getTaxes.get("tax");
+					if(taxID == getTax.get("tax_id") && taxRate == getTax.get("tax_percentage"))
+					{
+						info "tax id and rate matched";
+						info "--------------------";
+					}
+					else
+					{
+						info "tax id/rate mismatched";
+						createEntry = zoho.crm.createRecord("Salesperson_Dashboard_Rpt",{"Name":"Salesorder Check","TaxID":taxID,"Tax_Name":taxName,"Tax_Rate":taxRate,"SO_RecordID":saleorderID,"Message":"Tax / Tax rate mismatch. taxrate--" + taxRate + ":" + getTax.get("tax_percentage") + " Tax- " + taxID + ":" + getTax.get("tax_id"),"RecordID":customer," Shipping_Country":shippingAddress.get("country"),"Shipping_State":shippingAddress.get("state")},{"trigger":{}});
+						info "tax id/rate mismatched - merger " + createEntry.get("id");
+						info "--------------------";
+					}
+				}
+				else
+				{
+					info "province mismatched";
+					createEntry = zoho.crm.createRecord("Salesperson_Dashboard_Rpt",{"Name":"Salesorder Check","TaxID":taxID,"Tax_Name":taxName,"Tax_Rate":taxRate,"SO_RecordID":saleorderID,"Message":"State is not matching","RecordID":customer," Shipping_Country":shippingAddress.get("country"),"Shipping_State":shippingAddress.get("state")},{"trigger":{}});
+					info "province mismatched - merger " + createEntry.get("id");
+					info "--------------------";
+				}
+			}
+			else
+			{
+				info "shipping address state is empty for " + taxID;
+				// Tax_Name Tax_Rate TaxID Message	 SO_RecordID
+				createEntry = zoho.crm.createRecord("Salesperson_Dashboard_Rpt",{"Name":"Salesorder Check","TaxID":taxID,"Tax_Name":taxName,"Tax_Rate":taxRate,"SO_RecordID":saleorderID,"Message":"Shipping Address is empty","RecordID":customer," Shipping_Country":shippingAddress.get("country"),"Shipping_State":shippingAddress.get("state")},{"trigger":{}});
+				info "shipping address state is empty - merger " + createEntry.get("id");
+				info "--------------------";
+			}
+		}
+		//for pagination
+		if(counter == 1)
+		{
+			update_last_page = Tax_Current_Page + 1;
+			update_last_page = update_last_page.toString();
+			updateMerger = zoho.crm.updateRecord("Merger_Schedule",3106252000061961343,{"Tax_Current_Page":update_last_page,"Tax_Processed":Tax_Processed.toString()});
+			info " merger res || " + updateMerger.get("id");
+			notify_data = {"customer_name":"prashanth raj","customer_email":"prashanth@bizappln.com","customer_message":"Books Salesorder Tax Check in CRM custom function. <br><br> Successfully executed for page " + Tax_Current_Page + " and updated with page " + update_last_page + " to merger scheduler module <br><br> merger update response: " + updateMerger,"salesperson_email":"prashanth@bizappln.com","Email_subject":"Books Salesorder Tax Check","Type":"Books Salesorder Tax Check"};
+			resp = postUrl("https://1.door-pay.com/pq/m/Salespersoncancelquotemail.php",notify_data.toString());
+			info "email resp " + resp;
+		}
+	}
+	finalstate = "Completed without any issues.";
+}
+catch (e)
+{
+	info "catch block " + e;
+	notify_data = {"customer_name":"prashanth raj","customer_email":"prashanth@bizappln.com","customer_message":"Books Salesorder Tax Check in CRM custom function: there is a error in execution " + e,"salesperson_email":"prashanth@bizappln.com","Email_subject":"Books Salesorder Tax Check","Type":"Books Salesorder Tax Check"};
+	resp = postUrl("https://1.door-pay.com/pq/m/Salespersoncancelquotemail.php",notify_data.toString());
+	info "email resp " + resp;
+	finalstate = "There is a issues in script execution " + e;
+}
+info "end time " + now;
+return finalstate;
+}

@@ -1,0 +1,41 @@
+string standalone.Vendor_Store_Multi_Select_Lookup_One_time_process()
+{
+get_vendor = zoho.crm.getRecords("Vendors",0,30);
+get_store = zoho.crm.getRecords("Stores");
+counter = 0;
+for each  vendor in get_vendor
+{
+	store_id_list = List();
+	for each  store in get_store
+	{
+		VendorID = vendor.get("id");
+		coql_POmap = Map();
+		coql_POmap.put("select_query","select Product_Code, Store from Products where Vendor_Name = '" + VendorID + "' and Store = '" + store.get("id") + "' ");
+		prodList = invokeurl
+		[
+			url :"https://www.zohoapis.com/crm/v2/coql"
+			type :POST
+			parameters:coql_POmap.tostring()
+			connection:"crm_connection"
+		];
+		if(prodList.get("data").size() > 0)
+		{
+			if(!store_id_list.contains(store.get("Name")))
+			{
+				info store.get("Name");
+				info "Creating a store related records in vendor module";
+				mp = Map();
+				mp.put("Store_Associated",store.get("id"));
+				mp.put("Associated_Stores",vendor.get("id"));
+				create_link = zoho.crm.createRecord("Vendors_X_Stores",mp);
+				info mp;
+				info create_link;
+			}
+		}
+	}
+	info store_id_list;
+	// 	counter = counter + 1;
+	info "***************************************";
+}
+return "";
+}

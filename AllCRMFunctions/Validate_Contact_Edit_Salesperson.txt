@@ -1,0 +1,83 @@
+map validation_rule.Validate_Contact_Edit(String crmAPIRequest)
+{
+/* Created By prashanth 2020 */
+/* contact module - email field validation  */
+//---------------------------------------------
+entityMap = crmAPIRequest.toMap().get("record");
+email = entityMap.get("Email");
+id = entityMap.get("id");
+modify = entityMap.get("Allow_Email_Modify");
+// taxExempt = entityMap.get("Tax_Exempt");
+info modify;
+notAllow = false;
+response = Map();
+user_id = zoho.loginuserid;
+info user_id;
+// info email;
+if(id != null && zoho.loginuserid != "saher@bestaccessdoors.com")
+{
+	if(zoho.loginuserid == "saher@bestaccessdoors.com" || zoho.loginuserid == "dev@bestaccessdoors.com")
+	{
+		notAllow = false;
+	}
+	else if(email.contains("bestaccessdoors"))
+	{
+		notAllow = true;
+	}
+	else
+	{
+		notAllow = false;
+	}
+	if(modify == "true" || modify == true)
+	{
+		if(notAllow == false)
+		{
+			response.put('status','success');
+		}
+		else
+		{
+			response.put('status','error');
+			response.put('message',"A contact's email can not contain 'bestaccessdoors', please contact your Administrator");
+		}
+	}
+	else
+	{
+		response.put('status','error');
+		response.put('message',"A contact's email can not be changed, please contact your Administrator");
+	}
+	// 	if ( taxExempt == true ||  taxExempt == "true" ) 
+	//     {
+	// 		taxCertificateNumber = "";
+	// 		tax
+	//     }
+}
+else
+{
+	response.put('status','success');
+}
+// emailNull = email == null || email == "";
+// sendmail
+// [
+// 	from :zoho.adminuserid
+// 	to :"dinesh@bizappln.com"
+// 	subject :"checking"
+// 	message :"modify " + entityMap + " === " + response + ":" + modify + ":" + emailNull + ":" + email
+// ]
+// sendmail
+// [
+// 	from :zoho.adminuserid
+// 	to :"prashanth@bizappln.com"
+// 	subject :"checking"
+// 	message :"modify " + entityMap + " === " + ":" + modify + ":" + email + " --id " + id
+// ]
+/* ---------------------------------------------------------------------------------------------- */
+/* Start writing your code here to perform the necessary field validation                         */
+/* ---------------------------------------------------------------------------------------------- */
+/* If the code identifies a validation error, set the status and alert message as shown below:    */
+//response.put('status','error');
+//response.put('message', '<your message(100 characters)>');
+/* If there are no errors found during validation, set the status as shown below:                 */
+// response.put('status','success');
+/* ---------------------------------------------------------------------------------------------- */
+return response;
+}

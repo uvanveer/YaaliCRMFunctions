@@ -1,0 +1,80 @@
+string button.Duplicate_Quote_Creator(String Quote_Id)
+{
+Get_crm_quote = zoho.crm.getRecordById("Quotes",Quote_Id.tolong());
+contactDetails = Get_crm_quote.get("Contact_Name");
+contactName = "";
+contactID = "";
+if(contactDetails != null)
+{
+	contactName = contactDetails.get("name");
+	contactID = contactDetails.get("id");
+}
+Sales_Quote_Number = Get_crm_quote.get("Sales_Quote_Number");
+Get_sales_person_email = zoho.loginuserid;
+Get_creator_quote_number = Get_crm_quote.get("Creator_Record_ID");
+Get_sales_person_email = Get_crm_quote.get("Owner").get("email");
+Get_expired_quote = Get_crm_quote.get("Valid_Till");
+Get_currentdate_quote = zoho.currentdate.tostring("yyyy-MM-dd");
+Get_Expired_Quote_Check = Get_crm_quote.get("Expired_Quote_Check");
+if(Get_expired_quote != null && Get_expired_quote.toTime() >= Get_currentdate_quote.toTime())
+{
+	Get_sales_person_email = zoho.loginuserid;
+	// salesperson_details = zoho.creator.v1.getRecords("zoho_zoho1502","quotes","All_Employees","Email=\"" + Get_sales_person_email + "\"");
+	salesperson_details = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Employees","Email=\"" + Get_sales_person_email + "\"",1,1,"zcreator_connecction");
+	if(salesperson_details.get("code") == 3000)
+	{
+		if(salesperson_details.get("data").size() > 0)
+		{
+			salesperson_details = salesperson_details.get("data").get(0);
+		}
+	}
+	salesperson_details_map = salesperson_details.tomap();
+	Get_salesperson_next_value = salesperson_details_map.get("Next_Value");
+	info Get_salesperson_next_value;
+	Get_salesperson_prefix_name = salesperson_details_map.get("Prefix_Name");
+	Lastnumber = Get_salesperson_next_value.toString();
+	info Lastnumber;
+	Get_loginuserid = zoho.loginuserid;
+	if(Lastnumber.length() == 1)
+	{
+		QuoteNextValue = "000" + Lastnumber;
+	}
+	else if(Lastnumber.length() == 2)
+	{
+		QuoteNextValue = "00" + Lastnumber;
+	}
+	else if(Lastnumber.length() == 3)
+	{
+		QuoteNextValue = "0" + Lastnumber;
+	}
+	else if(Lastnumber.length() == 4)
+	{
+		QuoteNextValue = Lastnumber;
+	}
+	Latest_salesperson_Quote_Number = Get_salesperson_prefix_name + "" + QuoteNextValue;
+	/*
+Quote_duplicate_map = Map();
+Quote_duplicate_map.put("Quote_Id",Get_creator_quote_number);
+Quote_duplicate_map.put("Status","In_Progress");
+Quote_duplicate_map.put("Loginuser_Id",Get_loginuserid);
+
+Create_Duplicate_Quote_Log = zoho.creator.createRecord("zoho_zoho1502","quotes","Duplicate_Quote_Create_Log",Quote_duplicate_map);
+openUrl("https://creator.zohopublic.com/zoho_zoho1502/quotes/page-perma/Quote_Page/E63wGZUjayWZns7YZva3dVWmgJddqerH4sJSRQVPPa9jACaUtN9pKjVv4q2R6O7DEuz1EpeYYKKhSsq4uStbqTpkJF3t0htDUGP9?quotenumber=" + Latest_salesperson_Quote_Number,"New window");
+*
+/*
+// openUrl("https://creator.zohopublic.com/zoho_zoho1502/quotes/page-perma/Quote_Page/E63wGZUjayWZns7YZva3dVWmgJddqerH4sJSRQVPPa9jACaUtN9pKjVv4q2R6O7DEuz1EpeYYKKhSsq4uStbqTpkJF3t0htDUGP9?quotenumber=" + Latest_salesperson_Quote_Number,"New window");
+
+// openUrl("https://creatorapp.zohopublic.com/zoho_zoho1502/quotes/page-perma/Quote_Page/E63wGZUjayWZns7YZva3dVWmgJddqerH4sJSRQVPPa9jACaUtN9pKjVv4q2R6O7DEuz1EpeYYKKhSsq4uStbqTpkJF3t0htDUGP9?quotenumber=" + Latest_salesperson_Quote_Number,"New window");
+// openUrl("https://creatorapp.zohopublic.com/zoho_zoho1502/quotes/page-perma/Quote_Page/E63wGZUjayWZns7YZva3dVWmgJddqerH4sJSRQVPPa9jACaUtN9pKjVv4q2R6O7DEuz1EpeYYKKhSsq4uStbqTpkJF3t0htDUGP9?quotenumber=" + Latest_salesperson_Quote_Number,"New window");
+*/
+	// code start by cva, client need to ask cancelled the quote yes or no?
+	openUrl("https://creator.zohopublic.com/zoho_zoho1502/quotes/form-perma/Duplicate_Order_Stateless/2j7OhXkZRT7YvVdr2617w1Nv0Ej0yZHCVQkv3jW2NnZ1vOT0tY0z5duGFU6rDmA6suymDV0vvDu6wXPnpdS2h0ZaW5W2nqp2HFxk?Quote_ID=" + Quote_Id + "&Contact_Name=" + contactName + "&Quote_Name=" + Sales_Quote_Number + "&Get_sales_person_email=" + Get_sales_person_email + "&Contact_ID=" + contactID,"same window");
+	// code end by cva
+	response = '';
+}
+else
+{
+	response = "Expired Quote Cannot be Duplicated";
+}
+return response;
+}

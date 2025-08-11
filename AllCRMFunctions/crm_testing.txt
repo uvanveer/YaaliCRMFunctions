@@ -1,0 +1,32 @@
+string standalone.crm_testing()
+{
+ownerID = 3106252000000152052;
+offset = 0;
+temp = {1,2,3,4,5};
+Totoal_Call_Overdues = 0;
+for each  rec in temp
+{
+	data = "select Who_Id,Call_Result,Owner,Due_Date1 from Calls where ((Call_Result != 'Completed') and (Owner = '" + ownerID + "')) and Due_Date1 <= '" + zoho.currentdate.subDay(1).toString("yyyy-MM-dd") + "' OFFSET " + offset + " LIMIT 200";
+	// info " overdue tasks due req: " + data;
+	coql_map = Map();
+	coql_map.put("select_query",data);
+	maillist = invokeurl
+	[
+		url :"https://www.zohoapis.com/crm/v2/coql"
+		type :POST
+		parameters:coql_map.tostring()
+		connection:"crm_connection"
+	];
+	// 	info maillist;
+	Totoal_Call_Overdues = Totoal_Call_Overdues + maillist.get("data").size();
+	Get_info = maillist.get("info");
+	Get_records_flag = Get_info.get("more_records");
+	offset = offset + 200;
+	if(Get_records_flag != true)
+	{
+		break;
+	}
+}
+info Totoal_Call_Overdues;
+return "";
+}

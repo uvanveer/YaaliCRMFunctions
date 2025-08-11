@@ -1,0 +1,60 @@
+string standalone.elmdor_tracking_individual_pdf(String crmAPIRequest)
+{
+return_list = list();
+crm_api_map = crmAPIRequest.toMap();
+params = crm_api_map.get("body");
+carrier = "";
+carrier = params.get("carrier");
+if(carrier != "" && !isNull(carrier))
+{
+	if(params.get("carrier").containsIgnoreCase("UPS"))
+	{
+		carrier = "UPS";
+	}
+	else if(params.get("carrier").containsIgnoreCase("FedEX"))
+	{
+		carrier = "FedEX";
+	}
+	else
+	{
+		carrier = "Other";
+	}
+}
+else
+{
+	carrier = "Other";
+}
+dropship_no = params.get("dropship_no");
+tracking_no = params.get("tracking_no");
+// purchase_orders = zoho.crm.searchRecords("Purchase_Orders","(Dropship_Number:equals:" + dropship_no + ")");
+purchase_orders = zoho.crm.searchRecords("Purchase_Orders","(Dropship_Number:equals:" + dropship_no + ")",1,200,Map(),"mailparserzoho");
+info purchase_orders;
+po_store_name = "anything";
+if(purchase_orders.size() > 0 && purchase_orders.get(0).get("Source") != null)
+{
+	po_store_name = purchase_orders.get(0).get("Source");
+}
+if(purchase_orders.size() > 0)
+{
+	po_status = ifnull(purchase_orders.get(0).get("Status"),"Created");
+}
+if(purchase_orders.size() > 0 && !po_status.containsIgnoreCase("Shipped"))
+{
+	upd_map = Map();
+	upd_map.put("Ship_Date",today.toString("yyyy-MM-dd"));
+	purchase_order_id = purchase_orders.get(0).get("id");
+	upd_map.put("Carrier",carrier);
+	if(po_store_name.containsIgnoreCase("Amazon Store"))
+	{
+		upd_map.put("Amazon_Carrier_Code",carrier);
+	}
+	if(tracking_no != null && tracking_no != "")
+	{
+		upd_map.put("Tracking_Number",tracking_no);
+		// 		resp = zoho.crm.updateRecord("Purchase_Orders",purchase_order_id,upd_map,{"trigger":{"workflow"}});
+		resp = zoho.crm.updateRecord("Purchase_Orders",purchase_order_id,upd_map,{"trigger":{"workflow"}},"mailparserzoho");
+		return_list.add(resp);
+	}
+}
+return return_list;
+}

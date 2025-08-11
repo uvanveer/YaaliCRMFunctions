@@ -1,0 +1,34 @@
+string standalone.Generate_Auth_Token()
+{
+/* Created By Ezhil on 21 July  2020 */
+// Generate Desk Auth Token
+// baseUrl = "https://accounts.zoho.com/oauth/v2/token?";
+// Developer Account
+// clientId = "1000.7ARGD0N7653PZFZIAU53G7NJUNHPBH";
+// clientSecret = "04748114994d038fdb66b47df54793f9301751ff05";
+// refreshToken = "1000.5a9f2019af533e3f7b765327a586c246.b844b5f6f04f9429223c272a4882efc7";
+// Anthony Account
+// clientId = "1000.6WMYJ2TOBBKZOMRW8T2BTB0HCWLMIZ";
+// clientSecret = "9f506be9a8d2e27c85bafc082c2b80c0c83d79a331";
+// refreshToken = "1000.4aa1bd70fde5dbd7966071b642bf416d.1c5cc36977c2e2169f09464512457a6b";
+// postURL = baseUrl + "refresh_token=" + refreshToken + "&client_id=" + clientId + "&client_secret=" + clientSecret + "&grant_type=refresh_token ";
+// info postURL;
+// tokenResponse = postUrl(postURL,true);
+// accessToken = tokenResponse.get("access_token");
+// info accessToken;
+//script updated by VIJAY.VR 
+refreshToken = "1000.4aa1bd70fde5dbd7966071b642bf416d.1c5cc36977c2e2169f09464512457a6b";
+clientId = "1000.6WMYJ2TOBBKZOMRW8T2BTB0HCWLMIZ";
+clientSecret = "9f506be9a8d2e27c85bafc082c2b80c0c83d79a331";
+url = "https://accounts.zoho.com/oauth/v2/token";
+params = Map();
+params.put("refresh_token",refreshToken);
+params.put("client_id",clientId);
+params.put("client_secret",clientSecret);
+params.put("grant_type","refresh_token");
+response = postUrl(url,params,true);
+info response;
+accessToken = response.get("access_token");
+info accessToken;
+return accessToken;
+}

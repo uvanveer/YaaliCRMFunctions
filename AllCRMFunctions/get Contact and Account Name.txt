@@ -1,0 +1,30 @@
+string standalone.getContactAccountName()
+{
+// currenttime = now.toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'");
+// ownerID = 3106252000014929001;
+// offset = 0;
+// data = "select Scoring_Agent_Name,Agent_Name,Customer_Name,Call_Date_Time,Call_Recording_Link,Owner from Employee_Evaluations where Owner = '" + ownerID + "' OFFSET " + offset + " LIMIT 200";
+// coql_map = Map();
+// coql_map.put("select_query",data);
+// maillist = invokeurl
+// [
+// 	url :"https://www.zohoapis.com/crm/v2/coql"
+// 	type :POST
+// 	parameters:coql_map.tostring()
+// 	connection:"crm_connection"
+// ];
+// calls = zoho.crm.getRelatedRecords("Activities_History", "Contacts", 3106252000036277491);
+// currentYear = now.getYear();
+// Firstday = currentYear + "-01-01";
+// FirstDayOfTheYear = Firstday.toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'");
+// SaleOrders = zoho.crm.getRecords("Sales_Orders", 0, 200, { "cvid": 3106252000102913518 });
+// for each order in SaleOrders
+// {
+// 	id = order.get('id');
+// 	upRec = zoho.crm.updateRecord("Sales_Orders", id, {"Phone_SA": true});
+// }
+test = zoho.crm.getRecordById("Sales_Orders",3106252000103939702);
+notes = test.get("Customer_Notes").toString();
+// notes.contains(" SA ");
+return notes.indexOf(" SA ");
+}

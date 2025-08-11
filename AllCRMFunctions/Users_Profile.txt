@@ -1,0 +1,19 @@
+string standalone.Users_Profile()
+{
+Get_all_users = zoho.crm.getRecords("users");
+info "Get_all_users" + Get_all_users;
+//User_ID = "";
+for each  rec in Get_all_users.get("users")
+{
+	User_map = rec.tomap();
+	User_profile_Id = User_map.get("profile").get("id");
+	if(User_profile_Id == "3106252000023874101")
+	{
+		User_ID = User_map.get("id");
+		info User_ID;
+		//break;
+	}
+}
+//info User_ID;
+return User_ID.tostring();
+}

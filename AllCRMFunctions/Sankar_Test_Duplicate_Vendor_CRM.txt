@@ -1,0 +1,41 @@
+string standalone.Sankar_Test_Duplicate_Vendor_CRM(Int id)
+{
+getdropshiporder = zoho.crm.getRecordById("Purchase_Orders",id);
+OrganizationID = "666840843";
+vendor = getdropshiporder.get("Vendor_Name").get("name");
+vendor_crm_id = getdropshiporder.get("Vendor_Name").get("id");
+info vendor_crm_id;
+info vendor;
+get_vendor = zoho.crm.getRecordById("Vendors",vendor_crm_id);
+master_vendor_flag = get_vendor.get("Master_Vendor");
+if(master_vendor_flag == false)
+{
+	info "Getting Master Vendor Details";
+	Master_Vendor_ID = get_vendor.get("Master_Vendor_ID");
+	get_master_vendor = zoho.crm.getRecordById("Vendors",Master_Vendor_ID);
+	// 	info get_master_vendor;
+	vendor = get_master_vendor.get("Vendor_Name");
+	vendor_crm_id = get_master_vendor.get("id");
+}
+info "Zoho CRM vendor =" + vendor;
+vendor = zoho.encryption.urlEncode(vendor);
+getvendor = zoho.books.getRecords("Contacts",OrganizationID,"contact_name=" + vendor);
+info "getvendor" + getvendor;
+if(getvendor.getJSON("contacts").size() > 0)
+{
+	if(getvendor.getJSON("contacts").getJSON("custom_field_hash").get("cf_master_vendor_id") != null)
+	{
+		getvendor = zoho.books.getRecords("Contacts",OrganizationID,"cf_crm_contact_id=" + vendor_crm_id);
+		vendor_id = getvendor.getJSON("contacts").getJSON("contact_id");
+		vendor_name = getvendor.getJSON("contacts").getJSON("contact_name");
+	}
+	else
+	{
+		vendor_id = getvendor.getJSON("contacts").getJSON("contact_id");
+		vendor_name = getvendor.getJSON("contacts").getJSON("contact_name");
+	}
+}
+info "Books Vendor ID = " + vendor_id;
+info "Vendor Name: " + vendor_name;
+return "";
+}

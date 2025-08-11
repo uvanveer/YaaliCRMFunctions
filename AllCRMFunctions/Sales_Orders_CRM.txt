@@ -1,0 +1,95 @@
+string standalone.Sales_Orders_CRM()
+{
+Get_all_SalesOrders = zoho.crm.getRecords("Identified_Duplicate_SO",2,100);
+// info Get_all_SalesOrders;
+for each  CRM_Sales_Order in Get_all_SalesOrders
+{
+	Updated_flag = 0;
+	Count = 0;
+	BC_unique_Id = CRM_Sales_Order.get("Bigcommerce_Unique_Id");
+	// 	info BC_unique_Id;
+	Search_records = zoho.crm.searchRecords("Sales_Orders","(BigCommerce_Unique_ID:equals:" + BC_unique_Id + ")");
+	// 	info Search_records;
+	Get_size = Search_records.size();
+	if(Get_size > 1)
+	{
+		Updated_flag = 1;
+	}
+	info Get_size;
+	Get_processed_data = CRM_Sales_Order.get("Identified_Duplicate");
+	get_new_duplicate = CRM_Sales_Order.get("Latest_Identified");
+	// 	if(get_new_duplicate == true)
+	// 	{
+	if(Updated_flag == 1)
+	{
+		Search_records = zoho.crm.searchRecords("Sales_Orders","(BigCommerce_Unique_ID:equals:" + BC_unique_Id + ")");
+		for each  idt_salesorder in Search_records
+		{
+			Salesorder_map = idt_salesorder.toMap();
+			Get_sallesorder_id = Salesorder_map.get("id");
+			info Get_sallesorder_id;
+			PO_status_flag = 0;
+			Get_identified_salesorder = zoho.crm.getRecordById("Sales_Orders",Get_sallesorder_id);
+			getting_purchase_orders = zoho.crm.getRelatedRecords("Dropship_Orders","Sales_Orders",Get_sallesorder_id);
+			// 		info getting_purchase_orders;
+			Get_Status = Get_identified_salesorder.get("Status");
+			if(Get_Status != "Shipped" && Get_Status != "Refunded" && Get_Status != "Partially Refunded" && Get_Status != "Partially Shipped" && Get_Status != "Completed")
+			{
+				if(getting_purchase_orders.size() > 0 && getting_purchase_orders.containsKey("code") == false)
+				{
+					// 			info getting_purchase_orders;
+					for each  rec in getting_purchase_orders
+					{
+						// 				info PO_MAP;
+						if(rec.containsKey("id"))
+						{
+							PO_MAP = rec.toMap();
+							Status = PO_MAP.get("Status");
+							Get_poid = PO_MAP.get("id");
+							info "Po_id:" + Status;
+							deleteRecordMap = Map();
+							deleteRecordMap.put("module","Purchase_Orders");
+							deleteRecordMap.put("id",Get_poid);
+							PO_status_flag = 1;
+							if(Status != "Shipped" && Status != "Completed" && Status != "Sent to Dropshippers" && Status != "Shipped")
+							{
+								PO_status_flag = 0;
+								info "delete Po";
+								deleteResp = zoho.crm.invokeConnector("crm.delete",deleteRecordMap);
+								info deleteResp;
+							}
+						}
+					}
+				}
+			}
+			SO_deleteRecordMap = Map();
+			SO_deleteRecordMap.put("module","Sales_Orders");
+			SO_deleteRecordMap.put("id",Get_sallesorder_id);
+			Get_Status = Get_identified_salesorder.get("Status");
+			if(Get_Status != "Shipped" && Get_Status != "Refunded" && Get_Status != "Partially Refunded" && Get_Status != "Partially Shipped" && Get_Status != "Completed")
+			{
+				if(PO_status_flag == 0)
+				{
+					Count = Count + 1;
+					SO_deleteResp = zoho.crm.invokeConnector("crm.delete",SO_deleteRecordMap);
+					info SO_deleteResp;
+					info "Delete" + Get_identified_salesorder.get("Status");
+				}
+			}
+			temp = Count + 1;
+			if(Get_size == temp)
+			{
+				break;
+			}
+		}
+		if(Count == 0)
+		{
+			SO_deleteResp = zoho.crm.invokeConnector("crm.delete",SO_deleteRecordMap);
+			info SO_deleteResp;
+			info "Delete_again" + Get_identified_salesorder.get("Status");
+		}
+		// 		}
+	}
+}
+return "";
+}

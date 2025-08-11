@@ -1,0 +1,70 @@
+map validation_rule.Validate_Additional_Names_SalesWChat_Layout(String crmAPIRequest)
+{
+// entityMap = crmAPIRequest.toMap().get("record");
+// names = entityMap.get("Additional_Names");
+// modify = entityMap.get("Allow_Additional_Names");
+// response = Map();
+// salesperson = zoho.loginuserid;
+// // info salesperson;
+// userTypeMap = Map();
+// userTypeMap.put("type","ActiveUsers");
+// responseUser = zoho.crm.invokeConnector("crm.getusers",userTypeMap);
+// userlist = responseUser.get("response").get("users");
+// enableValidation = false;
+// for each  user in userlist
+// {
+// 	// 	if(user.get("email") == salesperson && user.get("profile").get("name") == "Sales with Chat - Fern")
+// 	if(user.get("email") == salesperson && user.get("profile").get("name") == "Sales with Chat" || user.get("email") == salesperson && user.get("profile").get("name") == "Order Management" || user.get("email") == salesperson && user.get("profile").get("name") == "Customer Service")
+// 	{
+// 		enableValidation = true;
+// 		profile = user.get("profile").get("name");
+// 	}
+// }
+// if(enableValidation == true)
+// {
+// 	if(modify == "true" || modify == true)
+// 	{
+// 		response.put('status','success');
+// 	}
+// 	else
+// 	{
+// 		response.put('status','error');
+// 		response.put('message',"A contact's additional-name can not be changed, please contact your Administrator");
+// 	}
+// }
+// else
+// {
+// 	response.put('status','success');
+// }
+// // sendmail
+// // [
+// // 	from :zoho.loginuserid
+// // 	to :"prashanth@bizappln.com"
+// // 	subject :"Saleswithchat: login user details " + zoho.loginuserid + " profile " + profile
+// // 	message :"entity response " + entityMap + " || user response " + response + " || validation " + enableValidation
+// // ]
+// return response;
+entityMap = crmAPIRequest.toMap().get("record");
+names = entityMap.get("Additional_Names");
+modify = entityMap.get("Allow_Additional_Names");
+response = Map();
+/* ---------------------------------------------------------------------------------------------- */
+if(modify == "true" || modify == true)
+{
+	response.put('status','success');
+}
+else
+{
+	response.put('status','error');
+	response.put('message',"A contact's additional-name can not be changed, please contact your Administrator");
+}
+// sendmail
+// [
+// 	from :zoho.loginuserid
+// 	to :"prashanth@bizappln.com"
+// 	subject :"addnl name edit tried by " + zoho.loginuserid
+// 	message :" | flag value | " + modify + " | names | " + names + " | checkname exists | " + checkNames + " | response | " + entityMap + " | getrecord res | "
+// ]
+/* ---------------------------------------------------------------------------------------------- */
+return response;
+}

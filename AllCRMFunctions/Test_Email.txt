@@ -1,0 +1,36 @@
+string standalone.Test_Email()
+{
+id = "3106252000405142013";
+get_contact = zoho.crm.getRecordById("Contacts",id);
+// 	info get_contact ;
+recipient = list();
+recipient.add("balaji@bizappln.com");
+subject1 = "Pro Club Application Activeted for " + get_contact.get("Email");
+message = "<html><body>";
+message = message + "<h2>Hello,</h2>";
+message = message + "<p>Pro Club Application was Activeted. Please check .</p>";
+message = message + "<p><b>First Name:</b> " + get_contact.get("First_Name") + "</p>";
+message = message + "<p><b>Last Name:</b> " + get_contact.get("Last_Name") + "</p>";
+message = message + "<p><b>Email:</b> " + get_contact.get("Email") + "</p>";
+message = message + "<p><b>Mailing Street:</b> " + get_contact.get("Mailing_Street") + "</p>";
+if(get_contact.get("Mailing_Street_2") != Null)
+{
+	message = message + "<p><b>Mailing Street 2:</b> " + get_contact.get("Mailing_Street_2") + "</p>";
+}
+message = message + "<p><b>Mailing City:</b> " + get_contact.get("Mailing_City") + "</p>";
+message = message + "<p><b>Mailing State:</b> " + get_contact.get("Mailing_State") + "</p>";
+message = message + "<p><b>Mailing Country:</b> " + get_contact.get("Mailing_Country") + "</p>";
+message = message + "<p><b>Mailing Zip:</b> " + get_contact.get("Mailing_Zip") + "</p>";
+message = message + "<p><b>Phone:</b> " + get_contact.get("Phone") + "</p>";
+message = message + "<p>Thank you</p>";
+message = message + "<p>Best regards,<br> Best Access Doors</p>";
+message = message + "</body></html>";
+sendmail
+[
+	from :zoho.adminuserid
+	to :recipient
+	subject :subject1
+	message :message
+]
+return "";
+}

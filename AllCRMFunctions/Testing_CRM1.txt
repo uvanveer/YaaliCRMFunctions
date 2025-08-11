@@ -1,0 +1,49 @@
+string standalone.MyTest()
+{
+amazonReturnOrderId = "111-5609719-6865031";
+POdata = zoho.books.getRecords("salesorders","666840843","cf_amazon_order_id=" + amazonReturnOrderId);
+SO = POdata.get("salesorders");
+if(SO.isEmpty() == false)
+{
+	info "yes";
+}
+else
+{
+	info "no";
+}
+return "";
+}string standalone.Testing_CRM1()
+{
+// Get_records = zoho.crm.searchRecords("IdentifiedInvoices_Bills", "((Latest_Check:equals:true))",1,20);
+// info Get_records;
+// for each rec in Get_records
+// {
+// 	rec.get("")
+// }
+if(1 == 1 && (2 == 3 || 8 == 5))
+{
+	info "success";
+}
+// Get_data = getUrl("https://www.zohoapis.com/crm/v2/IdentifiedInvoices_Bills?Latest_Check:equals:false");
+// info Get_data;
+// // https://www.zohoapis.com/crm/v2/{module_api_name}
+//  // Create a map that holds the values of the new contact that needs to be created
+//  contact_info = Map();
+//  contact_info.put("contact_name", "Shawn");
+//  // Format the data as specified in the Zoho Books API
+//  data  = Map();
+//  data.put("sort_order", "asc");
+//  data.put("sort_by", "Created_Time");
+//  data.put("Latest_Check", true);
+//  Query_map = MAP();
+//  Query_map.put("select_query","select Bill_Invoice_Record_ID from IdentifiedInvoices_Bills where Latest_Check is true limit 2");
+//  // Supply the URL and parameters to the invoke URL task
+//  response = invokeUrl
+//  [
+//  url: "https://www.zohoapis.com/crm/v2/IdentifiedInvoices_Bills"
+//  type: GET
+//  parameters: data
+//  ];
+//  info response;
+return "";
+}

@@ -1,0 +1,183 @@
+string button.Create_Manual_Order_Without_Trans(String quotenumber,String contactId)
+{
+//Done by T Yaali
+// response = zoho.creator.v1.getRecords("zoho_zoho1502","quotes","All_Quotes","Quote_Number == \"" + quotenumber + "\"");
+// // info response;
+// if(!response.containsKey('message'))
+// {
+// 	if(response.getJSON("Quote_Status") != "Cancelled")
+// 	{
+// 		if(response.getJSON("Quote_Status") == "Sent" || response.getJSON("Quote_Status") == "Draft" || response.getJSON("Quote_Status") == "Opened")
+// 		{
+// 			BF = response.getJSON("Billing_First_Name");
+// 			BL = response.getJSON("Billing_Last_Name");
+// 			BE = response.getJSON("Billing_Email");
+// 			BF = response.getJSON("Billing_First_Name");
+// 			BL = response.getJSON("Billing_Last_Name");
+// 			SF = response.getJSON("First_Name");
+// 			SL = response.getJSON("Last_Name");
+// 			SE = response.getJSON("Email");
+// 			if(BF == "" || BL == "" || BE == "" || SL == "" || SF == "" || SE == "")
+// 			{
+// 				rtnres = "Please check/fill address details for order creation";
+// 				openUrl("https://creator.zohopublic.com/zoho_zoho1502/quotes/form-perma/Cheque_Manual_Order_Addresses/Bmz1kSSkJkXtdbMAaJZxf8dp7Wy8bBzZZ59jZOD6VGrXDMun9Hd3ZbQBkGYzFQEzTx8CynzW3OEbEn7Vwf3WYJwM9w1CyuKwrRyJ?Quote_Number=" + response.getJSON("ID") + "&Mail_Notification=" + zoho.loginuserid,"popup window","height=786,width=1444");
+// 			}
+// 			else
+// 			{
+// 				getrecord = zoho.creator.v1.getRecords("zoho_zoho1502","quotes","Quote_Sales_Order_Schedule_Report","Quoteno == \"" + quotenumber + "\"");
+// 				info "getrecord" + getrecord;
+// 				scheduleradd = Map();
+// 				shedrec = getrecord.toMap().keys();
+// 				if(shedrec.contains("message"))
+// 				{
+// 					scheduleradd.put("Execution_Time",now.addSeconds(30).toString());
+// 					scheduleradd.put("Store_Name",response.getJSON("Quote_Store_Prams"));
+// 					scheduleradd.put("Quote_Rec_Id",response.getJSON("ID").toLong());
+// 					scheduleradd.put("Quoteno",quotenumber);
+// 					scheduleradd.put("Salesperson_Email",zoho.loginuserid);
+// 					scheduleradd.put("Source","Cheque Manual Order");
+// 					scheduleradd.put("Status","Pending");
+// 					scheduleupdate = zoho.creator.v1.createRecord("zoho_zoho1502","quotes","Quote_Sales_Order_Schedule",scheduleradd);
+// 					info "schedulecreate:" + scheduleupdate;
+// 				}
+// 				else
+// 				{
+// 					schedid = getrecord.getJSON("ID");
+// 					scheduleradd.put("Execution_Time",now.addSeconds(30).toString());
+// 					scheduleradd.put("Source","Cheque Manual Order");
+// 					scheduleradd.put("Salesperson_Email",zoho.loginuserid);
+// 					info "scheduleradd" + scheduleradd + schedid;
+// 					scheduleupdate = zoho.creator.v1.updateRecord("zoho_zoho1502","quotes","Quote_Sales_Order_Schedule",schedid.toLong(),scheduleradd);
+// 					info "scheduleupdate" + scheduleupdate;
+// 				}
+// 				res = postUrl("https://www.zohoapis.com/crm/v2/functions/yl_updatechequmanualorderquotestaus/actions/execute?auth_type=apikey&zapikey=1003.84f6b88f042b49549074d50113dae2b6.276cb261a9b7531fe717d6f7d26c7d09&creator_rec_id=" + response.getJSON("ID"),"");
+// 				info "res:" + res;
+// 				rtnres = "Required values are available. Going to create...";
+// 			}
+// 		}
+// 		else
+// 		{
+// 			rtnres = "The Quote status was must Draft or Sent or Opened. Please contact administrator....";
+// 		}
+// 	}
+// 	else
+// 	{
+// 		rtnres = "The Quote status was Cancelled. Please contact administrator....";
+// 	}
+// }
+// else
+// {
+// 	rtnres = "The quote number does not exists in Creator.";
+// }
+// return rtnres;
+// v2 migrations done by prashanth 1/29/2021 at 7.53pm ist
+quoteResponse = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Quotes","Quote_Number==\"" + quotenumber + "\"",1,200,"zcreator_connecction");
+if(quoteResponse.get("code") == 3000)
+{
+	list = quoteResponse.get("data");
+	if(list.size() > 0)
+	{
+		fetchedQuote = list.get(0);
+		//info fetchedQuote ;
+		BC_ID = ifnull(fetchedQuote.get("BigCommerce_Order_ID"),"");
+		if(BC_ID != "")
+		{
+			response = "Order already created for the Quote. Bigcommerce Order id: " + BC_ID;
+		}
+		else
+		{
+			CRM_Contact_ID = ifnull(fetchedQuote.get("Customer").get("ID"),"");
+			Get_contact = zoho.crm.getRecordById("Contacts",CRM_Contact_ID);
+			//info Get_contact.tomap() ;
+			//info "CRM_Contact_ID: "+ CRM_Contact_ID ;
+			if(Get_contact.get("Pay_on_Account") == "Credit Card" || Get_contact.get("Pay_on_Account") == "Check" || Get_contact.get("Pay_on_Account") == NULL)
+			{
+				status = fetchedQuote.getJSON("Quote_Status");
+				info " api status" + status + " , res -- ";
+				if(fetchedQuote.getJSON("Quote_Status") != "Cancelled")
+				{
+					if(fetchedQuote.getJSON("Quote_Status") == "Pending" || fetchedQuote.getJSON("Quote_Status") == "Sent" || fetchedQuote.getJSON("Quote_Status") == "Draft" || fetchedQuote.getJSON("Quote_Status") == "Opened" || fetchedQuote.getJSON("Quote_Status") == "Duplicate" || fetchedQuote.getJSON("Quote_Status") == "Signed")
+					{
+						/* 						BF = fetchedQuote.getJSON("Billing_First_Name");
+						BL = fetchedQuote.getJSON("Billing_Last_Name");
+						BE = fetchedQuote.getJSON("Billing_Email");
+						SF = fetchedQuote.getJSON("First_Name");
+						SL = fetchedQuote.getJSON("Last_Name");
+						SE = fetchedQuote.getJSON("Email"); */
+						//if(BF == "" || BL == "" || BE == "" || SL == "" || SF == "" || SE == "")
+						//{
+						response = "Please verify the address details from the next tab for order creation. Ignore if already verified and submitted.";
+						openUrl("https://creator.zohopublic.com/zoho_zoho1502/quotes/form-perma/Cheque_Manual_Order_Addresses/Bmz1kSSkJkXtdbMAaJZxf8dp7Wy8bBzZZ59jZOD6VGrXDMun9Hd3ZbQBkGYzFQEzTx8CynzW3OEbEn7Vwf3WYJwM9w1CyuKwrRyJ?Quote_Number=" + fetchedQuote.getJSON("ID") + "&Mail_Notification=" + zoho.loginuserid + "&Contact_CRM_ID=" + contactId,"same window");
+						//}
+						/* 						else
+						{
+							getSchedulerRecord = zoho.creator.getRecords("zoho_zoho1502","quotes","Quote_Sales_Order_Schedule_Report","Quoteno==\"" + quotenumber + "\"",1,200,"zcreator_connecction");
+							tempMap = Map();
+							scheduleradd = Map();
+							shedrec = getSchedulerRecord.toMap().keys();
+							if(getSchedulerRecord.get("code") == 3000)
+							{
+								schedulerResponseList = getSchedulerRecord.get("data");
+								if(schedulerResponseList.size() > 0)
+								{
+									schedulerData = schedulerResponseList.get(0);
+									schedid = schedulerData.getJSON("ID");
+									scheduleradd.put("Execution_Time",now.addSeconds(30).toString());
+									scheduleradd.put("Source","Cheque Manual Order");
+									scheduleradd.put("Salesperson_Email",zoho.loginuserid);
+									info "scheduleradd" + scheduleradd + schedid;
+									scheduleupdate = zoho.creator.updateRecords("zoho_zoho1502","quotes","Quote_Sales_Order_Schedule",schedid.toLong(),scheduleradd,tempMap,"zcreator_connecction");
+									info "scheduler update response: " + scheduleupdate;
+									res = postUrl("https://www.zohoapis.com/crm/v2/functions/yl_updatechequmanualorderquotestaus/actions/execute?auth_type=apikey&zapikey=1003.84f6b88f042b49549074d50113dae2b6.276cb261a9b7531fe717d6f7d26c7d09&creator_rec_id=" + fetchedQuote.getJSON("ID"),"");
+									//info "res:" + res;
+									response = "Required values are available. Going to create...";
+								}
+							}
+							else if(getSchedulerRecord.get("code") == 3100)
+							{
+								scheduleradd.put("Execution_Time",now.addSeconds(30).toString());
+								scheduleradd.put("Store_Name",fetchedQuote.getJSON("Quote_Store_Prams"));
+								scheduleradd.put("Quote_Rec_Id",fetchedQuote.getJSON("ID").toLong());
+								scheduleradd.put("Quoteno",quotenumber);
+								scheduleradd.put("Salesperson_Email",zoho.loginuserid);
+								scheduleradd.put("Source","Cheque Manual Order");
+								scheduleradd.put("Status","Pending");
+								scheduleCreateResponse = zoho.creator.createRecord("zoho_zoho1502","quotes","Quote_Sales_Order_Schedule",scheduleradd,tempMap,"zcreator_connecction");
+								//	info "schedulecreate response: " + scheduleCreateResponse;
+								res = postUrl("https://www.zohoapis.com/crm/v2/functions/yl_updatechequmanualorderquotestaus/actions/execute?auth_type=apikey&zapikey=1003.84f6b88f042b49549074d50113dae2b6.276cb261a9b7531fe717d6f7d26c7d09&creator_rec_id=" + fetchedQuote.getJSON("ID"),"");
+								//		info "res:" + res;
+								response = "Required values are available. Going to create...";
+							}
+							else
+							{
+								response = "Fetching scheduler record api request failed. " + getSchedulerRecord;
+							}
+						} */
+					}
+					else
+					{
+						response = "The Quote stage must be Draft or Sent or Opened or Duplicate or Signed. Please contact administrator....";
+					}
+				}
+				else
+				{
+					response = "The Quote stage was Cancelled. Please contact administrator....";
+				}
+			}
+			else
+			{
+				response = "Customer payment method must be Credit card or Check. This customer payment method is " + Get_contact.get("Pay_on_Account");
+			}
+		}
+	}
+	else
+	{
+		response = "The quote number does not exists in Creator.";
+	}
+}
+else
+{
+	response = "Fetching quote failed at initial stage";
+}
+return response;
+}

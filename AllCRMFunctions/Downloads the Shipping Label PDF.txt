@@ -1,0 +1,156 @@
+string button.downloadShippinglabel(String creatorId,String quoteName)
+{
+//code done by Pooja L 
+//Created Date June/30/2020
+//Last Updated July/03/2020
+//----old-----
+// msg = "";
+// if(creatorId != null && creatorId != "" && quoteName != null && quoteName != "")
+// {
+// 	ownerName = "zoho_zoho1502";
+// 	appLinkName = "quotes";
+// 	cpanelBaseUrl = "https://www.1.door-pay.com/";
+// 	shippingLabelFilePath = "pq/m/allAttachments";
+// 	quoteName = quoteName.replaceFirst("#","");
+// 	creatorQuoteDetails = zoho.creator.v1.getRecords(ownerName,appLinkName,"All_Quotes","ID=\"" + creatorId + "\"");
+// 	//fetch corresponding creator quote Id
+// 	//info "creatorQuoteDetails "+creatorQuoteDetails;
+// 	if(creatorQuoteDetails.size() == 1)
+// 	{
+// 		trackingNo = ifnull(creatorQuoteDetails.get(0).get("Tracking_Number"),"");
+// 		//get tracking number
+// 		trackingStatus = ifnull(creatorQuoteDetails.get(0).get("Tracking_Status"),"");
+// 		//get tracking status
+// 		severity = ifnull(creatorQuoteDetails.get(0).get("Severity"),"");
+// 		//get code
+// 		shippingLabelFile = ifnull(creatorQuoteDetails.get(0).get("Shipping_Label"),"");
+// 		//get file
+// 		quoteStatus = ifnull(creatorQuoteDetails.get(0).get("Quote_Status"),"");
+// 		//get quote status
+// 		if(quoteStatus != "")
+// 		{
+// 			if(quoteStatus.equalsignorecase("Cheque Payment"))
+// 			{
+// 				if(severity != "" && shippingLabelFile != "" && trackingNo != "" && trackingStatus != "")
+// 				{
+// 					if(quoteStatus.equalsignorecase("Cheque Payment"))
+// 					{
+// 						//if(severity.equalsignorecase("SUCCESS")) //removed fed ex check as requested by Anthony
+// 						//{
+// 						downloadUrl = cpanelBaseUrl + shippingLabelFilePath + "/ShipLabel-" + quoteName + ".pdf";
+// 						info downloadUrl;
+// 						openUrl(downloadUrl,"open window");
+// 						/*}
+// 						else
+// 						{
+// 							msg = "FedEx pickup schedule is not processed successfully. Please Contact Administrator.";
+// 						}*/
+// 					}
+// 				}
+// 				else
+// 				{
+// 					msg = "Required details are not available for the corresponding creator quote.(Tracking Number/Tracking Status/Shipping Label File/Severity)";
+// 				}
+// 			}
+// 			else
+// 			{
+// 				msg = "Shipping label not available for this quote as the payment method is not Cheque Payment.";
+// 			}
+// 		}
+// 		else
+// 		{
+// 			msg = "Payment type is not available.";
+// 		}
+// 	}
+// 	else
+// 	{
+// 		msg = "Quote doesn't exist in zoho creator. Please Contact Administrator.";
+// 	}
+// }
+// else
+// {
+// 	msg = "Unable To find the Zoho creator quote. Please Contact Administrator.";
+// }
+// return msg;
+// ----new-v2 migrations by prashanth 1/29/2021 at 6.00 pm ist-----
+//code done by Pooja L 
+//Created Date June/30/2020
+//Last Updated July/03/2020
+msg = "";
+if(creatorId != null && creatorId != "" && quoteName != null && quoteName != "")
+{
+	ownerName = "zoho_zoho1502";
+	appLinkName = "quotes";
+	cpanelBaseUrl = "https://www.1.door-pay.com/";
+	shippingLabelFilePath = "pq/m/allAttachments";
+	quoteName = quoteName.replaceFirst("#","");
+	fetchcreatorQuote = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Quotes","ID == " + creatorId,1,9,"zcreator_connecction");
+	info fetchcreatorQuote;
+	if(fetchcreatorQuote.get("code") == 3000)
+	{
+		list = fetchcreatorQuote.get("data");
+		if(list.size() > 0)
+		{
+			creatorQuoteDetails = list.get(0);
+			info creatorQuoteDetails;
+			trackingNo = ifnull(creatorQuoteDetails.get("Tracking_Number"),"");
+			//get tracking number
+			trackingStatus = ifnull(creatorQuoteDetails.get("Tracking_Status"),"");
+			//get tracking status
+			severity = ifnull(creatorQuoteDetails.get("Severity"),"");
+			//get code
+			shippingLabelFile = ifnull(creatorQuoteDetails.get("Shipping_Label"),"");
+			//get file
+			quoteStatus = ifnull(creatorQuoteDetails.get("Quote_Status"),"");
+			//get quote status
+			if(quoteStatus != "")
+			{
+				if(quoteStatus.equalsignorecase("Cheque Payment"))
+				{
+					if(severity != "" && shippingLabelFile != "" && trackingNo != "" && trackingStatus != "")
+					{
+						if(quoteStatus.equalsignorecase("Cheque Payment"))
+						{
+							//if(severity.equalsignorecase("SUCCESS")) //removed fed ex check as requested by Anthony
+							//{
+							downloadUrl = cpanelBaseUrl + shippingLabelFilePath + "/ShipLabel-" + quoteName + ".pdf";
+							info downloadUrl;
+							openUrl(downloadUrl,"open window");
+							/*}
+							else
+							{
+								msg = "FedEx pickup schedule is not processed successfully. Please Contact Administrator.";
+							}*/
+						}
+					}
+					else
+					{
+						msg = "Required details are not available for the corresponding creator quote.(Tracking Number/Tracking Status/Shipping Label File/Severity)";
+					}
+				}
+				else
+				{
+					msg = "Shipping label not available for this quote as the payment method is not Cheque Payment.";
+				}
+			}
+			else
+			{
+				msg = "Payment type is not available.";
+			}
+		}
+		else
+		{
+			msg = "Quote doesn't exist in zoho creator. Please Contact Administrator.";
+		}
+	}
+	else
+	{
+		msg = "Fetching Quote From ZCreator Failed. Please Contact Administrator.";
+	}
+}
+else
+{
+	msg = "Unable To find the Zoho creator quote. Please Contact Administrator.";
+}
+return msg;
+}

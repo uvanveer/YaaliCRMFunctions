@@ -1,0 +1,88 @@
+string standalone.Books_Historical_Amazon_Sales_Order_Tax_Update()
+{
+/* Updated By Ezhil on 07 July 2020 */
+/* Delete Amazon Sales Order & Respective Invoice In Books */
+booksOrgId = 666840843;
+Get_module_data = zoho.crm.getRecordById("BooksCOAUpdate",3106252000110085092);
+pageCount = Get_module_data.get("Page_Count");
+recordCount = Get_module_data.get("Record_Count");
+pageCount = pageCount.toLong();
+pageCount = pageCount + 1;
+Record_Update_map = Map();
+Record_Update_map.put("Page_Count",pageCount.toString());
+// Update_record = zoho.crm.updateRecord("BooksCOAUpdate",3106252000110085092,Record_Update_map);
+/*
+searchParam = Map();
+searchParam.put("cf_source","Amazon Store");
+searchParam.put("page",pageCount);
+searchParam.put("per_page",100);
+booksOrderInfo = zoho.books.getRecords("salesorders",booksOrgId,searchParam);
+if(booksOrderInfo.get("message") == "success")
+{
+	if(booksOrderInfo.get("salesorders").size() > 0)
+	{
+		for each  bookSaleOrderInfo in booksOrderInfo.get("salesorders")
+		{
+			bookSaleOrderId = bookSaleOrderInfo.get("salesorder_id");
+			crmSaleOrderId = bookSaleOrderInfo.get("cf_crm_salesorder_id");
+			amazonOrderId = bookSaleOrderInfo.get("cf_amazon_order_id");
+			salesOrderSource = bookSaleOrderInfo.get("cf_source");
+			if(salesOrderSource.equals("Amazon Store"))
+			{
+				// Get Sale Order Respective Invoice
+				searchInvoice = Map();
+				searchInvoice.put("cf_amazon_order_id",amazonOrderId);
+				booksInvoiceInfo = zoho.books.getRecords("invoices",booksOrgId,searchInvoice);
+				// info "Invoice Response : " + booksInvoiceInfo;
+				if(booksInvoiceInfo.get("message").equals("success"))
+				{
+					invoiceList = booksInvoiceInfo.get("invoices");
+					info "Amazon Order ID : " + amazonOrderId + " Process Order : " + bookSaleOrderId + " Invoice Size : " + invoiceList.size();
+					for each  invoiceInfoData in invoiceList
+					{
+						invoiceId = invoiceInfoData.get("invoice_id");
+						invoiceDelUrl = "https://books.zoho.com/api/v3/invoices/" + invoiceId + "?organization_id=" + booksOrgId;
+						deleteInvoice = invokeurl
+						[
+							url :invoiceDelUrl
+							type :DELETE
+							connection:"new_zoho_books"
+						];
+						// info "Delete Invoice Response : "+deleteInvoice;
+						logMap = Map();
+						logMap.put("Name","Delete Amazon Sale Order & Respective Invoice");
+						logMap.put("SalesOrder_Record_ID",bookSaleOrderId.toString());
+						logMap.put("Sales_Order_Number",invoiceId.toString());
+						logMap.put("SO_Workflow_Name","Delete Books Invoice");
+						logMap.put("SalesOrder_Response",deleteInvoice);
+						end_time = now.toLong();
+						logMap.put("Start_Time",end_time.toString());
+						logMap.put("End_Time",end_time.toString());
+						Create_log = zoho.crm.createRecord("Sales_Order_PO_Log",logMap);
+					}
+				}
+				// Delete Sales Order From Books
+				orderDelUrl = "https://books.zoho.com/api/v3/salesorders/" + bookSaleOrderId + "?organization_id=" + booksOrgId;
+				deleteSaleOrder = invokeurl
+				[
+					url :orderDelUrl
+					type :DELETE
+					connection:"new_zoho_books"
+				];
+				// info deleteSaleOrder;
+				logMap = Map();
+				logMap.put("Name","Delete Amazon Sale Order & Respective Invoice");
+				logMap.put("SalesOrder_Record_ID",bookSaleOrderId.toString());
+				logMap.put("SO_Workflow_Name","Delete Books Sales Order");
+				logMap.put("SalesOrder_Response",deleteSaleOrder);
+				end_time = now.toLong();
+				logMap.put("Start_Time",end_time.toString());
+				logMap.put("End_Time",end_time.toString());
+				Create_log = zoho.crm.createRecord("Sales_Order_PO_Log",logMap);
+			}
+		}
+	}
+}
+*/
+return "";
+}

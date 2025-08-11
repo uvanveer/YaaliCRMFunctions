@@ -1,0 +1,62 @@
+string standalone.contactOwnerUpdate3()
+{
+pagination = zoho.crm.getRecordById("Merger_Schedule","3106252000061961343");
+currentPage = ifnull(pagination.get("Contact_Owner_Update3"),0);
+currentPage = currentPage.tolong();
+currentPage = currentPage + 1;
+info "page number " + currentPage;
+contacts = zoho.crm.getRecords("Contacts",currentPage,100,{"cvid":3106252000085591195});
+if(currentPage <= 1500)
+{
+	for each  contact in contacts
+	{
+		info contact.get("id");
+		if(contact.get("Contact_Owner_Updated") != true)
+		{
+			sortedOrder = list();
+			sortedMap = Map();
+			deals = zoho.crm.searchRecords("Deals","(Contact_Name:equals:" + contact.get("id") + ")");
+			info "deals " + deals;
+			info deals.size();
+			errorMap = Map();
+			if(deals.size() >= 200)
+			{
+				//log it chance of having 
+				errorMap.put("Source","Deluge");
+				errorMap.put("Message","200 Deals Available");
+				errorMap.put("Contact_ID",contact.get("id"));
+				errorMap.put("Log_Type","Contact Owner Update");
+				createErrorLog = zoho.crm.createRecord("Duplicate_Moderation_Log",errorMap);
+				info "-----------error map : " + errorMap + "-----------------";
+			}
+			else if(deals.size() < 200 && deals.size() > 0)
+			{
+				for each  rec in deals
+				{
+					gmt = rec.get("Created_Time").toTime("yyyy-MM-dd'T'HH:mm:ss","GMT");
+					sortedOrder.add(gmt);
+					sortedMap.put(gmt,rec.get("id"));
+				}
+				sortedOrder = sortedOrder.sort(true);
+				info "Sorted data " + sortedOrder + " map " + sortedMap;
+				dealId = sortedMap.get(sortedOrder.get(0));
+				dealData = zoho.crm.getRecordById("Deals",dealId);
+				DealMap = Map();
+				DealMap.put("Previous_Owner_ID",contact.get("Owner").get("id"));
+				DealMap.put("Contact_Owner_Updated",true);
+				DealMap.put("Owner",dealData.get("Owner").get("id"));
+				info "deal map " + DealMap;
+				updateContactOwner = zoho.crm.updateRecord("Contacts",contact.get("id"),DealMap);
+				info "***Contact Owner Update " + updateContactOwner;
+			}
+			else if(deals.size() == 0)
+			{
+				info "Deal not available";
+			}
+		}
+	}
+	updateCrmPagination = zoho.crm.updateRecord("Merger_Schedule","3106252000061961343",{"Contact_Owner_Update3":currentPage.tostring()});
+	info "---Update Pagination " + updateCrmPagination;
+}
+return "";
+}

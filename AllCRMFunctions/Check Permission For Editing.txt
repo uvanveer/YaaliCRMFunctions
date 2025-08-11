@@ -1,0 +1,37 @@
+map validation_rule.Check_Permission_For_Editing_Additional_Names(String crmAPIRequest)
+{
+/* The snippet below shows you how to get a list of fields, their values from a MAP object. The fields’ values can be obtained from the same MAP object.                                                  */
+entityMap = crmAPIRequest.toMap().get("record");
+/* The example below demonstrates how a field’s value (email) can be obtained from a MAP object. Here, entityMap - Map Object, Email - Field's API name
+Sample entityMap= {'Email': 'xxx@xxx.com', 'Last_Name': 'xxx'};                                   */
+names = entityMap.get("Additional_Names");
+modify = entityMap.get("Allow_Additional_Names");
+response = Map();
+// sendmail
+// [
+// 	from :zoho.loginuserid
+// 	to :"prashanth@bizappln.com"
+// 	subject :"inital addnl name edit tried by " + zoho.loginuserid
+// 	message :" | flag value | " + modify + " | names | " + names
+// ]
+/* ---------------------------------------------------------------------------------------------- */
+if(modify == "true" || modify == true)
+{
+	response.put('status','success');
+}
+else
+{
+	response.put('status','error');
+	response.put('message',"A contact's additional-name can not be changed, please contact your Administrator");
+}
+checkNames = ifnull(names,"");
+// sendmail
+// [
+// 	from :zoho.loginuserid
+// 	to :"prashanth@bizappln.com"
+// 	subject :"addnl name edit tried by " + zoho.loginuserid
+// 	message :" | flag value | " + modify + " | names | " + names + " | checkname exists | " + checkNames + " | response | " + entityMap + " | getrecord res | "
+// ]
+/* ---------------------------------------------------------------------------------------------- */
+return response;
+}
