@@ -1,0 +1,12 @@
+void automation.CRMtoBookOrder_one_time_Update()
+{
+getorders = zoho.crm.getRecords("Sales_Orders",11,100);
+// info getorders;
+for each  getsingleorder in getorders
+{
+	Datamap = Map();
+	Datamap.put("crmOrderId",getsingleorder.get("id"));
+	res = postUrl("https://www.1.door-pay.com/api/zohocrm/updateOrder",Datamap);
+	// info res;
+}
+}

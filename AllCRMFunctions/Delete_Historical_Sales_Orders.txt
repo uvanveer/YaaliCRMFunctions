@@ -1,0 +1,36 @@
+string standalone.Delete_Historical_Sales_Orders(Int saleOrderId)
+{
+/*
+saleOrderInfo = zoho.crm.getRecordById("Sales_Orders", saleOrderId);
+subject = saleOrderInfo.get("Subject");
+text = "(Subject:equals:" + subject +")";
+dropshipOrders = zoho.crm.searchRecords("Purchase_Orders", text);
+
+for each dropshipOrderObj in dropshipOrders
+{
+	info "Obj : "+ dropshipOrderObj;
+}
+*/
+saleorderDetail = zoho.crm.getRecordById("Sales_Orders",saleOrderId);
+serchdropship = zoho.crm.searchRecords("Purchase_Orders","Sales_Order:equals:" + saleOrderId);
+dropshiporderdeltionid = List();
+if(serchdropship.size() > 0)
+{
+	for each  dropshipid in serchdropship.toList()
+	{
+		dropshiporder = Map();
+		dropshiporder.put("id",dropshipid.getJSON("id"));
+		dropshiporderdeltionid.add(dropshiporder);
+	}
+}
+info dropshiporderdeltionid;
+for each  deletedropshi in dropshiporderdeltionid
+{
+	deleteRecordMap = Map();
+	deleteRecordMap.put("module","Purchase_Orders");
+	deleteRecordMap.put("id",deletedropshi.getJSON("id"));
+	deleteResp = zoho.crm.invokeConnector("crm.delete",deleteRecordMap);
+	info "\ndeleteResp" + deleteResp;
+}
+return "";
+}

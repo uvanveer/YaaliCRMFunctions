@@ -1,0 +1,34 @@
+string standalone.Notes_Delete_For_AddedBy_As_ZohoDeveloper()
+{
+getCRMAccessToken = zoho.crm.getRecordById("Merger_Schedule",3106252000061961343);
+Notes_Page_Index = getCRMAccessToken.get("Notes_Page_Index");
+Notes_Deleted_Count = getCRMAccessToken.get("Notes_Deleted_Count");
+notesResp = zoho.crm.searchRecords("Notes","(Created_By:equals:3106252000014929001)",1,200);
+info notesResp.size();
+// info notesResp;
+processedCount = 0;
+for each  sNote in notesResp
+{
+	// 	info sNote;
+	info "id " + sNote.get("id") + "  " + " parentid " + sNote.get("Parent_Id").get("id") + " -- module " + sNote.get("$se_module");
+	if(sNote.get("Parent_Id").get("id") == 3106252000058861547 || sNote.get("Parent_Id").get("id") != 3106252000061961343)
+	{
+		deleteRecordMap = Map();
+		deleteRecordMap.put("module","Notes");
+		deleteRecordMap.put("id",sNote.get("id"));
+		// 		info deleteRecordMap;
+		// 		deleteResp = zoho.crm.invokeConnector("crm.delete",deleteRecordMap);
+		// 		info "delete res " + deleteResp;
+		// 		processedCount = processedCount + 1;
+	}
+}
+info "processed count is " + processedCount;
+if(processedCount == 200)
+{
+	updatedPageIndex = Notes_Page_Index + 1;
+	updateDeletedCount = Notes_Deleted_Count + 200;
+	updatemergerScheduler = zoho.crm.updateRecord("Merger_Schedule",3106252000061961343,{"Notes_Deleted_Count":updateDeletedCount,"Notes_Page_Index":updatedPageIndex});
+	info "merger update count " + updatemergerScheduler;
+}
+return "\n function execution completed -- " + processedCount;
+}

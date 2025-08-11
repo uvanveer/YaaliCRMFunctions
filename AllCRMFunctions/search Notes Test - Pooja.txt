@@ -1,0 +1,682 @@
+string standalone.serachNotesTest()
+{
+/* ProductID = 3106252000020942579;
+// var = zoho.crm.getRecordById("Sales_Orders","3106252000035295817");
+// info "var " + var;
+updatemap = Map();
+workflow = Map();
+workflow.put("trigger",{"workflow"});
+//updatemap.put("Type_of_Call","Internal");
+//info 
+updatemap.put("who_id",3106252000169965027);
+call_record_id = 3106252000157544072;
+resp = zoho.crm.updateRecord("Calls",call_record_id,updatemap,workflow);
+info resp; */
+/* existingItemDatas = zoho.creator.v1.getRecords("zoho_zoho1502","quotes","All_Items?CRMRecordID=" + ProductID);
+info "existingItemDatas v1 "+existingItemDatas; */
+/* response = zoho.creator.getRecords("zoho_zoho1502","quotes", "All_Items?CRMRecordID=" + ProductID, "", 1, 200,"zohocreator_connection");
+info "v2 "+response; */
+/* res2 = zoho.creator.getRecordById("zoho_zoho1502", "quotes", "All_Items", 3767260000001581021, "zohocreator_connection"); */
+//info "res2 "+res2;
+/* crmid=res2.get("data").get("CRMRecordID");
+info "crmid "+crmid.isNumber(); */
+//oldrecId = 3106252000015755001;
+//zoho.creator.updateRecord(<TEXT>, <TEXT>, <TEXT>, <NUMBER>, <KEY-VALUE>, <KEY-VALUE>, <TEXT>)
+/* dataMap = Map();
+dataMap.put("authtoken","8e9640c1f4b7e8e3443fd95d7c16b7e6");
+dataMap.put("scope","creatorapi"); */
+// dataMap.put("ID", "3767260000019162015");
+//dataMap.put("scope","creatorapi");
+//ID=3767260000019162007
+//dataMap.put("Single_Line","Single_Line1");
+// Create an empty KEY-VALUE variable to skip optional parameters
+//otherParams = Map();
+/* updateRes = zoho.creator.updateRecord("zoho_zoho1502", "quotes", "All_Items", 3767260000001581021, dataMap, otherParams, "zohocreator_connection");
+info "updateRes v2"+updateRes;
+editedRes = zoho.creator.v1.updateRecord("zoho_zoho1502","quotes","Add_Items",3767260000001581021,{"CRMRecordID":3106252000015755001});
+	info "UPDATE_Res v1:" + editedRes; */
+/*  testget = invokeurl
+ [
+ 	url: "https://creator.zoho.com/api/zoho_zoho1502/json/quotes/form/TESTV1/record/update?ID=3767260000019162015"
+ 	type: POST
+	parameters:dataMap
+ ];
+info "testget "+testget; */
+/* res2 = zoho.creator.getRecordById("zoho_zoho1502", "quotes", "TESTV1_Report", 3767260000019162015, "zohocreator_connection");
+info "res2 "+res2; */
+//resQuotev1 = zoho.creator.v1.getRecords("zoho_zoho1502","quotes","TESTV1_Report?ID=3767260000019162015");
+//info "resQuote v1" + resQuotev1;
+//"Task_Name == \"ServiceTask\"", 1, 200, 
+/* response = invokeUrl [
+    url : <url>
+    type : GET/POST/PUT/DELETE
+    parameters : <paramMap/string>
+    connection : "zohocreator_connection"
+]; */
+/* resQuotev1 = zoho.creator.v1.getRecords("zoho_zoho1502","quotes","All_Quotes?ID=3767260000019006548");
+info "resQuote v1" + resQuotev1;
+
+resQuote = zoho.creator.getRecordById("zoho_zoho1502","quotes","All_Quotes",3767260000019006548,"zohocreator_connection");
+info "resQuote v2" + resQuote; */
+/* logs = zoho.crm.getRecords("Calls",0,100,{"cvid":3106252000159369395,"sort_by":"Created_Time","sort_order":"asc"});
+//info logs;
+if(logs.size() > 0)
+{
+	for each  Rec in logs
+	{
+		call_record_id = Rec.get("id");
+		//info call_record_id ;
+		who_id = Rec.get("What_Id");
+		//type_of_call = Rec.get("Type_of_Call");
+		//info type_of_call ;
+		//info who_id ;
+		updatemap = Map();
+		workflow = Map();
+		workflow.put("trigger",{});
+		//updatemap.put("Type_of_Call","Internal");
+		updatemap.put("What_Id",null);
+		resp = zoho.crm.updateRecord("Calls",call_record_id,updatemap,workflow);
+		info resp;
+	}
+} */
+//info zoho.books.getRecordsByID("Invoices","666840843","1324986000024287528");
+//info zoho.books.getRecordsByID("salesorders","666840843","1324986000008487535");
+//{"Accept":"application/json","Content-Type":"application/json","X-Auth-Token":"6bmozc9y8turqqviijfkt5o6mbut6ic","X-Auth-Client":"jz4y6k2juxckhz78kcah0ri3zcjgom"}
+//getPaymentInfoUrl = "https://api.bigcommerce.com" . $tokenArray['storeName'] . "/v3/orders/" . $BcOrderId  . "/transactions";
+//test function created by Pooja 
+//saleOrder = zoho.crm.searchRecords("Quotes","(Sales_Quote_Number:equals:00A6244)");
+//info " saleOrder "+saleOrder;
+/* deallist = invokeurl
+[
+	url :"https://www.zohoapis.com/crm/v2/Quotes/search?criteria=(Sales_Quote_Number:equals:00A6244)"
+	type :GET
+	connection:"crm_connection"
+];
+info " deallist " + deallist; */
+/* var = zoho.crm.getRecordById("Sales_Orders","3106252000035295817");
+info "var " + var; */
+/* 		dealID="6490414";
+		highriseAuth = "Basic OWZiYjY1ODg2NWY5MTUyODlmN2U5ZDNiM2E3MWNkYmI6WA==";
+highrisedeal = geturl("https://bestaccessdoors.highrisehq.com/deals/" + dealID + ".xml",{"Authorization":highriseAuth});
+info "hr resp"+highrisedeal;
+		highrisedeal = highrisedeal.replaceAll("&","&amp;",true);
+		criteria = "(Highrise_ID:equals:" + highrisedeal.executeXPath("deal/id/text()") + ")";
+		searchRes_highrise = zoho.crm.searchRecords("Highrise_Data",criteria);
+		info searchRes_highrise.size();
+		if(searchRes_highrise.size() == 0)
+		{
+		
+ 			createResp = zoho.crm.createRecord("Highrise_Data",{"Highrise_ID":highrisedeal.executeXPath("deal/id/text()"),"Module":"Deals","Highrise_Created_Time":highrisedeal.executeXPath("deal/created-at/text()"),"Highrise_Created_Time":highrisedeal.executeXPath("deal/updated-at/text()")},{"trigger":{"workflow"}});
+			info "create res " + createResp;
+			info "************************";
+			info "deal not found create it";
+		} */
+/* highriseAuth = "Basic OWZiYjY1ODg2NWY5MTUyODlmN2U5ZDNiM2E3MWNkYmI6WA==";
+userlist = List();
+userlist.add({"name":"Fern Citrigno","crm_id":3106252000000152052,"hr_id":"1082383"});
+userlist.add({"name":"Rheanne Trottier","crm_id":3106252000024509019,"hr_id":"1382762"});
+userlist.add({"name":"Kristopher Clark","crm_id":3106252000058241283,"hr_id":"1414362"});
+userlist.add({"name":"Marko Savic","crm_id":3106252000037668001,"hr_id":"1406845"});
+userlist.add({"name":"Deborah Warner","crm_id":3106252000045664001,"hr_id":"1411870"});
+userlist.add({"name":"Christie Best","crm_id":3106252000025726001,"hr_id":"1395960"});
+userlist.add({"name":"Emma Burns","crm_id":3106252000025727001,"hr_id":"1382543"});
+userlist.add({"name":"Carlo  Citrigno","crm_id":3106252000000147013,"hr_id":"937881"});
+userlist.add({"name":"Franz Perez","crm_id":3106252000000147013,"hr_id":"1039649"});
+// no user found so using carlo as suggested by anthony
+userlist.add({"name":"Anthony La Rocca","crm_id":3106252000000147711,"hr_id":"1254582"});
+userlist.add({"name":"Chesia Melisa","crm_id":3106252000000152046,"hr_id":"1262788"});
+getfetchTime = zoho.crm.getRecordById("Highrise_Connector",3106252000065101001);
+inputfetchTime = getfetchTime.get("Date").subString(0,19);
+inputTime = inputfetchTime.replaceAll("T"," ").totime();
+highriseID = "6645724";
+highriseDeals = geturl("https://bestaccessdoors.highrisehq.com/deals/" + highriseID + ".xml",{"Authorization":highriseAuth});
+info highriseDeals;
+dealContactError = "";
+HRdealMap = Map();
+DealMap = Map();
+user = ifnull(highriseDeals.executeXPath("deal/responsible-party-id/text()"),"");
+for each  userrec in userlist
+{
+	if(user == userrec.get("hr_id"))
+	{
+		hr_id = userrec.get("hr_id");
+		owner = userrec.get("crm_id");
+		DealMap.put("Owner",owner);
+		info " owner  " + owner.toLong() + " hr id " + hr_id;
+	}
+}
+hrAccount_id = ifnull(highriseDeals.executeXPath("deal/account-id/text()"),"");
+if(hrAccount_id != "")
+{
+	DealMap.put("HR_AccountID",hrAccount_id);
+}
+hrprice = ifnull(highriseDeals.executeXPath("deal/price/text()"),"");
+if(hrprice != "")
+{
+	DealMap.put("Amount",hrprice);
+}
+hrcurrency = ifnull(highriseDeals.executeXPath("deal/currency/text()"),"");
+if(hrcurrency != "")
+{
+	DealMap.put("Currency",hrcurrency);
+}
+hrdeal_name = ifnull(highriseDeals.executeXPath("deal/name/text()"),"");
+if(hrdeal_name != "")
+{
+	DealMap.put("Deal_Name",hrdeal_name);
+}
+status = ifnull(highriseDeals.executeXPath("deal/status/text()"),"");
+if(status != "")
+{
+	DealMap.put("Stage",status);
+}
+category = ifnull(highriseDeals.executeXPath("deal/category/name/text()"),"");
+if(category != "")
+{
+	if(category == "Instagram")
+	{
+		category = "Instagram";
+	}
+	else if(category == "BestAccessDoors.com")
+	{
+		category = "BestAccessDoors.com";
+	}
+	else if(category == "BestAccessDoors.ca")
+	{
+		category = "BestAccessDoors.ca";
+	}
+	else if(category == "AccessDoorsAndPanels.com")
+	{
+		category = "AccessDoorsAndPanels.com";
+	}
+	else if(category == "Existing Business")
+	{
+		category = "Existing Business";
+	}
+	else if(category == "New Business")
+	{
+		category = "New Business";
+	}
+	DealMap.put("Type",category);
+}
+description = ifnull(highriseDeals.executeXPath("deal/background/text()"),"");
+if(description != "")
+{
+	DealMap.put("Description",description);
+}
+info "--------------------------------------------";
+DealMap.put("Account_Name","3106252000058485258");
+DealMap.put("HighriseID",highriseID);
+coql_map = Map();
+coql_map.put("select_query","select Contact_Name, Deal_Name, HR_ContactID from Deals where Deal_Name = '" + hrdeal_name + "'");
+deallist = invokeurl
+[
+	url :"https://www.zohoapis.com/crm/v2/coql"
+	type :POST
+	parameters:coql_map.tostring()
+	connection:"crm_connection"
+];
+info " --- " + deallist.get("data").size();
+info "mrec " + deallist.get("data");
+if(deallist.get("data").size() == 0)
+{
+	info "created:";
+	createDeal = zoho.crm.createRecord("Deals",DealMap);
+	newDealID = createDeal.get("id");
+}
+else if(deallist.get("data").size() == 1)
+{
+	info "updated: ";
+	dealRecord = deallist.get("data");
+	dealcrmID = dealRecord.get(0).get("id");
+	createDeal = zoho.crm.updateRecord("Deals",dealcrmID,DealMap);
+	newDealID = createDeal.get("id");
+}
+info "deal map " + DealMap;
+info "----------  deal res " + createDeal + " - " + createDeal.get("id") + " ----------"; */
+/* notes = zoho.crm.getRelatedRecords("Notes","Contacts",3106252000085183422);
+// Go through each note one by one to fix the title and record association
+for each  note in notes
+{
+	note_id = note.get("id");
+	mp = Map();
+	parent_id = note.get("Note_Title").getSuffix("[%%]");
+	info parent_id;
+	mp.put("Parent_Id",parent_id);
+	mp.put("$se_module","Contacts");
+	info mp;
+	update = zoho.crm.updateRecord("Notes",note_id,mp);
+	info update;
+} */
+/* highriseAuth = "Basic OWZiYjY1ODg2NWY5MTUyODlmN2U5ZDNiM2E3MWNkYmI6WA==";
+dealID = "6608786";
+highrisedeal = geturl("https://bestaccessdoors.highrisehq.com/deals/" + dealID + ".xml",{"Authorization":highriseAuth});
+highrisedeal = highrisedeal.replaceAll("&","&amp;",true); */
+//info "----highrisedeal "+highrisedeal+"-------------";
+//dealName = highrisedeal.executeXPath("deal/name/text()");
+//info "dealName " + dealName;
+//dealName="\""+dealName+"\"";
+/* hrdealPrice = highrisedeal.executeXPath("deal/price/text()");
+hrCreatedTime = highrisedeal.executeXPath("deal/created-at/text()");
+info "hrCreatedTime " + hrCreatedTime;
+hrCreatedTime = hrCreatedTime.replaceAll("T"," ").replaceAll("Z","").tostring().toTime();
+info "hr Created Time modified " + hrCreatedTime; */
+/* hrdealPrice = "1288";
+coql_map = Map();
+coql_map.put("select_query","select Deal_Name, Amount from Deals where ((Deal_Name = '" + dealName + "'))");
+//dealName="\""+dealName+"\"";
+dealName = "BA-AHD-SS-36-36-140(30X8)";
+//BA-AHD-SS-36-36-140%5C%2830X8%5C%29
+dealName = dealName.replaceAll("(","\(",true);
+dealName = dealName.replaceAll(")","\)",true);
+//info "dealName " + zoho.encryption.urlEncode(dealName);
+dealName = zoho.encryption.urlEncode(dealName);
+//info "modified deal Name " + dealName;
+searchVal = "(Deal_Name:equals:" + dealName + ")";
+searchDeals = zoho.crm.searchRecords("Deals",searchVal);
+//info "searchDeals " + searchDeals;
+response1 = invokeurl
+[
+	url :"https://www.zohoapis.com/crm/v2/Deals/search?criteria=((Deal_Name:equals:" + dealName + "))"
+	type :GET
+	connection:"crm_connection"
+]; */
+//info "response1 " + response1;
+/*response = invokeurl
+[
+	url :"https://www.zohoapis.com/crm/v2/coql"
+	type :POST
+	parameters:coql_map.toString()
+	connection:"crm_connection"
+]; 
+info "response " + response;*/
+/* hrContactEmail = list();
+hrContactPhone = list(); */
+/*info "---partyData"+highrisedeal.executeXPath("deal/parties");*/
+//info "------works " + highrisedeal.executeXPath("deal/party");
+//partyData = highrisedeal.executeXPath("deal/parties");
+//partyData=partyData.replaceAll("&", "&amp;",true);
+/* if(partyData.contains("party"))
+{
+	partyData = partyData.executeXPath("parties/party");
+	info "----test1 " + partyData.executeXPath("party");
+}
+else
+{
+	info "entered test 2";
+	partyData = highrisedeal.executeXPath("deal/party");
+	info "---------test2 " + partyData.executeXPath("party");
+}
+if(highrisedeal.executeXPath("deal/party/type/text()") == "Person")
+{ */
+/*info "1";
+	if(partyData.executeXPath("party/contact-data/email-addresses").containsIgnoreCase("@") || partyData.executeXPath("party/contact-data/email-addresses").containsIgnoreCase(".com"))
+	{
+		info "resp " + partyData.executeXPath("party/contact-data/email-addresses");
+		partEmailList = partyData.executeXPath("party/contact-data/email-addresses/email-address").toXmlList();
+		info "----- emailslist " + partEmailList.size() + " ------";
+		for each  singleemail in partEmailList
+		{
+			getEmail = singleemail.executexpath("email-address/address/text()");
+			info "Email " + getEmail;
+			hrContactEmail.add(getEmail.toLowerCase());
+		}
+	}
+	if(partyData.executeXPath("party/contact-data/phone-numbers"))
+	{
+		hrPhNoResp = partyData.executeXPath("party/contact-data/phone-numbers");
+		if(hrPhNoResp.replaceAll("phone-numbers","").containsIgnoreCase("phone-number"))
+		{
+			if(hrPhNoResp.replaceAll("phone-numbers","").replaceAll("phone-number","").containsIgnoreCase("number"))
+			{
+				partPhoneList = partyData.executeXPath("party/contact-data/phone-numbers/phone-number").toXmlList();
+				for each  singlePhone in partPhoneList
+				{
+					getPhone = ifnull(singlePhone.executexpath("phone-number/number/text()"),"");
+					info "Phone " + getPhone;
+					if(getPhone != "")
+					{
+						phNo = getPhone.toString();
+						phNo = phNo.replaceAll("[/\-\(\)_@#\^!\$%\&\*:;`~+.,']","");
+						phNo = phNo.removeAllAlpha();
+						data = '"';
+						phNo = phNo.replaceAll(data,"");
+						phNo = phNo.replaceAll(" ","");
+						//info "Modified Phone No " + phNo;
+						hrContactPhone.add(phNo);
+					}
+				}
+			}
+		}
+	} */
+//}
+/* statislist = {1,2,3,4,5};
+for each  data in statislist
+{
+	info "Test code started";
+	if(data == 4)
+	{
+		continue;
+	}
+	else
+	{
+		info data;
+	}
+} */
+/* crmAdminUser = false;
+adminUsers = zoho.crm.invokeConnector("crm.getusers",{"type":"AdminUsers"});
+userAdminList = adminUsers.get("response").get("users");
+for each  userdata in userAdminList
+{
+	if(zoho.loginuserid == userdata.get("email"))
+	{
+		crmAdminUser = true;
+		break;
+	}
+}
+info crmAdminUser; */
+/* dsOrders = zoho.crm.getRelatedRecords("Dropship_Orders","Sales_Orders","3106252000085821144");
+info "dsOrders " + dsOrders; */
+/* criteria = "(Creator_Record_ID:equals:3767260000012652318)";
+crmQuote = zoho.crm.searchRecords("Quotes",criteria);
+info "crmQuote " + crmQuote; */
+/* searchVal = "(Email:equals:POOJA@BIZAPPLN.COM)";
+searchDeals = zoho.crm.searchRecords("Contacts",searchVal);
+info searchDeals;
+/* saleOrderId="3106252000095120882";
+			dsOrders=zoho.crm.getRelatedRecords("Dropship_Orders", "Sales_Orders",saleOrderId);
+			for each dsOrder in dsOrders
+			{
+				dsStatus=dsOrder.get("Status");
+				dsProducts=dsOrder.get("Product_Details");
+				for each dsProduct in dsProducts
+				{
+					productCode="";
+					if(dsProduct.get("product")!=null&& dsProduct.get("product") != "")
+					{
+						productName=dsProduct.get("product").get("name");
+						productCode=dsProduct.get("product").get("Product_Code");
+						productID=dsProduct.get("product").get("id");
+						productDetails=zoho.crm.getRecordById("Products",productID);
+						info "productDetails "+productDetails;
+						//productDetails.get("");
+						
+					}
+				}
+			} */
+/* Creator_ID = "3767260000007593460";
+criteria = "(Creator_Record_ID:equals:" + Creator_ID + ")";
+crmQuote = zoho.crm.searchRecords("Quotes",criteria);
+store = "";
+bcId = "";
+crmQuoteID = crmQuote.get(0).get("id");
+if(crmQuote.get(0).get("Store") != null)
+{
+	store = crmQuote.get(0).get("Store").get("id");
+}
+if(crmQuote.get(0).get("BigCommerce_Order_ID") != null)
+{
+	bcId = crmQuote.get(0).get("BigCommerce_Order_ID");
+}
+saleOrder = zoho.crm.searchRecords("Sales_Orders","(Quote_Number:equals:" + Creator_ID + ")");
+if(store != "" && bcId != "")
+{
+	coql_map = Map();
+	coql_map.put("select_query","select Bigcommerce_Order_ID, Store from Sales_Orders where Bigcommerce_Order_ID = '" + bcId + "' and Store='" + store + "'");
+	response = invokeurl
+	[
+		url :"https://www.zohoapis.com/crm/v2/coql"
+		type :POST
+		parameters:coql_map.tostring()
+		connection:"crm_connection"
+	];
+	info "response " + response;
+} */
+/* saleOrderId = "3106252000097981433";
+dsOrders = zoho.crm.getRelatedRecords("Dropship_Orders","Sales_Orders",saleOrderId.tolong());
+info "dsOrders " + dsOrders; */
+//data = "select Customer_Notes, Billing_City from Sales_Orders where (Billing_City like 'Oakland')";
+// for multilie 
+/* data = "select Customer_Notes, Billing_City from Sales_Orders where OrderItemId_with_SKU_Mapping like 'COVID'";
+coql_map = Map();
+coql_map.put("select_query",data);
+maillist = invokeurl
+[
+	url :"https://www.zohoapis.com/crm/v2/coql"
+	type :POST
+	parameters:coql_map.tostring()
+	connection:"crm_connection"
+];
+return maillist; */
+//&date_start=2021-01-01&date_end=2021-01-31
+/* organizationID = "666840843";
+zbAuthToken = "Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2";
+Page_count = 1;
+Record_count = 10;
+orgId = "666840843";
+Get_data = getUrl("https://books.zoho.com/api/v3/invoices?search_text=yaali&organization_id=" + organizationID + "&page=1&per_page=50&sort_order=A&sort_column=created_time",{"Authorization":zbAuthToken});
+info "Get_data invoice" + Get_data; */
+/* Get_data = invokeurl
+[
+	url :"https://books.zoho.com/api/v3/invoices?page=" + Page_count + "&per_page=" + Record_count + "&date_start=2020-02-01&date_end=2020-07-31&organization_id=" + orgId + "&shipping_charge!=0&sort_column=created_time&sort_order=A"
+	type :GET
+	connection:"zohobooks_crmaccounts"
+];
+//info "Get_data size" + Get_data.size();
+info "Get_data" + Get_data;
+Get_dataV1 = getUrl("https://books.zoho.com/api/v3/invoices?page=" + Page_count + "&per_page=" + Record_count + "&date_start=2020-02-01&date_end=2020-07-31&organization_id=" + organizationID + "&sort_order=A&sort_column=created_time",{"Authorization":zbAuthToken});
+info "Get_dataV1" + Get_dataV1; */
+/* resp = zoho.books.getRecordsByID("contacts",orgId,1324986000010034935);
+info "contactBooksV1"+resp;
+contactBooksV2 = invokeurl
+[
+	url :"https://books.zoho.com/api/v3/contacts/1324986000010034935?organization_id=" + orgId 
+	type :GET
+	connection:"zohobooks_crmaccounts"
+];
+info "contactBooksV2 "+contactBooksV2; */
+/*Page_count = 1;
+Record_count = 200;
+Get_data = getUrl("https://books.zoho.com/api/v3/purchaseorders?page=" + Page_count + "&per_page=" + Record_count + "&vendor_id=1324986000017773041&organization_id=" + organizationID + "&sort_order=A&sort_column=created_time",{"Authorization":zbAuthToken});
+Get_Purchase_orders = Get_data.get("purchaseorders");
+info Get_data;*/
+/* Vendor_map = Map();
+Vendor_map.put("vendor_id","1324986000028806032");
+Update_Purchase_order = zoho.books.updateRecord("purchaseorders",organizationID,1324986000028806047,Vendor_map);
+info "po update " + Update_Purchase_order;
+Update_Bill = zoho.books.updateRecord("bills",organizationID,1324986000028974127,Vendor_map);
+info "bill update " + Update_Bill; */
+/* SELECT * FROM Customers
+WHERE Country IN ('Germany', 'France', 'UK'); */
+/* id1 = "45006_d6xnuf";
+id2 = "54962_73d62";
+Get_contacts_mobile = "('" + id1 + "','" + id2 + "')"; */
+//('45006_d6xnuf','54962_73d62')
+/* coql_map = Map();
+coql_map.put("select_query","select Subject, Created_Time from Sales_Orders where BigCommerce_Unique_ID in "+Get_contacts_mobile);
+response = invokeUrl [
+    url : "https://www.zohoapis.com/crm/v2/coql"
+    type : POST
+    parameters : coql_map.tostring()
+    connection : "crm_connection"
+]; 
+info "resp "+response; */
+/* criteria = "(BigCommerce_Unique_ID:equals:" + id1 + ")";
+crmQuote = zoho.crm.searchRecords("Sales_Orders",criteria);
+info "crmQuote " + crmQuote; */
+// zbAuthToken = "Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2";
+//Get_data = getUrl("https://books.zoho.com/api/v3/salesorders?cf_bigcommerce_unique_id=1678_ekrllr&organization_id=" + organizationID + "&sort_order=A&sort_column=created_time",{"Authorization":zbAuthToken})
+//info "Get_data"+Get_data;
+// resp = zoho.books.getRecordsByID("contacts",666840843,1324986000010034935);
+// info "resp " + resp;
+/* Page_count = 1;
+Record_count = 200;
+poId = 1324986000032251282;
+poObj = zoho.books.getRecordsByID("purchaseorders",organizationID,poId);
+info "Po Data " + poObj; */
+/* vendorID = 1324986000027709553;
+Get_all_vendors = zoho.books.getRecords("contacts","666840843","contact_type=vendor&cf_is_master_vendor=false&page=1&cf_is_processed=false");
+Get_vendor_details = Get_all_vendors.get("contacts");
+vendorDetails = zoho.books.getRecordsByID("vendors",organizationID,vendorID);
+info "vendor " + vendorDetails; */
+/* Get_data = getUrl("https://books.zoho.com/api/v3/salesorders?cf_bigcommerce_unique_id=1678_ekrllr&organization_id=" + organizationID + "&sort_order=A&sort_column=created_time",{"Authorization":zbAuthToken});
+info "Get_data SO"+Get_data; */
+//salesorders/{salesorder_id}
+//address/billing
+/* resp = getUrl("https://books.zoho.com/api/v3/salesorders/1324986000031735665?organization_id=" + organizationID,{"Authorization":zbAuthToken});
+info "SO ZB RESP" + resp;
+HeaderMap = Map();
+get_auth_token = "6gpb9ztna3tsvxwdtwwo4fye6c234yu";
+get_auth_client = "r6nghg45pf6sei4xhbt4otklyzkd600";
+HeaderMap.put("Accept","application/json");
+HeaderMap.put("Content-Type","application/json");
+HeaderMap.put("X-Auth-Token",get_auth_token);
+HeaderMap.put("X-Auth-Client",get_auth_client); */
+// 		info storeName + HeaderMap;   
+//getallorder = getUrl("https://api.bigcommerce.com/stores/" + storeName + "/v2/orders?sort=date_created:desc&min_date_created=2020-07-011T00:00:00.000-04:00&limit=250",HeaderMap);
+/* resp = getUrl("https://api.bigcommerce.com/stores/ekrllr/v2/orders/?sort=date_created:desc&limit=2",HeaderMap);
+info "resp " + resp;
+shippRespBc = getUrl("https://api.bigcommerce.com/stores/ekrllr/v2/orders/1678/shipping_addresses",HeaderMap);
+info "shippRespBc " + shippRespBc; */
+/* Page_count = 1;
+Record_count = 200;
+orgId = "666840843"; */
+/* Get_data = invokeurl
+[
+	url :"https://books.zoho.com/api/v3/salesorders?page=" + Page_count + "&per_page=" + Record_count + "&organization_id=" + orgId + "&date_start=2020-07-01&date_end=2020-07-31&shipping_charge>0&sort_column=created_time&sort_order=D"
+	type :GET
+	connection:"zohobooks_crmaccounts"
+];
+info "Get_data " + Get_data; */
+//createPayment=zoho.books.createRecord(<module>, <TEXT>, <KEY-VALUE>);
+/* payment = zoho.books.getRecordsByID("customerpayments",orgId,1324986000036322327);
+info "payment " + payment; */
+/* getd = zoho.crm.getRecordById("Purchase_Orders",3106252000057711017);
+info " getd " + getd;
+getvendor_contacts = zoho.crm.getRelatedRecords("Vendor_Contacts","Vendors",getd.get("Vendor_Name").get("id"));
+get_name = getd.get("Vendor_Name").get("name");
+getven = zoho.crm.getRecordById("Vendors",getd.get("Vendor_Name").get("id"));
+if(getd.containKey("Contact_Name"))
+{
+	if(getd.get("Contact_Name") != null && getd.get("Contact_Name") != "")
+	{
+		info "yes";
+		getcon = zoho.crm.getRecordById("Contacts",getd.get("Contact_Name").get("id").toLong());
+	}
+} */
+// Get_Invoice_data = zoho.books.getRecordsByID("Invoices",orgId,1324986000002708043);
+// info "Get_Invoice_data"+Get_Invoice_data;
+/* Get_Invoice_Id=1324986000002708043;
+payment_list = getUrl("https://books.zoho.com/api/v3/invoices/" + Get_Invoice_Id + "/payments?organization_id=666840843",{"Authorization":"Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2"}); */
+/*  Get_data = invokeurl
+[
+	url :"https://books.zoho.com/api/v3/invoices/1324986000002708043?organization_id=" + orgId
+	type :GET
+	connection:"zohobooks_crmaccounts"
+]; */
+//info "payment_list "+payment_list;
+/* get_auth_token = '6bmozc9y8turqqviijfkt5o6mbut6ic';
+get_auth_client = 'jz4y6k2juxckhz78kcah0ri3zcjgom';
+get_auth_token = 'petu2tvugsv4m7c3i0tvgcxvllt5jzk';
+get_auth_client = 'jfyktmsgp25t13fe3cvtqpm5vws7kig';
+HeaderMap = Map();
+HeaderMap.put("Accept","application/json");
+HeaderMap.put("Content-Type","application/json");
+HeaderMap.put("X-Auth-Token",get_auth_token);
+HeaderMap.put("X-Auth-Client",get_auth_client);
+storeName = "d6xnuf";
+bcUniqueId = "49028_73d62"; */
+/* Get_data = invokeurl
+[
+	url :"https://books.zoho.com/api/v3/contacts/1324986000032514777/address?organization_id="+orgId
+	type :GET
+	connection:"zohobooks_crmaccounts"
+]; */
+/* Get_data = invokeurl
+[
+	url :"https://books.zoho.com/api/v3/purchaseorders/1324986000029214318/address?organization_id="+orgId
+	type :PUT
+	connection:"zohobooks_crmaccounts"
+	parameters:{"delivery_customer_id":"1324986000035787511"}
+	
+];
+info "Get_data " + Get_data; */
+/* updateboks = zoho.books.updateRecord("purchaseorders",orgId,1324986000029214318,{"delivery_customer_address_id":"1324986000035787511","delivery_customer_id":"1324986000032514777"});
+info "updateboks " + updateboks; */
+//40864_d6xnuf
+//55594 - test order
+/* storeName = "ekrllr";
+HeaderMap = Map();
+get_auth_token = "6gpb9ztna3tsvxwdtwwo4fye6c234yu";
+get_auth_client = "r6nghg45pf6sei4xhbt4otklyzkd600";
+HeaderMap.put("Accept","application/json");
+HeaderMap.put("Content-Type","application/json");
+HeaderMap.put("X-Auth-Token",get_auth_token);
+HeaderMap.put("X-Auth-Client",get_auth_client);
+info storeName + HeaderMap;
+bcdata = getUrl("https://api.bigcommerce.com/stores/" + storeName + "/v2/orders/822",HeaderMap);
+info "bcdata " + bcdata; */
+/* Get_Invoice_data = zoho.books.getRecordsByID("Invoices",orgId,1324986000021196235);
+info "Get_Invoice_data " + Get_Invoice_data; */
+/* offset = 1;
+status = "WON";
+ownerID = 3106252000014929001;
+offset = 0;
+monthly = now.toStartOfMonth().toString("yyyy-MM-dd");
+info "monthly" + monthly;
+today = today.toString("yyyy-MM-dd");
+//info "now "+today.toString("yyyy-MM-dd");
+todayDate = zoho.currentdate.toString("yyyy-MM-dd");
+info "todayDate " + todayDate; */
+//"Sent, opened, cheque recieved, cheque delivered, pending, awaiting payment"
+/* status = "Sent,Opened,Cheque Received,Cheque Delivered,Pending"; */
+//data = "select Contact_Name,Creator_Deal_RecordID,Deal_Name,Stage,Type,Amount,Owner from Deals where ((Closing_Date >=  '" + todayDate + "') and (Stage = '" + status + "')) and Owner = '" + ownerID + "' OFFSET " + offset + " LIMIT 200";
+//status = "('" + id1 + "','" + id2 + "')"; 
+//coql_map.put("select_query","select Subject, Created_Time from Sales_Orders where BigCommerce_Unique_ID in "+Get_contacts_mobile);
+/* status = "('Sent','Opened','Cheque Received','pending','Cheque Delivered')";
+data = "select Contact_Name,Creator_Deal_RecordID,Deal_Name,Stage,Type,Amount,Owner from Deals where ((Stage in " + status + ") and (Owner = '" + ownerID + "')) OFFSET " + offset + " LIMIT 200";
+//in ('" + name + "')
+
+coql_map = Map();
+coql_map.put("select_query",data);
+maillist = invokeurl
+[
+	url :"https://www.zohoapis.com/crm/v2/coql"
+	type :POST
+	parameters:coql_map.tostring()
+	connection:"crm_connection"
+];
+//info "maillist "+maillist;
+info " --- " + maillist.get("data").size();
+info "mrec " + maillist.get("data"); */
+/* currentYear = now.getYear();
+Firstday = currentYear + "-01-01";
+FirstDayOfTheYear = Firstday.toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'");
+//info "FirstDayOfTheYear "+FirstDayOfTheYear;
+firstday_of_this_weekDate = zoho.currentdate.toStartOfWeek().toString("yyyy-MM-dd");
+info "week start " + firstday_of_this_weekDate; */
+/* rep = invokeurl
+[
+	url :"https://www.zohoapis.com/crm/v2/Deals/3106252000112719093/Stage_History"
+	type :GET
+	connection:"crm_connection"
+];
+info "rep "+rep; */
+/* rep = invokeurl
+[
+	url :"https://www.zohoapis.com/crm/v2/settings/stages?module=Deals"
+	type :GET
+	connection:"zcrm"
+];
+info "rep " + rep; */
+//info zoho.books.getRecordsByID("Invoices", "666840843", "1324986000029756135");
+orgId = "666840843";
+response = invokeurl
+[
+	url :"https://books.zoho.com/api/v3/settings/taxgroups/123?organization_id=" + orgId
+	type :GET
+	connection:"zohobooks_connection"
+];
+info "Tax :" + response;
+return "";
+}

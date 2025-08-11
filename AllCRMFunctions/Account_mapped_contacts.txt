@@ -1,0 +1,23 @@
+void automation.Account_mapping_contacts()
+{
+Limit_val = 200;
+Offset_val = 200;
+coql_map = Map();
+coql_map.put("select_query","select Last_Name, First_Name, Account_Name from Contacts where Account_Name is null ORDER BY First_Name DESC LIMIT " + Limit_val + " OFFSET " + Offset_val);
+// Get_contacts = posturl("https://www.zohoapis.com/crm/v2/coql",coql_map);
+// info Get_contacts;
+response = invokeurl
+[
+	url :"https://www.zohoapis.com/crm/v2/coql"
+	type :POST
+	parameters:coql_map.tostring()
+	connection:"crm_connection"
+];
+// info response;
+Get_contact_data = response.get("data");
+for each  rec in Get_contact_data
+{
+	Get_first_name = rec.get("First_Name");
+	info Get_first_name;
+}
+}

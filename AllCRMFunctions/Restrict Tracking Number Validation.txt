@@ -1,0 +1,22 @@
+void automation.Restrict_Tracking_Number_Validation(Int ID)
+{
+// response = postUrl("https://www.zohoapis.com/crm/v2/functions/tracking_number_validation/actions/execute?auth_type=apikey&zapikey=1003.84f6b88f042b49549074d50113dae2b6.276cb261a9b7531fe717d6f7d26c7d09","parent window");
+// info response;
+getdrop_record = zoho.crm.getRecordById("Purchase_Orders",ID);
+// info getdrop_record;
+if(getdrop_record.get("Ship_Date") != null && getdrop_record.get("Carrier") != null)
+{
+	// 	if(getdrop_record.get("Status") != "created" )
+	// 	{
+	// 	openUrl( "https://crm.zoho.com/crm/org663942562/tab/PurchaseOrders/3106252000047226889","new Window");
+	// 	}
+}
+else
+{
+	info "Please send Dropship Order...";
+	createtracking = Map();
+	createtracking.put("Tracking_Number","");
+	update_Response = zoho.crm.updateRecord("Purchase_Orders",ID,createtracking);
+	info update_Response;
+}
+}

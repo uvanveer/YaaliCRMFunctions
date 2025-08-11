@@ -1,0 +1,25 @@
+void automation.Untitled_Function13(Int VendorID)
+{
+storemap = Map();
+storemap.put("CRM_ID",VendorID);
+storemap.put("Module_Name","CRM-Vendor");
+// CreateStore = zoho.creator.v1.createRecord("zoho_zoho1502","quotes","Mapping_Form",storemap);
+Temp_map = Map();
+CreateStore = zoho.creator.createRecord("zoho_zoho1502","quotes","Mapping_Form",storemap,Temp_map,"zcreator_connecction");
+info "CreateStore" + CreateStore;
+CreateVendorv3 = zoho.creator.createRecord("zoho_zoho1502","quotesv3","Mapping_Form",storemap,Temp_map,"zcreator_connecction");
+info "CreateVendorv3" + CreateVendorv3;
+//onetime sync
+// getall = zoho.crm.getRecords("Vendors",1,200); 
+// count= 0;
+// for each getid in getall
+// {
+// id = getid.get("id"); 
+// storemap = Map();
+// storemap.put("CRM_ID",id);
+// storemap.put("Module_Name","CRM-Vendor");
+// CreateStore = zoho.creator.createRecord("zoho_zoho1502","quotes","Mapping_Form",storemap);
+// count = count + 1;
+// }
+// info count;
+}

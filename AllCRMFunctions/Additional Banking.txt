@@ -1,0 +1,70 @@
+void automation.Untitled_Function27(String amount,String store,String payment_method,Int bcid)
+{
+// account = "";
+// mode = "";
+// if(store == "Best_Access_Doors_Canada")
+// {
+// 	if(payment_method == "Visa, Master Card, American Express" || payment_method == "Credit Card")
+// 	{
+// 		account = "1324986000002663784";
+// 		mode = "Card";
+// 	}
+// 	else if(payment_method == "PayPal powered by Braintree")
+// 	{
+// 		account = "1324986000002716128";
+// 		mode = "Paypal";
+// 	}
+// 	else if(payment_method == "Check")
+// 	{
+// 		account = "1324986000002521128";
+// 		mode = "Check";
+// 	}
+// }
+// else if(store == "Access_Doors_Canada")
+// {
+// 	if(payment_method == "Visa, Master Card, American Express" || payment_method == "Credit Card")
+// 	{
+// 		account = "1324986000002663772";
+// 		mode = "Card";
+// 	}
+// 	else if(payment_method == "PayPal powered by Braintree")
+// 	{
+// 		account = "1324986000002716128";
+// 		mode = "Paypal";
+// 	}
+// 	else if(payment_method == "Check")
+// 	{
+// 		account = "1324986000002521128";
+// 		mode = "Check";
+// 	}
+// }
+// else if(store == "Acudor_Access_Panels")
+// {
+// 	if(payment_method == "Visa, Master Card, American Express" || payment_method == "Credit Card")
+// 	{
+// 		account = "1324986000002663784";
+// 		mode = "Card";
+// 	}
+// 	else if(payment_method == "PayPal powered by Braintree")
+// 	{
+// 		account = "1324986000002716124";
+// 		mode = "Paypal";
+// 	}
+// 	else if(payment_method == "Check")
+// 	{
+// 		account = "1324986000002521134";
+// 		mode = "Check";
+// 	}
+// }
+// mapData = Map();
+// mapData.put("customer_id","1324986000002184139");
+// mapData.put("payment_mode",mode);
+// mapData.put("amount",amount);
+// mapData.put("date",now.toString("yyyy-mm-dd"));
+// mapData.put("description","Test Payment Received");
+// mapData.put("account_id",account);
+// data = zoho.books.createRecord("Customerpayments","666840843",mapData);
+// info data;
+data = zoho.books.getRecords("Contacts","666840843");
+info data;
+}

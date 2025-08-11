@@ -1,0 +1,67 @@
+string standalone.elmentor_non_ups_tracking(String crmAPIRequest)
+{
+crm_api_map = crmAPIRequest.toMap();
+params = crm_api_map.get("body");
+allowed_carrier_list = {"UPS","FEDEX"};
+// params = {
+// 	"id": "2a5bcf738c0d066df23732aa7d445ddb",
+// 	"received_at": "2023-05-09 16:14:08",
+// 	"received_at_timestamp": 1683648848,
+// 	"received_at_iso8601": "2023-05-09T16:14:08+00:00",
+// 	"processed_at": "2023-05-09 16:14:10",
+// 	"processed_at_timestamp": 1683648850,
+// 	"processed_at_iso8601": "2023-05-09T16:14:10+00:00",
+// 	"tracking_no_number": "677860072",
+// 	"dropship_no_number": "519527"
+// };
+if(params.get("dropship_no_number") != null)
+{
+	// 	purchase_orders = zoho.crm.searchRecords("Purchase_Orders","(Dropship_Number:equals:" + params.get("dropship_no") + ")");
+	purchase_orders = zoho.crm.searchRecords("Purchase_Orders","(Dropship_Number:equals:" + params.get("dropship_no_number") + ")",1,200,Map(),"mailparserzoho");
+	po_store_name = "anything";
+	if(purchase_orders.size() > 0 && purchase_orders.get(0).get("Store") != null)
+	{
+		po_store_name = purchase_orders.get(0).get("Store").get("name");
+	}
+	if(purchase_orders.size() > 0)
+	{
+		po_status = ifnull(purchase_orders.get(0).get("Status"),"Created");
+	}
+	if(purchase_orders.size() > 0 && !po_status.containsIgnoreCase("Shipped"))
+	{
+		upd_map = Map();
+		upd_map.put("Ship_Date",today.toString("yyyy-MM-dd"));
+		if(params.get("received_at") != null)
+		{
+			upd_map.put("Ship_Date",params.get("received_at").toDate().toString("yyyy-MM-dd"));
+		}
+		purchase_order_id = purchase_orders.get(0).get("id");
+		info purchase_order_id;
+		upd_map.put("Tracking_Number",params.get("tracking_no"));
+		upd_map.put("Carrier","Other");
+		po_store_name = purchase_orders.get(0).get("Source");
+		if(po_store_name.containsIgnoreCase("Amazon Store"))
+		{
+			upd_map.put("Amazon_Carrier_Code","Other");
+			//added by vijay to update carrier lookup start
+			upd_map.put("Amazon_Carrier_Code_Info",3106252000765624640);
+			upd_map.put("Other_Carrier_Name","Other Carrier");
+			//added by vijay to update carrier lookup End 
+		}
+		info upd_map;
+		// 		upd_resp = zoho.crm.updateRecord("Purchase_Orders",purchase_order_id,upd_map,{"trigger":{"workflow"}}mailparserzoho);
+		upd_resp = zoho.crm.updateRecord("Purchase_Orders",purchase_order_id,upd_map,{"trigger":{"workflow"}},"crm");
+		return upd_resp;
+	}
+	else
+	{
+		return "Either Stagus it Shipped or Store is Amazon Store or No Matching DS_No for PO Found";
+	}
+}
+else
+{
+	upd_resp = "dso_no_empty";
+	return upd_resp;
+}
+return upd_resp;
+}

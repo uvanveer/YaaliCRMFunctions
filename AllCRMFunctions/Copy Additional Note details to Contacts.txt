@@ -1,0 +1,14 @@
+void automation.copy_additional_note_details_to_contacts(Int acct_id)
+{
+acct_details = zoho.crm.getRecordById("Accounts",acct_id);
+additional_note = ifnull(acct_details.get("Additional_Note"),"");
+related_contacts = zoho.crm.getRelatedRecords("Contacts","Accounts",acct_id,1,200);
+for each  contact in related_contacts
+{
+	id = contact.get("id");
+	update_map = Map();
+	update_map.put("Additional_Note",additional_note);
+	update_map.put("Update_Source","ZCRM-Accounts-3106252000072643083-" + now.toLong());
+	update = zoho.crm.updateRecord("Contacts",id,update_map);
+}
+}

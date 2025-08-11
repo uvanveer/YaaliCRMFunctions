@@ -1,0 +1,106 @@
+void automation.Duplicate_Merge_Saleorder_Dropshiporder_To_Master1(Int index)
+{
+maillist = zoho.crm.getRecords("Contacts",index,200,{"cvid":3106252000064969083});
+processCount = 0;
+sendmail
+[
+	from :zoho.adminuserid
+	to :"prashanth@bizappln.com"
+	subject :"secondary 1mail. page index reached 200) " + index + " - " + maillist.size()
+	message :"secondary workflow called for duplicate merger "
+]
+for each  rec in maillist
+{
+	processCount = processCount + 1;
+	email = rec.get("Email");
+	duplicateid = rec.get("id").toLong();
+	getconatc = zoho.crm.searchRecords("Contacts","Email:equals:" + email);
+	masterFound = false;
+	info "--------" + processCount + "-------starts for " + rec.get("id") + " ---search contact res---" + getconatc.size() + "---------";
+	// 	if(rec.get("id") == "3106252000058980290")
+	// 	{
+	for each  masterD in getconatc
+	{
+		if(masterD.get("Master") == true)
+		{
+			masterFound = true;
+			masterID = masterD.get("id");
+		}
+	}
+	if(masterFound == true)
+	{
+		info "Master Found " + masterID;
+		getsalorders = zoho.crm.searchRecords("Sales_Orders","(Contact_Name:equals:" + duplicateid + ")");
+		getPOreletedrecords = zoho.crm.getRelatedRecords("PurchaseOrders","Contacts",duplicateid);
+		if(getPOreletedrecords.size() > 0 || getsalorders.size() > 0)
+		{
+			salorderidslist = List();
+			info "SO list " + getsalorders.size();
+			if(getsalorders.size() > 0)
+			{
+				for each  saleorderid in getsalorders
+				{
+					salorderids = Map();
+					if(saleorderid.get("id") != null)
+					{
+						salorderids.put("saleordid",saleorderid.get("id"));
+					}
+					salorderidslist.add(salorderids);
+				}
+				if(salorderidslist.size() > 0)
+				{
+					info "formed saleorder list " + salorderidslist;
+					for each  saleorderids in salorderidslist
+					{
+						saleorder_id = saleorderids.get('saleordid').toLong();
+						salorderupdate = Map();
+						salorderupdate.put("Contact_Name",masterID);
+						updatesalorder = zoho.crm.updateRecord("Sales_Orders",saleorder_id,salorderupdate);
+						info "----updatesalorder--------" + updatesalorder;
+					}
+				}
+			}
+			info "po " + getPOreletedrecords.size();
+			if(getPOreletedrecords.size() > 0)
+			{
+				for each  getporeltrcd in getPOreletedrecords
+				{
+					datamap = Map();
+					datamap.put("Contact_Name",masterID);
+					updatepo = zoho.crm.updateRecord("Purchase_Orders",getporeltrcd.get("id"),datamap);
+					info "------update PO------" + updatepo;
+				}
+			}
+			updateDuplicate = zoho.crm.updateRecord("Contacts",duplicateid.toLong(),{"Merged_Relatedlist":true,"RelatedList_Merged_To":masterID.toString(),"RelatedList_Notes":"saleorder :" + getsalorders.size() + " & dropship order :" + getPOreletedrecords.size() + " merged to :" + masterID});
+			updateMaster = zoho.crm.updateRecord("Contacts",masterID.toLong(),{"Merged_Relatedlist":true,"RelatedList_Merged_From":duplicateid.toString(),"RelatedList_Notes":"saleorder :" + getsalorders.size() + " & dropship order :" + getPOreletedrecords.size() + " merged from :" + duplicateid});
+			info "---- update dup " + updateDuplicate;
+			info "---- update mas " + updateMaster;
+		}
+		else
+		{
+			info "no saleorder or dropship order found";
+			updateDuplicate = zoho.crm.updateRecord("Contacts",duplicateid.toLong(),{"Merged_Relatedlist":true,"RelatedList_Notes":"No saleorder & dropship order found"});
+		}
+	}
+	else
+	{
+		updateDuplicate = zoho.crm.updateRecord("Contacts",duplicateid.toLong(),{"Merged_Relatedlist":false,"RelatedList_Merged_To":masterID.toString(),"RelatedList_Notes":"Master not found"});
+		info "master not found";
+	}
+	// 	}
+}
+if(processCount == 200)
+{
+	//Dup_Relatedlist Page
+	updatedIndexCount = index + 1;
+	updateprocessCount = zoho.crm.updateRecord("Highrise_Connector",3106252000065101001,{"Dup_Relatedlist_Page_Index2":updatedIndexCount});
+	createPagination = zoho.crm.createRecord("Highrise_Pagination",{"Index":updatedIndexCount.toString(),"Module":"Duplicate2 Contacts"},{"trigger":{"workflow"}});
+	sendmail
+	[
+		from :zoho.adminuserid
+		to :"prashanth@bizappln.com"
+		subject :"secondary 2mail. page index reached 200 " + index + " - " + updatedIndexCount
+		message :"secondary mailer response " + createPagination + " --------- update index -------- " + updateprocessCount
+	]
+}
+}

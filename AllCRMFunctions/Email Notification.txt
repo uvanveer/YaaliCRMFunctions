@@ -1,0 +1,10 @@
+void automation.Untitled_Function41()
+{
+sendmail
+[
+	from :zoho.adminuserid
+	to :"sankar@bizappln.com"
+	subject :"Webhook Triggered"
+	message :"Working"
+]
+}

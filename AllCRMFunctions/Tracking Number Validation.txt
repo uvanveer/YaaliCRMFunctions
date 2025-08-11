@@ -1,0 +1,96 @@
+map validation_rule.Tracking_Number_Validation1(String crmAPIRequest)
+{
+entityMap = crmAPIRequest.toMap().get("record");
+Staff_Notes = entityMap.get("Staff_Notes");
+Ship_Date = entityMap.get("Ship_Date");
+Carrier = entityMap.get("Carrier");
+amazonCarrier = entityMap.get("Amazon_Carrier_Code");
+amazonOtherCarrierName = entityMap.get("Other_Carrier_Name");
+response = Map();
+if(Staff_Notes != "")
+{
+	getcurrentrecord = zoho.crm.searchRecords("Purchase_Orders","Staff_Notes:equals:" + Staff_Notes);
+	if(getcurrentrecord.size() > 0)
+	{
+		if(getcurrentrecord.getJSON("Source") != null)
+		{
+			isAmazonOrder = getcurrentrecord.getJSON("Source").equals("Amazon Store");
+			if(isAmazonOrder)
+			{
+				if(amazonCarrier == null)
+				{
+					amazonCarrier = getcurrentrecord.getJSON("Amazon_Carrier_Code");
+				}
+				if(Ship_Date == null)
+				{
+					Ship_Date = getcurrentrecord.getJSON("Ship_Date");
+				}
+				if(Ship_Date != null && amazonCarrier != null)
+				{
+					if(amazonOtherCarrierName == null)
+					{
+						amazonOtherCarrierName = getcurrentrecord.getJSON("Other_Carrier_Name");
+					}
+					if(amazonCarrier.equals("Other"))
+					{
+						if(amazonOtherCarrierName == null || amazonOtherCarrierName == "")
+						{
+							response.put('status','error');
+							response.put('message','Please provide other carrier name for the amazon order.');
+						}
+						else
+						{
+							response.put('status','success');
+						}
+					}
+					else
+					{
+						response.put('status','success');
+					}
+				}
+				else
+				{
+					response.put('status','error');
+					response.put('message','Please choose carrier name and Ship Date before entering Tracking Number for amazon order.');
+				}
+			}
+			else
+			{
+				if(Carrier == null)
+				{
+					Carrier = getcurrentrecord.getJSON("Carrier");
+				}
+				if(Ship_Date == null)
+				{
+					Ship_Date = getcurrentrecord.getJSON("Ship_Date");
+				}
+				if(Ship_Date != null && Carrier != null && Carrier != "None")
+				{
+					response.put('status','success');
+				}
+				else
+				{
+					response.put('status','error');
+					response.put('message','Please select Carrier and Ship Date before Entering Tracking Number...');
+				}
+			}
+		}
+		else
+		{
+			response.put('status','error');
+			response.put('message','Please Enter Dropship Order Source Value "BigCommerce" or "Amazon Store ..."');
+		}
+	}
+	else
+	{
+		response.put('status','error');
+		response.put('message','Something went wrong, Please contact Administration...');
+	}
+}
+else
+{
+	response.put('status','error');
+	response.put('message','Please add Dropship Number in Staff Notes...');
+}
+return response;
+}

@@ -1,0 +1,1683 @@
+void automation.testing_function()
+{
+// highriseID = 330212358;
+// contactRecordID = 3106252000069600419;
+// AccountRecordID = 3106252000065372150;
+// getCRMAccessToken = zoho.crm.getRecordById("Merger_Schedule",3106252000061961343);
+// accessToken = getCRMAccessToken.get("Authtoken");
+// createPagination = zoho.crm.createRecord("Highrise_Pagination",{"Index":500.toString(),"Module":"Accounts","Date": txt.toString()},{"trigger":{"workflow"}});
+// info createPagination;
+//----------------------------------------------------------------------------------------------------------------
+highriseAuth = "Basic OWZiYjY1ODg2NWY5MTUyODlmN2U5ZDNiM2E3MWNkYmI6WA==";
+// // accountMap = Map();
+// highriseID = "329300508";
+// highrisePeople = geturl("https://bestaccessdoors.highrisehq.com/people/" + highriseID + ".xml",{"Authorization":highriseAuth});
+// index = 500;
+// module = "Contacts";
+// date = "20200311143000";
+processCount = 0;
+createCount = 0;
+deleteCount = 0;
+uniqueCount = 0;
+//-----------------------------------------------------------------------------------
+// quotenumber = "00PR3227";
+// quotenumber = "00PR3235";
+// tempdata = Map();
+// updatedata = Map();
+// updatedata.put("Company_Name","yaali test");
+// updatecontact = zoho.creator.updateRecord("zoho_zoho1502","quotes","All_Contacts",3767260000013210027,updatedata,tempdata,"zcreator_connecction");
+// info updatecontact;
+//-----------------------------------------------------------------------------------------
+quote_id = 3106252000142415772;
+Quote = zoho.crm.getRecordById("Quotes",quote_id);
+if(Quote.containKey("Sales_Quote_Number"))
+{
+	QuoteNumber = ifnull(Quote.get("Sales_Quote_Number"),"");
+	QuoterResponse = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Quotes","Quote_Number==\"" + QuoteNumber + "\"",1,200,"zcreator_connecction");
+	info "Quote Response: " + QuoterResponse;
+	if(QuoterResponse.get("code") == 3000)
+	{
+		QuoteList = QuoterResponse.get("data");
+		if(QuoteList.size() > 0)
+		{
+			response = QuoteList.get(0);
+			info "--inside quote fetch using quick view api--";
+			quote_id = response.getJSON("ID");
+			creator_rec_id = response.get("ID");
+			TrackingNumber = ifnull(response.get("Tracking_Number"),"");
+			QuoteStatus = ifnull(response.get("Quote_Status"),"");
+			BC_ID = ifnull(response.get("BigCommerce_Order_ID"),"");
+			storename = ifnull(response.get("Quote_Store_Prams"),"");
+			info "--> " + creator_rec_id + " " + TrackingNumber + " " + QuoteStatus + " " + BC_ID + " " + storename;
+			QuoteNumber = "00PR3146";
+			getQuoteRecord = zoho.creator.getRecords("zoho_zoho1502","quotes","Quote_Sales_Order_Schedule_Report","Quoteno==\"" + QuoteNumber + "\"",1,200,"zcreator_connecction");
+			info "scheduler record data " + getQuoteRecord;
+			tempMap = Map();
+			scheduleradd = Map();
+			shedrec = getQuoteRecord.toMap().keys();
+			if(shedrec.contains("message"))
+			{
+				scheduleradd.put("Execution_Time",now.addSeconds(50).toString());
+				scheduleradd.put("Store_Name",storename);
+				scheduleradd.put("Quote_Rec_Id",creator_rec_id.toLong());
+				scheduleradd.put("Quoteno",QuoteNumber);
+				scheduleradd.put("Salesperson_Email",zoho.loginuserid);
+				scheduleradd.put("Source","CRMQuote");
+				scheduleradd.put("Status","Pending");
+				// 							scheduleupdate = zoho.creator.v1.createRecord("zoho_zoho1502","quotes","Quote_Sales_Order_Schedule",scheduleradd);
+				scheduleupdate = zoho.creator.createRecord("zoho_zoho1502","quotes","Quote_Sales_Order_Schedule",scheduleradd,tempMap,"zcreator_connecction");
+				info "scheduler record not exists:  schedulecreate: " + scheduleupdate;
+			}
+			else
+			{
+				FetchedQuotescheduleList = getQuoteRecord.get("data");
+				QuoteScheduleResponse = FetchedQuotescheduleList.get(0);
+				schedid = QuoteScheduleResponse.getJSON("ID");
+				scheduleradd.put("Execution_Time",now.addSeconds(50).toString());
+				scheduleradd.put("Source","CRMQuote");
+				scheduleradd.put("Salesperson_Email",zoho.loginuserid);
+				info "scheduleradd" + scheduleradd + schedid;
+				scheduleupdate = zoho.creator.updateRecord("zoho_zoho1502","quotes","Quote_Sales_Order_Schedule_Report",schedid.toLong(),scheduleradd,tempMap,"zcreator_connecction");
+				info "scheduler record exists: scheduleupdate: " + scheduleupdate;
+			}
+		}
+	}
+}
+info "-------";
+// getQuoteRecord = zoho.creator.getRecords("zoho_zoho1502","quotes","Quote_Sales_Order_Schedule_Report","Quoteno==\"" + quotenumber + "\"",1,200,"zcreator_connecction");
+// info getQuoteRecord;
+// 				scheduleradd = Map();
+// 				shedrec = getQuoteRecord.toMap().keys();
+// 				if(shedrec.contains("message"))
+// 				{
+// 					info "contains msg";
+// 					scheduleradd.put("Execution_Time",now.addSeconds(30).toString());
+// 							scheduleradd.put("Store_Name",schedulerData.getJSON("Quote_Store_Prams"));
+// 							scheduleradd.put("Quote_Rec_Id",schedulerData.getJSON("ID").toLong());
+// 							scheduleradd.put("Quoteno",quotenumber);
+// 							scheduleradd.put("Salesperson_Email",zoho.loginuserid);
+// 							scheduleradd.put("Source","Cheque Manual Order");
+// 							scheduleradd.put("Status","Pending");
+// 							scheduleCreateResponse = zoho.creator.createRecord("zoho_zoho1502","quotes","Quote_Sales_Order_Schedule", scheduleradd, tempMap, "zcreator_connecction");
+// 							info "schedulecreate response: " + scheduleCreateResponse;
+// 				}
+// 				else 
+//                 {
+// 					info "not contains msg";
+//                 }
+//------------------master duplicate books -------------------------
+// getBooksPage = zoho.crm.getRecordById("Merger_Schedule",3106252000061961343);
+// Books_Contact_Index = getBooksPage.get("Books_Contact_Index").toLong();
+// processed_count = getBooksPage.get("Books_Duplicate_Contact_Count").toLong();
+// if(Books_Contact_Index <= 2080)
+// {
+// 	contactList = zoho.crm.getRecords("Contacts",Books_Contact_Index,1,{"cvid":3106252000071061054,"sort_by":"Created_Time","sort_order":"desc"});
+// 	crmContact_Count = 0;
+// 	for each  ZCcontact in contactList
+// 	{
+// 		if(crmContact_Count == crmContact_Count)
+// 		{
+// 			crmContact_Count = crmContact_Count + 1;
+// 			info crmContact_Count + " | contact name || " + ZCcontact.get("First_Name") + " " + ZCcontact.get("Last_Name") + " | contactid || " + ZCcontact.get("id") + " | email || " + ZCcontact.get("Email");
+// 			crmRecordID = ZCcontact.get("id");
+// 			crmContactEmail = ifnull(ZCcontact.get("Email"),"");
+// 			// 	crmRecordID = 3106252000085699021;
+// 			crmContactEmail = "awchristian@isecinc.com";
+// 			if(crmContactEmail != "")
+// 			{
+// 				// 	Get_all_contactslist = zoho.books.getRecords("contacts","666840843","contact_type=customer&cf_crm_contact_id=" + crmRecordID);
+// 				Get_all_contactslist = zoho.books.getRecords("contacts","666840843","contact_type=customer&email=" + crmContactEmail);
+// 				info "books contact size " + Get_all_contactslist.get("contacts").size();
+// 				Get_contact_details = Get_all_contactslist.get("contacts");
+// 				info Get_contact_details;
+// 				if(Get_all_contactslist.get("contacts").size() > 1)
+// 				{
+// 					// 					info "inside code deletion - list size > 1";
+// 					// 					//----	
+// 					// 					masterRecId = 0;
+// 					// 					latestRecId = 0;
+// 					// 					masterFound = false;
+// 					// 					sortedOrder = list();
+// 					// 					sortedMap = Map();
+// 					// 					bigCommerceSortedList = list();
+// 					// 					bigCommerceSortedMap = Map();
+// 					// 					for each  rec in Get_contact_details
+// 					// 					{
+// 					// 						// 			info rec.get("contact_id") + " " +rec.get("email") + " "+ rec.get("contact_name");
+// 					// 						gmt = rec.get("created_time").toTime("yyyy-MM-dd'T'HH:mm:ss","GMT");
+// 					// 						sortedOrder.add(gmt);
+// 					// 						sortedMap.put(gmt,rec.get("contact_id"));
+// 					// 						Get_bc_Id = "";
+// 					// 						Get_custom_data = rec.get("custom_fields");
+// 					// 						for each  custom_rec in Get_custom_data
+// 					// 						{
+// 					// 							if(custom_rec.get("customfield_id") == "1324986000000327003")
+// 					// 							{
+// 					// 								Get_bc_Id = ifnull(custom_rec.get("value"),"");
+// 					// 								// 					info "BC ID: " + Get_bc_Id;
+// 					// 								if(Get_bc_Id != "")
+// 					// 								{
+// 					// 									masterFound = true;
+// 					// 									bigCommerceSortedList.add(gmt);
+// 					// 									bigCommerceSortedMap.put(gmt,rec.get("contact_id"));
+// 					// 								}
+// 					// 							}
+// 					// 						}
+// 					// 					}
+// 					// 					// 		info "all records " + " size "+ sortedOrder.size() + " times "+ sortedOrder;
+// 					// 					sortedOrder = sortedOrder.sort(false);
+// 					// 					// 			info "all records sorted " + sortedOrder;
+// 					// 					// 		info "bigcommerce record " + bigCommerceSortedList;
+// 					// 					bigCommerceSortedList = bigCommerceSortedList.sort(false);
+// 					// 					// 			info "bigcommerce record sorted " + bigCommerceSortedList;
+// 					// 					if(!masterFound)
+// 					// 					{
+// 					// 						masterRecId = sortedMap.get(sortedOrder.get(0));
+// 					// 						info "master not found condition " + masterRecId;
+// 					// 					}
+// 					// 					else
+// 					// 					{
+// 					// 						info "master found -- " + bigCommerceSortedMap.get(bigCommerceSortedList.get(0));
+// 					// 						masterRecId = bigCommerceSortedMap.get(bigCommerceSortedList.get(0));
+// 					// 					}
+// 					// 					//update Master contact
+// 					// 					update_masterdata_map = Map();
+// 					// 					update_masterdata_map.put("custom_fields",{{"customfield_id":"1324986000001053007","value":crmRecordID},{"customfield_id":"1324986000022494833","value":true},{"customfield_id":"1324986000022555479","value":masterRecId},{"customfield_id":"1324986000020148916","value":true}});
+// 					// 					masterresponse_update_status = zoho.books.updateRecord("Contacts","666840843",masterRecId,update_masterdata_map);
+// 					// 					info "Update master contact Response: " + masterresponse_update_status.get("message");
+// 					// 					flag1 = 0;
+// 					// 					numberof_records = 0;
+// 					// 					for each  record in Get_contact_details
+// 					// 					{
+// 					// 						numberof_records = numberof_records + 1;
+// 					// 						if(record.get("contact_id").toLong() != masterRecId.toLong())
+// 					// 						{
+// 					// 							info "--[" + processed_count + "]-- dupl contact id -- " + record.get("contact_id");
+// 					// 							//update contact wuth master CRM id   - {"customfield_id":"1324986000001053007","value":crmRecordID}
+// 					// 							update_data_map = Map();
+// 					// 							update_data_map.put("custom_fields",{{"customfield_id":"1324986000022494833","value":false},{"customfield_id":"1324986000022555479","value":masterRecId},{"customfield_id":"1324986000020148916","value":true}});
+// 					// 							if(record.get("cf_is_processed") == true)
+// 					// 							{
+// 					// 								info "already Updated duplicate contact -- ";
+// 					// 							}
+// 					// 							else
+// 					// 							{
+// 					// 								response_update_status = zoho.books.updateRecord("Contacts","666840843",record.get("contact_id"),update_data_map);
+// 					// 								info "Update duplicate contact Response: " + response_update_status.get("message") + " code: " + response_update_status.get("code");
+// 					// 								processed_count = processed_count + 1;
+// 					// 							}
+// 					// 							// 				//saleorder
+// 					// 							// 				Get_SO_data = zoho.books.getRecords("salesorders","666840843","customer_id=" + record.get("contact_id").toString());
+// 					// 							// 				if(Get_SO_data.get("message") == "success"){
+// 					// 							// 					Get_So = Get_SO_data.get("salesorders");
+// 					// 							// // 					info Get_So.size();
+// 					// 							// 					for each  S_rec in Get_So
+// 					// 							// 					{	
+// 					// 							// 						flag1 = flag1 + 1;
+// 					// 							// // 						if(mergeContactCount == 1 && flag1 == 1){				
+// 					// 							// 							info " sale order id " + S_rec.get("salesorder_id");
+// 					// 							// 							Update_SO_data = zoho.books.updateRecord("salesorders","666840843",S_rec.get("salesorder_id"),{"customer_id": masterRecId});
+// 					// 							// 							info Update_SO_data.get("message");				
+// 					// 							// // 						}
+// 					// 							// 					}
+// 					// 							// 				}
+// 					// 							// 				//invoice
+// 					// 							// 				Get_Invoice_data = zoho.books.getRecords("invoices","666840843","customer_id=" + record.get("contact_id").toString());
+// 					// 							// // 				info Get_Invoice_data;
+// 					// 							// 				if(Get_Invoice_data.get("message") == "success"){
+// 					// 							// 					Get_Inv = Get_Invoice_data.get("invoices");
+// 					// 							// // 					info Get_Inv.size();
+// 					// 							// 					for each  Inv_rec in Get_Inv
+// 					// 							// 					{
+// 					// 							// 						info " invoice id " + Inv_rec.get("invoice_id");
+// 					// 							// 						Update_Inv_data = zoho.books.updateRecord("invoices","666840843",Inv_rec.get("invoice_id"),{"customer_id": masterRecId});
+// 					// 							// 						info Update_Inv_data.get("message");
+// 					// 							// 					}	
+// 					// 							// 				}
+// 					// 							//customer payment - reassociate
+// 					// 						}
+// 					// 					}
+// 					// 					//-----	
+// 				}
+// 				else if(Get_all_contactslist.get("contacts").size() == 1)
+// 				{
+// 					info "only one contact is found - list size == 1";
+// 					ProcessedCount = 0;
+// 					for each  s_contact in Get_contact_details
+// 					{
+// 						ProcessedCount = ProcessedCount + 1;
+// 						info "only one contact is found for " + crmRecordID + " contact_id -- " + s_contact.get("contact_id") + " || email -- " + s_contact.get("email");
+// 						// 						update_masterdata_map = Map();
+// 						// 						update_masterdata_map.put("custom_fields",{{"customfield_id":"1324986000001053007","value":crmRecordID.toLong()},{"customfield_id":"1324986000022494833","value":true},{"customfield_id":"1324986000022555479","value":s_contact.get("contact_id")},{"customfield_id":"1324986000020148916","value":true}});
+// 						// 						masterresponse_update_status = zoho.books.updateRecord("Contacts","666840843",s_contact.get("contact_id"),update_masterdata_map);
+// 						// 						info "Update master contact Response: " + masterresponse_update_status.get("message");
+// 					}
+// 				}
+// 				// 				else
+// 				// 				{
+// 				// 					info "no contact found for " + crmRecordID;
+// 				// 					logs = zoho.crm.createRecord("Duplicate_Moderation_Log",{"Source":"Books-Contacts","Message":crmRecordID,"Error_Details":crmContactEmail + " : searched email is not found in books"});
+// 				// 				}
+// 			}
+// 			else
+// 			{
+// 				info "no email (null) found for " + crmRecordID;
+// 				// 				logs = zoho.crm.createRecord("Duplicate_Moderation_Log",{"Source":"Books-Contacts","Message":crmRecordID,"Error_Details":crmRecordID + " : email is null in crm record"});
+// 			}
+// 		}
+// 	}
+// }
+// return "completed " ;
+//================create highrise data------------------------------------------------
+// createResp = zoho.crm.createRecord("Highrise_Data",{"Highrise_ID":deal.executeXPath("deal/id/text()"),"Module":"Deals","Highrise_Created_Time":deal.executeXPath("deal/created-at/text()"),"Highrise_Modified_Time":deal.executeXPath("deal/updated-at/text()"),"Date_String":date},{"trigger":{"workflow"}});
+// info "HR dealid "+deal.executeXPath("deal/id/text()")+ " create res " +createResp;
+//------------------------------------" HR Call creation"--------------------------------------
+// 		paramMap = Map();
+// 		paramMap.put("$se_module","Contacts");
+// 		paramMap.put("What_Id",{"id":3106252000065344204});
+// 		paramMap.put("Priority","High");
+// 		paramMap.put("Subject"," Project For test");
+// 		dueDate = zoho.currentdate.toDate().addDay(2).toString("yyyy-MM-dd");
+// 		paramMap.put("Due_Date",dueDate);
+// 		reminderTime = dueDate.toTime().addHour(9);
+// 		paramMap.put("Remind_At",{"ALARM":"FREQ=NONE;ACTION=EMAIL;TRIGGER=DATE-TIME:" + reminderTime.toString("yyyy-MM-dd'T'HH:mm:ss'+05:30'")});
+// 		response = zoho.crm.createRecord("Calls",paramMap);
+// info response;
+// d = "2020-04-10T21:00:00Z";
+// ctTime = d.toString("yyyy-MM-dd'T'HH:mm:ss'+03:00'");
+// ctTime = zoho.currenttime.toString("yyyy-MM-dd'T'HH:mm:ss'+03:00'");
+// out_call_log_obj = Map();
+// out_call_log_obj.put("Subject","test1 rpr");
+// out_call_log_obj.put("Owner",3106252000000152052);
+// out_call_log_obj.put("Who_Id",3106252000065344204);
+// out_call_log_obj.put("Call_Type","Outbound");
+// out_call_log_obj.put("$se_module","Contacts");
+// out_call_log_obj.put("Call_Start_Time",ctTime);
+// out_call_log_obj.put("Call_Duration","5:00");
+// out_call_log_obj.put("Who_Id",3106252000065344204);
+// out_call_log_obj.put("$which_call","ScheduleCall");
+// add_out_resp = zoho.crm.create("Calls",out_call_log_obj);
+// info add_out_resp;
+//------------------------------------"get duplciates in HR Task"--------------------------------------
+// highriseTasks = geturl("https://bestaccessdoors.highrisehq.com/tasks/all.xml",{"Authorization":highriseAuth});
+// hrTasks = highriseTasks.executeXPath("tasks/task").toXmlList();
+// // task categories
+// highriseTask_Category = geturl("https://bestaccessdoors.highrisehq.com/task_categories.xml",{"Authorization":highriseAuth});
+// hrCategory = highriseTask_Category.executeXPath("task-categories/task-category").toXmlList();
+// processCount = 0;
+// flag = 0;
+// info "highriseTasks " + hrTasks.size();
+// for each  singletask in hrTasks
+// {
+// 	if(singletask.executeXPath("task/owner-id/text()") == "1082383")
+// 	{
+// 		processCount = processCount + 1;
+// 		check_highrise = zoho.crm.searchRecords("Highrise_Data","(Highrise_ID:equals:" + singletask.executeXPath("task/id/text()") + ")");
+// 		if(check_highrise.size() == 0)
+// 		{
+// 			createCount = createCount + 1;
+// // 			info "create new"+ singletask.executeXPath("task/id/text()");
+// 		}
+// 		else if(check_highrise.size() == 1)
+// 		{
+// 			uniqueCount = uniqueCount + 1;			
+// 			if(check_highrise.get(0).get("Status") == "Created Newly")
+// 			{
+// 				flag = flag + 1;
+// // 				if(check_highrise.get(0).get("Zoho_CRM_ID").toLong() == 3106252000070041179){
+// catg = ifnull(check_highrise.get(0).get("Task_Category_Name"),"");
+// 				if(catg != ""){
+// 				if(check_highrise.get(0).get("Task_Category_Name") == "COVID19" || check_highrise.get(0).get("Task_Category_Name") == "Call" ||  check_highrise.get(0).get("Task_Category_Name") == "Follow-up" || check_highrise.get(0).get("Task_Category_Name") == "Cancel" || check_highrise.get(0).get("Task_Category_Name") == "Tracking" ){
+// 					info "///////////////////////////////////////////////////////";
+// // 					info "---one time----crm rec id-" + check_highrise.get(0).get("id") + "----status-"+ check_highrise.get(0).get("Status") +"----taskid-" + singletask.executeXPath("task/id/text()") + "---ownerid-" + singletask.executeXPath("task/owner-id/text()") + "---contactid-" + singletask.executeXPath("task/subject-id/text()") + "---category-"+check_highrise.get(0).get("Task_Category_Name");
+// paramMap= Map();
+// 					paramMap.put("Sub_Category",check_highrise.get(0).get("Task_Category_Name"));
+// 				}else{
+// 					paramMap.put("Sub_Category","Follow-up");
+// 				}
+// 					response = zoho.crm.updateRecord("Tasks", check_highrise.get(0).get("Zoho_CRM_ID").toLong(), paramMap);
+// 					info "posa "+response;
+// // 				}
+// 				}
+// 			}
+// 		}
+// 		else if(check_highrise.size() > 1)
+// 		{
+// 			deleteCount = deleteCount + 1;
+// 			info "///////////////////////////////////////////////////////";
+// 			info "more than 1 time "+ singletask.executeXPath("task/id/text()");
+// // 			info "delete: name "+check_highrise.get(0).get("Name") +" " + check_highrise.get(0).get("id") + " name "+check_highrise.get(1).get("Name") + " id "+ check_highrise.get(1).get("id");		 			
+// 			maxID = check_highrise.get(0).get("Name").toLong().max(check_highrise.get(1).get("Name").toLong());
+// 			info maxID;
+// 			for each  singlerec in check_highrise
+// 			{
+// 				if(singlerec.get("Name").toLong() == maxID){
+// info "-------"+singlerec.get("Name")+"----"+singlerec.get("id")+"-----"+singlerec.get("Zoho_CRM_ID")+"----------------";
+// // 					deleteRecordMap = Map();
+// // 					deleteRecordMap.put("module","Tasks");
+// // 					deleteRecordMap.put("id",singlerec.get("Zoho_CRM_ID").toLong());
+// // 					info deleteRecordMap;
+// // 					deleteResp = zoho.crm.invokeConnector("crm.delete",deleteRecordMap);
+// // 					info deleteResp;
+// // 					deleteRecordMap = Map();
+// // 					deleteRecordMap.put("module","Highrise_Data");
+// // 					deleteRecordMap.put("id",singlerec.get("id").toLong());
+// // 					info deleteRecordMap;
+// // 					deleteResp = zoho.crm.invokeConnector("crm.delete",deleteRecordMap);
+// // 					info deleteResp;
+// 				}
+// 			}
+// // 			if(check_highrise.get(0).get("Name").toLong() > check_highrise.get(1).get("Name").toLong() ){
+// // 				info check_highrise.get(0).get("Name") + " is lesser than " + check_highrise.get(1).get("Name");
+// // 			}else{
+// // 				info "greater";
+// // 			}
+// 		}
+// 	}
+// }
+// info processCount + " create" +createCount+ " : uni "+ uniqueCount + " delete "+ deleteCount; 
+//\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\HR error and find comntact id in crm\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+// highriseAuth = "Basic OWZiYjY1ODg2NWY5MTUyODlmN2U5ZDNiM2E3MWNkYmI6WA==";
+// // for each <myvariable> in <collection>
+// // {
+// highriseID = "79459113";
+// category = "Follow-up";
+// crmRecordID = 3106252000070465271;
+// Task_Created_For = "330187380";
+// highriseTask = geturl("https://bestaccessdoors.highrisehq.com/tasks/" + highriseID + ".xml",{"Authorization":highriseAuth});
+//  notesExists = highriseTask.containsIgnoreCase("task");
+// info notesExists;
+// try{
+// // doneAt = ifnull(highriseTask.executeXPath("task/done-at/text()"),"");
+// // info "b "+ doneAt;
+// 	highrisePeople = geturl("https://bestaccessdoors.highrisehq.com/people/" + Task_Created_For + ".xml",{"Authorization":highriseAuth});
+// 	primaryEmail = ifnull(highrisePeople.executeXPath("person/contact-data/email-addresses/email-address[1]/address/text()"),"");
+// 		if(primaryEmail != "")
+// 				{
+// 					info "email "+ primaryEmail;
+// 					email = primaryEmail;
+// 					criteria = "(Email:equals:" + email + ")";
+// 					duplicateRecords = zoho.crm.searchRecords("Contacts",criteria,1,200,{"Created_Time":"sort_by with desc"});
+// 					info "duplicate "+ duplicateRecords.size();
+// 					if(duplicateRecords.size() == 1){
+// 						crmContactID = duplicateRecords.get(0).get("id");
+// 						masterFound = true;
+// 						full_name = duplicateRecords.get(0).get("Full_Name");
+// 					}
+// 					else if(duplicateRecords.size() > 1){
+// 						for each  master in duplicateRecords
+// 						{
+// 							if(master.get("Master") == true){
+// 								crmContactID = master.get("id");
+// 								masterFound = true;
+// 								full_name = master.get("Full_Name");
+// 							}
+// 						}					
+// 					}
+// 					if(masterFound == true){
+// 							note_content = "Task Deleted from Highrise - Marked as Completed in Zoho: https://crm.zoho.com/crm/org663942562/tab/Activities/"+crmRecordID+"?sub_module=Tasks";
+// 							notesMap = Map();
+// 							notesMap.put("Parent_Id",crmContactID);
+// 							notesMap.put("se_module","Contacts");
+// 							notesMap.put("Note_Title",full_name);
+// 							notesMap.put("Note_Content",note_content);
+// 							noteCreate = zoho.crm.createRecord("Notes",notesMap);
+// 							info "res  "+ noteCreate;
+// 						}
+// 				}
+// }catch(e){
+// info "err"+ e;
+// }
+// body = highriseTask.executeXPath("task/body/text()");
+// criteria = "(Highrise_ID:equals:" + highriseTask.executeXPath("task/subject-id/text()") + ")";
+// searchRes_highrise = zoho.crm.searchRecords("Highrise_Data",criteria);
+// info "------------------------------------------";
+// info "search data " + searchRes_highrise;
+// info "------------------------------------------";
+// if(searchRes_highrise.size() == 0)
+// {
+// 	info "no record found";
+// 	//check with HR for people api, email search in crm
+// 	highrisePeople = geturl("https://bestaccessdoors.highrisehq.com/people/" + highriseTask.executeXPath("task/subject-id/text()") + ".xml",{"Authorization":highriseAuth});
+// 	primaryEmail = ifnull(highrisePeople.executeXPath("person/contact-data/email-addresses/email-address[1]/address/text()"),"");
+// 	email = primaryEmail;
+// 	criteria = "(Email:equals:" + email + ")";
+// 	duplicateRecords = zoho.crm.searchRecords("Contacts",criteria,1,200,{"Created_Time":"sort_by with desc"});
+// 	if(duplicateRecords.size() > 1)
+// 	{
+// 		deleteCount = deleteCount + 1;
+// 		info " crm multiple record found " + email;
+// 		for each  singleTasks in duplicateRecords
+// 		{
+// 			info "inside crm multiple " + singleTasks.get("id");
+// 		}
+// 	}
+// 	else if(duplicateRecords.size() == 1)
+// 	{
+// 		uniqueCount = uniqueCount + 1;
+// // 		info " crm 1 record found " + email + " : " + duplicateRecords.get(0).get("id") + " highrise id " + highriseID;
+// // 		updateDuplicate = zoho.crm.updateRecord("Contacts",duplicateRecords.get(0).get("id").toLong(),{"HighriseID":highriseID});
+// // 		info updateDuplicate;
+// 	}
+// 	else if(duplicateRecords.size() == 0)
+// 	{
+// 		info " crm 0 record found " + email;
+// 	}
+// }
+// else if(searchRes_highrise.size() > 1)
+// {
+// 	info "HR more than one record found";
+// }
+// else if(searchRes_highrise.size() == 1)
+// {
+// 	info "HR uniq record";
+// }
+// // }
+//-----------------------HR--tasks - error--------
+// email = "prashanth@bizappln.com";
+// maillist = zoho.crm.getRecords("Highrise_Data",1,1,{"cvid":3106252000070021627});
+// // mails = List();
+// for each  rec in maillist
+// {
+// info rec.get("Task_Created_For");
+// highrisePeople = geturl("https://bestaccessdoors.highrisehq.com/people/"+rec.get("Task_Created_For")+".xml",{"Authorization":highriseAuth});
+// 	primaryEmail = ifnull(highrisePeople.executeXPath("person/contact-data/email-addresses/email-address[1]/address/text()"),"");
+// 	info primaryEmail;
+// email = primaryEmail;
+// 	criteria = "(Email:equals:" + email + ")";
+// 	duplicateRecords = zoho.crm.searchRecords("Contacts",criteria,1,200,{"Created_Time":"sort_by with desc"});
+// 	if(duplicateRecords.size() > 1)
+// 	{
+// 		deleteCount = deleteCount + 1;
+// 	}
+// 	else if(duplicateRecords.size() == 1)
+// 	{
+// 		uniqueCount = uniqueCount + 1;
+// 		highriseContact = geturl("https://bestaccessdoors.highrisehq.com/people/search.xml?criteria[email]=" + email,{"Authorization":highriseAuth});
+// 		info highriseContact;
+// 		list = highriseContact.executeXPath("people/person").toXmlList();
+// 		info list.size();
+// 		if(list.size() == 1){
+// 			info "one one -------------"+ list;
+// 			for each singleTasks in list
+// 			{
+// 					info "cateogry found" + singleTasks.executeXPath("person/id/text()");
+// 					updateDuplicate = zoho.crm.updateRecord("Contacts", duplicateRecords.get(0).get("id").toLong(),{"HighriseID":singleTasks.executeXPath("person/id/text()")});
+// 				info updateDuplicate;
+// 			}
+// 		}	
+// 	}
+// 	else if(duplicateRecords.size() == 0)
+// 	{
+// 		createCount = createCount + 1;
+// 	}
+// info "uni "+ uniqueCount + " del "+ deleteCount + " cre " + createCount;
+// }
+//----------------------------------------------"merger schedulee"---------------------------------------------------------------
+// getfetchTime = zoho.crm.getRecordById("Merger_Schedule",3106252000061961343);
+// dateR = getfetchTime.get("De_Duplicate_Start_Date");
+// info "date " + getfetchTime.get("De_Duplicate_Start_Date");
+// inputfetchTime = getfetchTime.get("De_Duplicate_Start_Date").subString(0,19);
+// info "date formatter " + inputfetchTime;
+// inputTime = inputfetchTime.replaceAll("T"," ").totime();
+// info "date format " + inputTime;
+// Limit_val = 100;
+// Offset_val = 0;
+// coql_map = Map();
+// // coql_map.put("select_query","select Last_Name, First_Name, Account_Name from Contacts where Account_Name is null ORDER BY First_Name DESC LIMIT " + Limit_val + " OFFSET " + Offset_val);
+// // 	coql_map.put("select_query","select Email Full_Name, Created_Time from Contacts where Email is not null and Created_Time >= '2020-03-19T10:33:32+05:30' LIMIT " + Limit_val + " OFFSET " + Offset_val);
+// coql_map.put("select_query","select Email Full_Name, Created_Time from Contacts where Email is not null and Merged = false LIMIT " + Limit_val + " OFFSET " + Offset_val);
+// // coql_map.put("select_query","select Email Full_Name, Created_Time from Contacts where (((Email is not null) and (Merged = false)) and (Created_Time >= '" + dateR + "')) LIMIT " + Limit_val + " OFFSET " + Offset_val);
+// maillist = invokeurl
+// [
+// 	url :"https://www.zohoapis.com/crm/v2/coql"
+// 	type :POST
+// 	parameters:coql_map.tostring()
+// 	connection:"crm_connection"
+// ];
+// info " --- " + maillist.get("data").size();
+// info "mrec " + maillist.get("data");
+// for each  dataRecord in maillist.get("data")
+// {
+// 	processCount = processCount + 1;
+// 	createCount = 0;
+// 	deleteCount = 0;
+// 	uniqueCount = 0;
+// 	info "process starts for " + processCount + " email is " + dataRecord.get("Email") + " id " + dataRecord.get("id");
+// 	email = ifnull(dataRecord.get("Email"),"");
+// 	criteria = "(Email:equals:" + email + ")";
+// 	duplicateRecords = zoho.crm.searchRecords("Contacts",criteria,1,200,{"Created_Time":"sort_by with desc"});
+// 	if(duplicateRecords.size() > 1)
+// 	{
+// 		deleteCount = deleteCount + 1;
+// 	}
+// 	else if(duplicateRecords.size() == 1)
+// 	{
+// 		uniqueCount = uniqueCount + 1;
+// 	}
+// 	else if(duplicateRecords.size() == 0)
+// 	{
+// 		createCount = createCount + 1;
+// 	}
+// 	info "de " + deleteCount + "cre " + createCount + "uni " + uniqueCount;
+// }
+//------------------------------------task-------------------------------------------
+// highriseTask_Category = geturl("https://bestaccessdoors.highrisehq.com/task_categories.xml",{"Authorization":highriseAuth});
+// // info highriseTask_Category;
+// hrCategory = highriseTask_Category.executeXPath("task-categories/task-category").toXmlList();
+// info " -----------------------------------" + hrCategory.size();
+// for each  singleTasks in hrCategory
+// {
+// 	if(singleTasks.executeXPath("task-category/id/text()") == 4581724.toString())
+// 	{
+// 		info "cateogry found" + singleTasks.executeXPath("task-category/name/text()");
+// 	}
+// }
+//------------------------------------tag update-------------------------------------------
+// tagUpdate = invokeurl
+// 		[
+// 			url :"https://www.zohoapis.com/crm/v2/Accounts/" + AccountRecordID + "/actions/add_tags?tag_names=helo&over_write=false"
+// 			type :POST
+// 			connection:"crm_connection"
+// 		];
+// tagUpdate = invokeurl
+// [
+// 	url :"https://www.zohoapis.com/crm/v2/Contacts/" + contactRecordID + "/actions/add_tags?tag_names=helo&over_write=false"
+// 	type :POST
+// 	connection:"crm_connection"
+// ];
+// info tagUpdate;
+//--------------------------contact created from filter -----------not working----------------
+// Limit_val = 200;
+// Offset_val = 200;
+// coql_map = Map();
+// // coql_map.put("select_query","select Last_Name, First_Name, Account_Name from Contacts where Account_Name is null ORDER BY First_Name DESC LIMIT " + Limit_val + " OFFSET " + Offset_val);
+// coql_map.put("select_query", "select Email Full_Name, Created_Time from Contacts where Email is not null and Created_Time >= '2020-03-19T10:33:32+05:30' LIMIT " + Limit_val + " OFFSET " + Offset_val);
+// // Get_contacts = posturl("https://www.zohoapis.com/crm/v2/coql",coql_map);
+// // info Get_contacts;
+// response = invokeurl
+// [
+// 	url :"https://www.zohoapis.com/crm/v2/coql"
+// 	type :POST
+// 	parameters:coql_map.tostring()
+// 	connection:"crm_connection"
+// ];
+// info response;
+// for each red in response.get("data")
+// {
+// info red.get("id") +" =="+ red.get("Email")+"============";
+// }
+// // info zoho.currenttime;
+// // thisMonthStartTime = zoho.currentdate.toString("yyyy-MM-dd HH:mm:ss");
+// // info thisMonthStartTime;
+// // testdate = "2020-03-19 00:00:00";
+// // getconatc = zoho.crm.searchRecords("Contacts","Created_Time:equals:"+testdate);
+// // info getconatc; 
+//===========================================================================================
+// query = "(Created_Time|=|" + thisMonthStartTime + ")";
+// thisMonthRecords = zoho.crm.searchRecords("Contacts", query, 1, 20);
+// info thisMonthRecords;
+//--------------------------contact with no master identified through email---------------------------
+// maillist = zoho.crm.getRecords("Contacts",1,100,{"cvid":3106252000067722003});
+// mails = List();
+// for each  rec in maillist
+// {
+// processCount = processCount + 1;
+// info "----------- "+ processCount + "-- "+rec.get("Email")+ "-"+rec.get("id")+"------";
+// 	email = ifnull(rec.get("Email"),"");
+// 	Full_Name = rec.get("id");
+// if(email != ""){
+// 	mails.add(email);
+// }
+// }
+// info mails;
+//--------------------------contact search usiong HR data view to map saleorder and dropship order---------------------------
+// maillist = zoho.crm.getRecords("Contacts",1,10,{"cvid":3106252000067722003});
+// for each  rec in maillist
+// {
+// processCount = processCount + 1;
+// info "----------- "+ processCount + "-- "+rec.get("Email")+ "-"+rec.get("id")+"------";
+// 	email = ifnull(rec.get("Email"),"");
+// 	Full_Name = rec.get("id");
+// if(email != ""){
+// 	getconatc = zoho.crm.searchRecords("Contacts","Email:equals:"+email);
+// 	masterFound = false;
+// 	if(getconatc.size() == 1){
+// 		uniqueCount = uniqueCount + 1;
+// // 		info " == one record found == ";
+// 	}else if(getconatc.size() > 1){
+// 		deleteCount = deleteCount + 1;
+// 		info "== more than 1 records found ==";
+// 		for each  masterD in getconatc
+// 		{
+// 			if(masterD.get("Master") == true)
+// 			{
+// 				masterFound = true;
+// 				masterID = masterD.get("id");
+// 				info "master found "+ masterID;
+// 			}
+// 		}
+// 		if(masterFound == true)
+// 		{
+// 			getsalorders = zoho.crm.searchRecords("Sales_Orders","(Contact_Name:equals:" + Full_Name + ")");
+// 			getsalorders = "[" + getsalorders + "]";
+// 			info "SO " + getsalorders;
+// 			// 		for each  saleorderid in getsalorders
+// 			// 		{
+// 			// 			salorderids = Map();
+// 			// 			if(saleorderid.get("id") != null)
+// 			// 			{
+// 			// 				salorderids.put("saleordid",saleorderid.get("id"));
+// 			// 			}
+// 			// 			salorderidslist.add(salorderids);
+// 			// 		}
+// 			// 		getPOreletedrecords = zoho.crm.getRelatedRecords("PurchaseOrders","Contacts",Full_Name);
+// 			// 		info "po "+ getPOreletedrecords;
+// 			// 		if(getPOreletedrecords.size() > 0)
+// 			// 		{
+// 			// 			for each  getporeltrcd in getPOreletedrecords
+// 			// 			{
+// 			// 				datamap = Map();
+// 			// 				datamap.put("Contact_Name",orginalid);
+// 			// // 				updatepo = zoho.crm.updateRecord("Purchase_Orders",getporeltrcd.get("id"),datamap);
+// 			// 			}
+// 			// 		}
+// 		}else{
+// 			info "master not found";
+// 		}
+// 	}else if(getconatc.size() == 0){
+// 		createCount = createCount + 1;
+// 		info "-- 0 record found --";
+// 	}	
+// 	}
+// }
+// info "create - "+ createCount + " unique - "+ uniqueCount + " delete - "+ deleteCount;
+//------------------------------------duplicate contact with not merged related list view--------------------------
+// contactList = zoho.crm.getRecords("Contacts",1,100,{"cvid":3106252000067722003});
+// for each  rec in contactList
+// {
+// 	processCount = processCount + 1;
+// 	email = rec.get("Email");
+// 	getconatc = zoho.crm.searchRecords("Contacts","Email:equals:" + email);
+// 	masterFound = false;
+// 	info "----" + processCount + "---starts for " + rec.get("id") + "--" + email;
+// 	if(getconatc.size() == 0)
+// 	{
+// 		info "contacts size is 0 ";
+// 		createCount = createCount + 1;
+// 	}
+// 	else if(getconatc.size() == 1)
+// 	{
+// 		info "contacts size is 1 ";
+// 		uniqueCount = uniqueCount + 1;
+// 		for each  masterD in getconatc
+// 		{
+// 			if(masterD.get("Master") == true)
+// 			{
+// 				masterFound = true;
+// 				masterID = masterD.get("id");
+// 				info "master found";
+// 			}
+// 		}
+// 		info "master found " + masterFound;
+// 	}
+// 	else if(getconatc.size() > 1)
+// 	{
+// 		info "contacts size more than 1 ";
+// 		deleteCount = deleteCount + 1;
+// 		for each  masterD in getconatc
+// 		{
+// 			if(masterD.get("Master") == true)
+// 			{
+// 				masterFound = true;
+// 				masterID = masterD.get("id");
+// 				info "master found";
+// 			}
+// 		}
+// 		info "more than 1 - master found " + masterFound;
+// 	}
+// }
+//------------------------------------search contacts from given date-------------------------------------------
+// thisMonthStartTime = toStartOfMonth(zoho.currentdate).toString("yyyy-MM-dd HH:mm:ss");
+// info thisMonthStartTime;
+// query = "(Created_Time|=|" + thisMonthStartTime + ")";
+// thisMonthRecords = zoho.crm.searchRecords("Contacts", query, 1, 200);
+// info thisMonthRecords;
+// resp = zoho.crm.searchRecords("Contacts ", "((Created_Time:starts_with:" + phNo +"))");
+// info resp.
+//------------------------------------list contact with no status using custom view-----------329626449-------330015890------------------------
+// getfetchTime = zoho.crm.getRecordById("Highrise_Connector",3106252000065101001);
+// inputfetchTime = getfetchTime.get("Date").subString(0,19);
+// inputTime = inputfetchTime.replaceAll("T"," ").totime();
+// HRmaillist = zoho.crm.getRecords("Highrise_Data",1,2,{"cvid":3106252000066365102});
+// maillist = List();
+// highrisenotesURL = geturl("https://bestaccessdoors.highrisehq.com/people/329995959/notes.xml",{"Authorization":highriseAuth});
+// info "ex "+highrisenotesURL;
+// notesExists = highrisenotesURL.containsIgnoreCase("notes");
+// info " ec "+ notesExists;
+// notess = highrisenotesURL.containsIgnoreCase("notes/note");
+// info "3 "+ notess;
+// notesResponse = highrisenotesURL.executexpath("notes/note").toXmlList();
+// info notesResponse.size();
+// 	notesList = List();
+// 	for each  index_item in notesResponse
+// 	{		
+// 			if(index_item.containsIgnoreCase("note"))
+// 			{
+// 				note_utcCreatedTime = index_item.executeXPath("note/created-at/text()").replaceAll("T"," ").replaceAll("Z","").totime();
+// 				if(note_utcCreatedTime >= inputTime)
+// 				{
+// 					info "notes exists";			
+// 					notesMap = Map();
+// 					notesMap.put("Parent_Id",contactRecordID);
+// 					notesMap.put("se_module","Contacts");
+// 					notesMap.put("Note_Title",index_item.executexpath("note/subject-name/text()"));
+// 					notesMap.put("Note_Content",index_item.executexpath("note/body/text()").replaceAll("\n"," ").toString());
+// 	// 				noteCreate = zoho.crm.createRecord("Notes",notesMap);
+// 	// 				info index_item.executexpath("note/body/text()") + " - " + noteCreate;
+// 				}
+// 			}
+// 			else 
+// 			{
+// 				info "empty notes";
+// 			}	
+// 	}
+// for each  hrcontact in HRmaillist
+// {
+// 	info hrcontact.get("Status");
+// 	id = hrcontact.get("id");
+// 	hrID = hrcontact.get("Highrise_ID");
+// 	info "-----" + hrID + "---" + id + "--- " + hrcontact.get("Name") + " ----";
+// 	updateRecord = zoho.crm.updateRecord("Highrise_Data",id,{"Module":"Contacts"},{"trigger":{"workflow"}});
+// info updateRecord;
+// // 	highrisePeople = geturl("https://bestaccessdoors.highrisehq.com/people/" + hrcontact.get("Highrise_ID") + ".xml",{"Authorization":highriseAuth});
+// // 	primaryEmail = ifnull(highrisePeople.executeXPath("person/contact-data/email-addresses/email-address[1]/address/text()"),"");
+// // 	info primaryEmail;
+// // 	info "---" + highrisePeople + "---";
+// }
+//------------------------------------contact search usiong HR data view-------------------------------------------
+// HRmaillist = zoho.crm.getRecords("Highrise_Data",1,10,{"cvid":3106252000066726161});
+// maillist = List();
+// for each hrcontact in HRmaillist{
+// searchRes_highrise = zoho.crm.getRecordById("Contacts", hrcontact.get("Zoho_CRM_ID"));
+// // info "search "+ searchRes_highrise;
+// 	maillist.add(searchRes_highrise);
+// }
+// info " - "+ maillist.size();
+// for each  dataRecord in maillist
+// 	{
+// 		email = ifnull(dataRecord.get("Email"),"");
+// 	info dataRecord.get("id") +" -- "+ email;
+// 	}
+//------------------------------------deals--------------------------------------------------------
+// highriseDeals = geturl("https://bestaccessdoors.highrisehq.com/deals.xml?since=" + date,{"Authorization":highriseAuth});
+// highriseDeals = geturl("https://bestaccessdoors.highrisehq.com/deals.xml?n=" + index + "&since=" + date,{"Authorization":highriseAuth});
+// // info highriseDeals;
+// highrisedeals = highriseDeals.executeXPath("deals/deal").toXmlList();
+// info "deal res - " + highrisedeals.size();
+// for each  deal in highrisedeals
+// {
+// 	processCount = processCount + 1;
+// 	criteria = "(Highrise_ID:equals:" + deal.executeXPath("deal/id/text()") + ")";
+// 	searchRes_highrise = zoho.crm.searchRecords("Highrise_Data",criteria);
+// 	if(searchRes_highrise.size() == 0)
+// 	{
+// 		createCount = createCount + 1;
+// 		info "create deal " + deal.executeXPath("deal/id/text()");
+// // 		createResp = zoho.crm.createRecord("Highrise_Data",{"Highrise_ID":deal.executeXPath("deal/id/text()"),"Module":"Deals","Highrise_Created_Time":deal.executeXPath("deal/created-at/text()"),"Highrise_Modified_Time":deal.executeXPath("deal/updated-at/text()"),"Date_String":date},{"trigger":{"workflow"}});
+// // 		info "HR dealid "+deal.executeXPath("deal/id/text()")+ " create res " +createResp;
+// 	}
+// 	else if(searchRes_highrise.size() > 1)
+// 	{
+// 		deleteCount = deleteCount + 1;
+// 		info "delete deal " + deal.executeXPath("deal/id/text()");
+// 	}
+// 	else if(searchRes_highrise.size() == 1)
+// 	{
+// 		uniqueCount = uniqueCount + 1;
+// 	}
+// }
+// info "size - " + highrisedeals.size() + " - " + processCount;
+// if(processCount == highrisedeals.size())
+// {
+// 	info "count equals " + createCount + " - " + deleteCount + " - " + uniqueCount;
+// }
+//=========================================================tags===============================================================
+// highriseCompany = geturl("https://bestaccessdoors.highrisehq.com/companies/" + highriseID + ".xml",{"Authorization":highriseAuth});
+// tagsExist = highriseCompany.containsIgnoreCase("tags");
+// info tagsExist;
+// if(tagsExist == true)
+// {
+// 	tagsCount = highriseCompany.executexpath("company/tags").toXmlList();
+// 	tags = list();
+// 	tagString = "";
+// 	for each  index_item in tagsCount
+// 	{
+// 		tags.add(index_item.executexpath("tags/tag/name/text()"));
+// 		tagString = tagString + "," + index_item.executexpath("tags/tag/name/text()");
+// 	}
+// 	tagString = tagString.subString(1);
+// }
+// info tagString;
+// if(!isNull(tagString))
+// {
+// 	tagData = "https://www.zohoapis.com/crm/v2/Accounts/" + AccountRecordID + "/actions/add_tags?tag_names=" + tagString.toList("-|-") + "&over_write=false";
+// 	info tagData;
+// 	header_map = Map();
+// 	header_map.put("Authorization","Zoho-oauthtoken " + accessToken);
+// 	body_map = Map();
+// 	tagUpdate = postUrl(tagData,body_map,header_map,false);
+// 	info tagUpdate;
+// 	info "tag update res" + tagUpdate;
+// 	tagresponse = tagUpdate.get("responseText");
+// 	if(!tagresponse.containKey("data"))
+// 	{
+// 		response = invokeurl
+// 		[
+// 			url :"https://www.zohoapis.com/crm/v2/functions/getaccesstoken/actions/execute?auth_type=apikey&zapikey=1003.c5a08f6dadcf43154558701e0d27421b.ca6569f3f9bd4d0b1152c33ce4fd5186"
+// 			type :GET
+// 		];
+// 		info response;
+// 		accessToken = response.get("details").get("userMessage");
+// 		tagData = "https://www.zohoapis.com/crm/v2/Accounts/" + AccountRecordID + "/actions/add_tags?tag_names=" + tagString.toList("-|-") + "&over_write=false";
+// 		header_map = Map();
+// 		header_map.put("Authorization","Zoho-oauthtoken " + accessToken);
+// 		body_map = Map();
+// 		// tagUpdate = postUrl(tagData,body_map,header_map,false);
+// 		tagUpdate = invokeurl
+// 		[
+// 			url :"https://www.zohoapis.com/crm/v2/Accounts/" + AccountRecordID + "/actions/add_tags?tag_names=" + tagString.toList("-|-") + "&over_write=false"
+// 			type :POST
+// 			connection:"crm_connection"
+// 		];
+// 		info "tag update res from accesstoten generate loop " + tagUpdate;
+// 	}
+// }
+//------------------------------------search record in h=highrise data module--------------------------------------------------------
+// criteria = "(Highrise_ID:equals:" + highriseID + ")";
+// searchRes_highrise = zoho.crm.searchRecords("Highrise_Data",criteria);
+// info "search res " + searchRes_highrise.size();
+// for each  crmrec in searchRes_highrise
+// {
+// 	info crmrec.get("Highrise_ID");
+// 	if(crmrec.get("Highrise_ID") == 329300508)
+// 	{
+// 		info "crm rec found ";
+// 	}
+// }
+//--------------------------------------search records with dual criteria--------------------------------------------------
+// highrisePeople = geturl("https://bestaccessdoors.highrisehq.com/people/" + highriseID + ".xml",{"Authorization":highriseAuth});
+// phone = ifnull(highrisePeople.executeXPath("person/contact-data/phone-numbers/phone-number[1]/number/text()"),"");
+// if(phone != "")
+// {
+// // 	contactMap.put("Phone",phone);
+// 	phNo = phone.toString();
+// 	phNo = phNo.replaceAll("[/\-\(\)_@#\^!\$%\&\*:;`~+.,']","");
+// 	phNo = phNo.removeAllAlpha();
+// 	data = '"';
+// 	phNo = phNo.replaceAll(data,"");
+// 	phNo = phNo.replaceAll(" ","");
+// // 	contactMap.put("Phone_Number_Merge",phNo);
+// }
+// // getContact = zoho.crm.searchRecords("Contacts","((Phone_Number_Merge:equals:" + phNo +"))");
+// 		criterias ="((Phone_Number_Merge:equals:"+phNo+") or (Phone:equals:"+phone+"))";
+// info criterias;
+// getContact = zoho.crm.searchRecords("Contacts",criterias);
+// info getContact;
+// //--------------------------------------search contcts records with highriseID more than 1 time------------------------------------------------
+// // highriseContacts = geturl("https://bestaccessdoors.highrisehq.com/people.xml?n=" + index + "&since=" + date,{"Authorization":highriseAuth});
+// highrisePeople = highriseContacts.executeXPath("people/person").toXmlList();
+// info "size " + highrisePeople.size();
+// processCount = 0;
+// emptyprocessCount = 0;
+// deleteprocessCount = 0;
+// for each  person in highrisePeople
+// {
+// 	processCount = processCount + 1;
+// 	searchRes_highrise = zoho.crm.searchRecords("Highrise_Data","(Highrise_ID:equals:" + person.executeXPath("person/id/text()") + ")");
+// 	if(searchRes_highrise.size() > 1)
+// 	{
+// 		deleteprocessCount = deleteprocessCount + 1;
+// 		info "more than 1 records was found - - " + person.executeXPath("person/id/text()") + " crmid " + searchRes_highrise.get(0).get("id") + "crm id 2 " + searchRes_highrise.get(1).get("id");
+// 		// 		searchRes_highrise.sort();
+// 		// info searchRes_highrise.get(0).get("id");
+// 		// // 	if(person.executeXPath("company/id/text()") == "329439342"){
+// 		// 		deleteRecordMap = Map();
+// 		// deleteRecordMap.put("module","Highrise_Data");
+// 		// deleteRecordMap.put("id",searchRes_highrise.get(0).get("id"));
+// 		// // info deleteRecordMap;
+// 		// deleteResp = zoho.crm.invokeConnector("crm.delete",deleteRecordMap);
+// 		// info deleteResp;
+// 		// 	}		
+// 	}
+// 	else if(searchRes_highrise.size() == 1)
+// 	{
+// 		// 		info " 1 records was found - - " + person.executeXPath("company/id/text()");
+// 	}
+// 	else if(searchRes_highrise.size() == 0)
+// 	{
+// 		emptyprocessCount = emptyprocessCount + 1;
+// 		info " 0 records was found - - " + person.executeXPath("person/id/text()") + "added " + person.executeXPath("person/created-at/text()");
+// 		// 		createResp = zoho.crm.createRecord("Highrise_Data",{"Highrise_ID":person.executeXPath("person/id/text()"),"Module":"Contacts","Highrise_Created_Time":person.executeXPath("person/created-at/text()"),"Highrise_Modified_Time":person.executeXPath("person/updated-at/text()"),"Date_String":date},{"trigger":{"workflow"}});
+// 		// 		info createResp;
+// 	}
+// }
+// info processCount + " - empty records " + emptyprocessCount + " - delete " + deleteprocessCount;
+//--------------------------------------search Accounts records with highriseID more than 1 time---------------------------------------------
+// highriseCompanies = geturl("https://bestaccessdoors.highrisehq.com/companies.xml?n=500&since=" + date,{"Authorization":highriseAuth});
+// highriseCompanies = highriseCompanies.executeXPath("companies/company").toXmlList();
+// info "size " + highriseCompanies.size();
+// createCount = 0;
+// deleteCount = 0;
+// uniqueCount = 0;
+// for each  person in highriseCompanies
+// {
+// 	processCount = processCount + 1;
+// 	searchRes_highrise = zoho.crm.searchRecords("Highrise_Data","(Highrise_ID:equals:" + person.executeXPath("company/id/text()") + ")");
+// 	if(searchRes_highrise.size() > 1)
+// 	{
+// 		deleteCount = deleteCount + 1;
+// 		info "more than 1 records was found - - " + person.executeXPath("company/id/text()");
+// 		// 		searchRes_highrise.sort();
+// 		// info searchRes_highrise.get(0).get("id");
+// 		// // 	if(person.executeXPath("company/id/text()") == "329439342"){
+// 		// 		deleteRecordMap = Map();
+// 		// deleteRecordMap.put("module","Highrise_Data");
+// 		// deleteRecordMap.put("id",searchRes_highrise.get(0).get("id"));
+// 		// // info deleteRecordMap;
+// 		// deleteResp = zoho.crm.invokeConnector("crm.delete",deleteRecordMap);
+// 		// info deleteResp;
+// 		// 	}		
+// 	}
+// 	else if(searchRes_highrise.size() == 1)
+// 	{
+// 		uniqueCount = uniqueCount + 1;
+// 		// 		info " 1 records was found - - " + person.executeXPath("company/id/text()");
+// 	}
+// 	else if(searchRes_highrise.size() == 0)
+// 	{
+// 		createCount = createCount + 1;
+// 		info " 0 records was found - - " + person.executeXPath("company/id/text()") + "added " + person.executeXPath("company/created-at/text()");
+// 		// 				createResp = zoho.crm.createRecord("Highrise_Data",{"Highrise_ID":person.executeXPath("person/id/text()"),"Module":"Accounts","Highrise_Created_Time":person.executeXPath("company/created-at/text()"),"Highrise_Modified_Time":person.executeXPath("company/updated-at/text()"),"Date_String":date},{"trigger":{"workflow"}});
+// 		// 				info createResp;
+// 	}
+// }
+// info processCount + "unique " + uniqueCount + " - empty records " + createCount + " - delete " + deleteCount;
+//--------------------------------------------HR company check -----------------------------------------------
+// highriseCompany = geturl("https://bestaccessdoors.highrisehq.com/companies/" + highriseID + ".xml",{"Authorization":highriseAuth});
+// ch = highriseCompany.containsIgnoreCase("company");
+// info ch + " - ";
+// if(isNull(highriseCompany))
+// {
+// 	info "yes";
+// }
+// else if(!isNull(highriseCompany))
+// {
+// 	info "no";
+// }
+//---------------------------------------get HR deals data with status - Error -------------------------------------------
+// // getRecords = zoho.crm.getRecords("Highrise_Data",1,200,{"sort_order":"desc"});
+// getRecords = zoho.crm.getRecords("Highrise_Data",3,200,{"sort_by":"Created_Time"});
+// getRecords = zoho.crm.getRecords("Highrise_Data",2,100,{"cvid":3106252000067003467});
+// // info getRecords;
+// processCount = 0;
+// for each  rec in getRecords
+// {
+// 	info rec.get("Status");
+// 	id = rec.get("id");
+// 	hrID = rec.get("Highrise_ID");
+// 	info "-----" + hrID + "---" + id + "--- " + rec.get("Name") + " ----";
+// 	updateRecord = zoho.crm.updateRecord("Highrise_Data",id,{"Module":"Deals"},{"trigger":{"workflow"}});
+// 	info updateRecord;
+// }
+// info getRecords.size() + " - " + processCount;
+//---------------------------------------get HR data with status - null---------------------------------------------------
+// // getRecords = zoho.crm.getRecords("Highrise_Data",1,200,{"sort_order":"desc"});
+// getRecords = zoho.crm.getRecords("Highrise_Data",3,200,{"sort_by":"Created_Time"});
+// getRecords = zoho.crm.getRecords("Highrise_Data",1,100,{"cvid":3106252000067003467});
+// // info getRecords;
+// processCount = 0;
+// for each  rec in getRecords
+// {
+// 	// 	info rec.get("Status");
+// 	if(rec.get("Zoho_CRM_ID") == null && rec.get("Status") == null)
+// 	{
+// 		id = rec.get("id");
+// 		hrID = rec.get("Highrise_ID");
+// 		searchRes_highrise = zoho.crm.searchRecords("Deals","(HighriseID:equals:" + hrID + ")");
+// 		if(searchRes_highrise.size() == 1)
+// 		{
+// 			processCount = processCount + 1;
+// 			info "-----" + hrID + "---" + searchRes_highrise.get(0).get("id") + "---  ------------";
+// 			// updateRecord = zoho.crm.updateRecord("Highrise_Data",id,{"Status":"Created Newly", "Zoho_CRM_ID": searchRes_highrise.get(0).get("id")},{"trigger":{"workflow"}});
+// 			// 			info updateRecord;
+// 		}
+//	}
+//}
+// info getRecords.size() + " - " + processCount;
+////////////////////////////////////////--attachments-///////////////////////////////////////////////////////////////////
+// crmID = 3106252000070093094;
+// crmID = 3106252000070064001;
+// url = "https://www.zohoapis.com/crm/v2/Contacts/"+crmID+"/Attachments";
+// attachmentlist = invokeurl
+// [ 
+// 	url :url
+// 	type :GET
+// 	connection:"crm_connection"
+// ];
+// info " attac "+ attachmentlist;
+// info "----------- att "+ attachmentlist.get("data").size();
+//################################################ notes #######################################################
+// // getfetchTime = zoho.crm.getRecordById("Highrise_Connector",3106252000065101001);
+// // inputfetchTime = getfetchTime.get("Date").subString(0,19);
+// // inputTime = inputfetchTime.replaceAll("T"," ").totime();
+// // HRmaillist = zoho.crm.getRecords("Highrise_Data",1,2,{"cvid":3106252000066365102});
+// // maillist = List();
+// highrisenotesURL = geturl("https://bestaccessdoors.highrisehq.com/people/330375436/notes.xml",{"Authorization":highriseAuth});
+// info "ex "+highrisenotesURL;
+// notesExists = highrisenotesURL.containsIgnoreCase("notes");
+// info "notes exists " + notesExists;
+// notess = highrisenotesURL.containsIgnoreCase("notes/note");
+// info "note exists " + notess;
+// notesResponse = highrisenotesURL.executexpath("notes/note").toXmlList();
+// notesResponse.sort(true);
+// info "HR notes "+ notesResponse.size() + " "+ notesResponse;
+// crmNotes = zoho.crm.getRelatedRecords("Notes","Contacts",contactRecordID);
+// crmNotes.sort(true);
+// // info "crm notes count "+ crmNotes.size() + " "+ crmNotes;
+// for each  getreltrcd in crmNotes
+// {
+// 	info "crm " + getreltrcd.get("Note_Content");
+// }
+// notesList = List();
+// for each  index_item in notesResponse
+// {
+// 	// 	info index_item;
+// 	processCount = processCount + 1;
+// 	if(index_item.containsIgnoreCase("note"))
+// 	{
+// 		bv = index_item.executexpath("note/attachments/attachment").toXmlList();
+// 		info bv;
+// 		if(index_item.containsIgnoreCase("attachments"))
+// 		{
+// 			info "attachments exists";
+// 		}
+// 		else
+// 		{
+// 			info "attachments not exists";
+// 		}
+// 		note_utcCreatedTime = index_item.executeXPath("note/created-at/text()").replaceAll("T"," ").replaceAll("Z","").totime();
+// 		info "notes exists " + processCount;
+// 		notesMap = Map();
+// 		notesMap.put("Parent_Id",contactRecordID);
+// 		notesMap.put("se_module","Contacts");
+// 		notesMap.put("Note_Title",index_item.executexpath("note/subject-name/text()"));
+// 		notesMap.put("Note_Content",index_item.executexpath("note/body/text()").replaceAll("\n"," ").toString());
+// 		// 					if(processCount == 3){
+// 		// 						noteCreate = zoho.crm.createRecord("Notes",notesMap);
+// 		// 						 info index_item.executexpath("note/body/text()") + " - " + noteCreate;
+// 		// 					}
+// 	}
+// 	else
+// 	{
+// 		info "empty notes";
+// 	}
+// }
+//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> create contact using company id >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+// highriseContacts = geturl("https://bestaccessdoors.highrisehq.com/companies/321869258/people.xml",{"Authorization":highriseAuth});
+// highrisePeople = highriseContacts.executeXPath("people/person").toXmlList();
+// info "list " + highrisePeople.size();
+// for each  person in highrisePeople
+// {
+// 	if("321817174" == person.executeXPath("person/id/text()"))
+// 	{
+// 		info "data " + person.executeXPath("person/id/text()");
+// 		createResp = zoho.crm.createRecord("Highrise_Data",{"Highrise_ID":person.executeXPath("person/id/text()"),"Module":"Contacts","Highrise_Created_Time":person.executeXPath("person/created-at/text()"),"Highrise_Modified_Time":person.executeXPath("person/updated-at/text()"),"Date_String":"20190101120000"},{"trigger":{"workflow"}});
+// 		info createResp;
+// 	}
+// }
+//>>>>>>>>>>>>>>>> create contact using highrise id >>>>>>>>>>>>>>>>>>>>>>>>>>>>
+// person = geturl("https://bestaccessdoors.highrisehq.com/people/321351121.xml",{"Authorization":highriseAuth});
+// // info "list " + person.executeXPath("person/id/text()") + " - " + person;
+// info "data " + person.executeXPath("person/id/text()") + " "+  person.executeXPath("person/created-at/text()").toString("yyyyMMddHHmmss");
+// info "created time "+ person.executeXPath("person/created-at/text()").toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'");
+// dateString =person.executeXPath("person/created-at/text()").toString("yyyyMMddHHmmss");
+// createResp = zoho.crm.createRecord("Highrise_Data",{"Highrise_ID":person.executeXPath("person/id/text()"),"Module":"Contacts","Highrise_Created_Time":person.executeXPath("person/created-at/text()"),"Highrise_Modified_Time":person.executeXPath("person/updated-at/text()"),"Date_String":dateString},{"trigger":{"workflow"}});
+// info " contact HR data module " + createResp.get("id") + " " + createResp;
+//*************************************Highrise upsert from Deals - Error view********************************************
+// highriseAuth = "Basic OWZiYjY1ODg2NWY5MTUyODlmN2U5ZDNiM2E3MWNkYmI6WA==";
+// userlist = List();
+// userlist.add({"name":"Fern Citrigno","crm_id":3106252000000152052,"hr_id":"1082383"});
+// userlist.add({"name":"Rheanne Trottier","crm_id":3106252000024509019,"hr_id":"1382762"});
+// userlist.add({"name":"Kristopher Clark","crm_id":3106252000058241283,"hr_id":"1414362"});
+// userlist.add({"name":"Marko Savic","crm_id":3106252000037668001,"hr_id":"1406845"});
+// userlist.add({"name":"Deborah Warner","crm_id":3106252000045664001,"hr_id":"1411870"});
+// userlist.add({"name":"Christie Best","crm_id":3106252000025726001,"hr_id":"1395960"});
+// userlist.add({"name":"Emma Burns","crm_id":3106252000025727001,"hr_id":"1382543"});
+// userlist.add({"name":"Carlo  Citrigno","crm_id":3106252000000147013,"hr_id":"937881"});
+// userlist.add({"name":"Franz Perez","crm_id":3106252000000147013,"hr_id":"1039649"});
+// // no user found so using carlo as suggested by anthony
+// userlist.add({"name":"Anthony La Rocca","crm_id":3106252000000147711,"hr_id":"1254582"});
+// userlist.add({"name":"Chesia Melisa","crm_id":3106252000000152046,"hr_id":"1262788"});
+// // getfetchTime = zoho.crm.getRecordById("Highrise_Connector",3106252000066564414);
+// // inputfetchTime = getfetchTime.get("Date").subString(0,19);
+// // inputTime = inputfetchTime.replaceAll("T"," ").totime();
+// HRmaillist = zoho.crm.getRecords("Highrise_Data",1,1,{"cvid":3106252000078565878,"sort_by":"Created_Time","sort_order":"desc"});
+// maillist = List();
+// processCount = 0;
+// notfoundCount = 0;
+// newaccountCount = 0;
+// multipleaccountCount = 0;
+// processAccountDeal = false;
+// for each  hrcontact in HRmaillist
+// {
+// 	processCount = processCount + 1;
+// 	highriseID = hrcontact.get("Highrise_ID");
+// 	module = hrcontact.get("Module");
+// 	crmRecordID = hrcontact.get("id");
+// 	info " - " + processCount + "-- " + highriseID + " -- " + module + " -- " + crmRecordID;
+// 	highriseDeals = geturl("https://bestaccessdoors.highrisehq.com/deals/" + highriseID + ".xml",{"Authorization":highriseAuth});
+// 	// 		info highriseDeals;
+// 	dealContactError = "";
+// 	HRdealMap = Map();
+// 	DealMap = Map();
+// 	info highriseDeals.containsIgnoreCase("deal");
+// 	if(highriseDeals.containsIgnoreCase("deal"))
+// 	{
+// 		hrAccount_id = ifnull(highriseDeals.executeXPath("deal/account-id/text()"),"");
+// 		if(hrAccount_id != "")
+// 		{
+// 			DealMap.put("HR_AccountID",hrAccount_id);
+// 			// 	DealMap.put("Account_Name",hrAccount_id); //email-addresses
+// 		}
+// 		user = ifnull(highriseDeals.executeXPath("deal/responsible-party-id/text()"),"");
+// 		for each  userrec in userlist
+// 		{
+// 			if(user == userrec.get("hr_id"))
+// 			{
+// 				hr_id = userrec.get("hr_id");
+// 				owner = userrec.get("crm_id");
+// 				DealMap.put("Owner",owner);
+// 				info " owner  " + owner.toLong() + " hr id " + hr_id;
+// 			}
+// 		}
+// 		// 			info "----- party data exists-- " + highriseDeals.containsIgnoreCase("party/contact-data")+ " -----";
+// 		// 		if(highriseDeals.containsIgnoreCase("party")){
+// 		// 			info "test check "+ highriseDeals.executeXPath("deal/party/contact-data/email-addresses/email-address").toXmlList();
+// 		// 			testarr = highriseDeals.executeXPath("deal/party/contact-data/email-addresses/email-address").toXmlList();
+// 		// info "party type " + highriseDeals.executeXPath("deal/party/type/text()") + " -- "+ testarr.get(0).executeXPath("email-address/address/text()");
+// 		// 		}
+// 		partyData = highriseDeals.executeXPath("deal/party");
+// 		info "==party data== " + partyData;
+// 		if(highriseDeals.executeXPath("deal/party/type/text()") == "Company")
+// 		{
+// 			try 
+// 			{
+// 				multipleaccountCount = multipleaccountCount + 1;
+// 				//info for company
+// 				info " deal for company and company name is " + highriseDeals.executeXPath("deal/party/name/text()");
+// 				check_Accounts = zoho.crm.searchRecords("Highrise_Data","(Account_Name:equals:" + highriseDeals.executeXPath("deal/party/name/text()") + ")");
+// 				if(check_Accounts.size() == 0)
+// 				{
+// 					notfoundCount = notfoundCount + 1;
+// 					processAccountDeal = false;
+// 					AccountMessage = "No Account Found";
+// 					info "create new account for " + highriseDeals.executeXPath("deal/party/name/text()");
+// 				}
+// 				else if(check_Accounts.size() == 1)
+// 				{
+// 					processAccountDeal = true;
+// 					info "1 account found for " + highriseDeals.executeXPath("deal/party/name/text()");
+// 					AccountMessage = "";
+// 					crmAccountID = check_Accounts.get(0).get("id");
+// 					DealMap.put("Account_Name",{"id":crmAccountID});
+// 				}
+// 				else if(check_Accounts.size() > 1)
+// 				{
+// 					processAccountDeal = false;
+// 					AccountMessage = "Multiple Accounts Found";
+// 					info "more than 1 accounts found for " + highriseDeals.executeXPath("deal/party/name/text()") + " -- " + check_Accounts.size();
+// 				}
+// 				hrprice = ifnull(highriseDeals.executeXPath("deal/price/text()"),"");
+// 				if(hrprice != "")
+// 				{
+// 					DealMap.put("Amount",hrprice);
+// 				}
+// 				hrcurrency = ifnull(highriseDeals.executeXPath("deal/currency/text()"),"");
+// 				if(hrcurrency != "")
+// 				{
+// 					DealMap.put("Currency",hrcurrency);
+// 				}
+// 				hrdeal_name = ifnull(highriseDeals.executeXPath("deal/name/text()"),"");
+// 				if(hrdeal_name != "")
+// 				{
+// 					DealMap.put("Deal_Name",hrdeal_name);
+// 				}
+// 				status = ifnull(highriseDeals.executeXPath("deal/status/text()"),"");
+// 				if(status != "")
+// 				{
+// 					DealMap.put("Stage",status);
+// 				}
+// 				category = ifnull(highriseDeals.executeXPath("deal/category/name/text()"),"");
+// 				if(category != "")
+// 				{
+// 					if(category == "Instagram")
+// 					{
+// 						category = "Instagram";
+// 					}
+// 					else if(category == "BestAccessDoors.com")
+// 					{
+// 						category = "BestAccessDoors.com";
+// 					}
+// 					else if(category == "BestAccessDoors.ca")
+// 					{
+// 						category = "BestAccessDoors.ca";
+// 					}
+// 					else if(category == "AccessDoorsAndPanels.com")
+// 					{
+// 						category = "AccessDoorsAndPanels.com";
+// 					}
+// 					else if(category == "Existing Business")
+// 					{
+// 						category = "Existing Business";
+// 					}
+// 					else if(category == "New Business")
+// 					{
+// 						category = "New Business";
+// 					}
+// 					DealMap.put("Type",category);
+// 				}
+// 				description = ifnull(highriseDeals.executeXPath("deal/background/text()"),"");
+// 				if(description != "")
+// 				{
+// 					DealMap.put("Description",description);
+// 				}
+// 				info "--------------------------------------------";
+// 				DealMap.put("HighriseID",highriseID);
+// 				if(processAccountDeal == true)
+// 				{
+// 					coql_map = Map();
+// 					coql_map.put("select_query","select Contact_Name, Deal_Name, HR_ContactID from Deals where Deal_Name = '" + hrdeal_name + "'");
+// 					deallist = invokeurl
+// 					[
+// 						url :"https://www.zohoapis.com/crm/v2/coql"
+// 						type :POST
+// 						parameters:coql_map.tostring()
+// 						connection:"crm_connection"
+// 					];
+// 					info " Accounts module deal " + deallist.get("data").size();
+// 					info "account deal rec " + deallist.get("data");
+// 					if(deallist.get("data").size() == 0)
+// 					{
+// 						info "account deal created:";
+// 						createDeal = zoho.crm.createRecord("Deals",DealMap);
+// 						newDealID = createDeal.get("id");
+// 					}
+// 					else if(deallist.get("data").size() == 1)
+// 					{
+// 						info "account deal updated: ";
+// 						dealRecord = deallist.get("data");
+// 						dealcrmID = dealRecord.get(0).get("id");
+// 						createDeal = zoho.crm.updateRecord("Deals",dealcrmID,DealMap);
+// 						newDealID = createDeal.get("id");
+// 					}
+// 					info "---------- account deal res " + createDeal + " - " + createDeal.get("id") + " ----------";
+// 					//get notes from highrise
+// 					highrisenotesURL = geturl("https://bestaccessdoors.highrisehq.com/deals/" + highriseID + "/notes.xml",{"Authorization":highriseAuth});
+// 					notesExists = highrisenotesURL.containsIgnoreCase("notes/note");
+// 					if(notesExists == true)
+// 					{
+// 						notesResponse = highrisenotesURL.executexpath("notes/note").toXmlList();
+// 						notesList = List();
+// 						for each  index_item in notesResponse
+// 						{
+// 							notesMap = Map();
+// 							notesMap.put("Parent_Id",newDealID);
+// 							notesMap.put("se_module","Deals");
+// 							notesMap.put("Note_Title",index_item.executexpath("note/subject-name/text()") + "--" + index_item.executexpath("note/id/text()"));
+// 							notesMap.put("Note_Content",index_item.executexpath("note/body/text()").replaceAll("\n"," ").toString());
+// 							if(index_item.containsIgnoreCase("attachments"))
+// 							{
+// 								noteAttachmentFound = true;
+// 								info "attachments exists";
+// 								notesAttachment = "," + index_item.executexpath("note/id/text()");
+// 							}
+// 							else
+// 							{
+// 								info "attachments not exists";
+// 								noteCreate = zoho.crm.createRecord("Notes",notesMap);
+// 								info " -- noteCreate " + noteCreate + " - " + index_item.executexpath("note/body/text()");
+// 							}
+// 						}
+// 					}
+// 					HRdealMap.put("Notes_Attachment",notesAttachment);
+// 					HRdealMap.put("Zoho_CRM_ID",newDealID);
+// 					HRdealMap.put("Status","Created Newly");
+// 					HRdealMap.put("Conflict_Message","");
+// 					updateHR_Data = zoho.crm.updateRecord("Highrise_Data",crmRecordID,HRdealMap);
+// 					info "deal account created " + updateHR_Data;
+// 				}
+// 				else
+// 				{
+// 					info "account error";
+// 					HRdealMap.put("Account_Conflict",AccountMessage);
+// 					HRdealMap.put("Status","Account Error");
+// 					updateHR_Data = zoho.crm.updateRecord("Highrise_Data",crmRecordID,HRdealMap);
+// 					info "deal contact error is not empty" + updateHR_Data;
+// 				}
+// 			}
+//  catch (e)
+// 			{				info "account catch ";
+// 			}
+// 		}
+// 		else
+// 		{
+// 			info "deal for people";
+// 			try 
+// 			{
+// 				info "people statrs";
+// 				noemailFound = false;
+// 				info "contact data " + partyData.executeXPath("party");
+// 				info " \n address--  " + partyData.executeXPath("party/contact-data/email-addresses");
+// 				partPhoneListcheck = partyData.executeXPath("party/contact-data/phone-numbers/phone-number");
+// 				partEmailListcheck = partyData.executeXPath("party/contact-data/email-addresses/email-address");
+// 				info "email exists: " + partEmailListcheck.containsIgnoreCase("email-address");
+// 				if(partEmailListcheck.containsIgnoreCase("email-address") == true)
+// 				{
+// 					partEmailList = partyData.executeXPath("party/contact-data/email-addresses/email-address").toXmlList();
+// 					info "----- emailslist " + partEmailList.size() + " emaillist " + partEmailList + " -----";
+// 					emailindex = 0;
+// 					for each  singleemail in partEmailList
+// 					{
+// 						emailindex = emailindex + 1;
+// 						if(emailindex == 1)
+// 						{
+// 							getEmail = singleemail.executexpath("email-address/address/text()");
+// 						}
+// 					}
+// 					info "email --  " + getEmail + "  -- name -- " + highriseDeals.executeXPath("deal/name/text()") + " --id " + highriseDeals.executeXPath("deal/party-id/text()");
+// 					hrContact_id = ifnull(highriseDeals.executeXPath("deal/party-id/text()"),"");
+// 				}
+// 				else if(partPhoneListcheck.containsIgnoreCase("phone-number") == true)
+// 				{
+// 					partyPhoneList = partyData.executeXPath("party/contact-data/phone-numbers/phone-number").toXmlList();
+// 					info "----- phoneslist " + partyPhoneList.size() + " emaillist " + partyPhoneList + " -----";
+// 					phoneindex = 0;
+// 					for each  singleemail in partEmailList
+// 					{
+// 						emailindex = emailindex + 1;
+// 						if(emailindex == 1)
+// 						{
+// 							getPhone = singleemail.executexpath("phone-number/number/text()");
+// 						}
+// 					}
+// 					info "phone --  " + getPhone + "  -- name -- " + highriseDeals.executeXPath("deal/name/text()") + " --id " + highriseDeals.executeXPath("deal/party-id/text()");
+// 					hrContact_id = ifnull(highriseDeals.executeXPath("deal/party-id/text()"),"");
+// 				}
+// 				else
+// 				{
+// 					noemailFound = true;
+// 					dealContactError = "No email adddress is found for the given highrise contact " + hrContact_id;
+// 				}
+// 				//test
+// 				// 				hrContact_id = ifnull(highriseDeals.executeXPath("deal/party-id/text()"),"");
+// 				// 				getEmail = "fandj42@yahoo.com";
+// 				hrEmail = ifnull(getEmail,"");
+// 				// 	// if(hrContact_id != "")
+// 				if(hrEmail != "")
+// 				{
+// 					info "email found " + hrEmail;
+// 					DealMap.put("HR_ContactID",hrContact_id);
+// 					// 	getContacts = zoho.crm.searchRecords("Contacts","((HighriseID:equals:" + hrContact_id + "))");
+// 					masterFound = false;
+// 					getContacts = zoho.crm.searchRecords("Contacts","((Email:equals:" + hrEmail + "))");
+// 					info " search res " + " - size " + getContacts.size();
+// 					if(getContacts.size() == 1)
+// 					{
+// 						info "rec found in crm rec id for given highrise id " + hrContact_id + " - " + getContacts.get(0).get("id");
+// 						crmContactID = getContacts.get(0).get("id");
+// 						DealMap.put("Contact_Name",{"id":crmContactID});
+// 					}
+// 					else if(getContacts.size() == 0)
+// 					{
+// 						info "Contact is not found for highrise id";
+// 						dealContactError = "No contact was found for the given highriseid " + hrContact_id;
+// 					}
+// 					else if(getContacts.size() > 1)
+// 					{
+// 						info "multiple Contact found";
+// 						for each  master in getContacts
+// 						{
+// 							if(master.get("Master") == true)
+// 							{
+// 								crmContactID = master.get("id");
+// 								masterFound = true;
+// 								full_name = master.get("Full_Name");
+// 							}
+// 						}
+// 						if(masterFound != true)
+// 						{
+// 							dealContactError = "more than 1 contact was found in crm with no master for the given highriseID " + hrContact_id;
+// 						}
+// 					}
+// 				}
+// 				else if(hrContact_id == "")
+// 				{
+// 					info "contact is empty " + hrContact_id;
+// 					dealContactError = "No contact was added in this deal from highrise";
+// 				}
+// 				if(hrContact_id == "" && hrAccount_id != "")
+// 				{
+// 					dealContactError = "No contact was added in this deal from highrise. Account was added";
+// 				}
+// 				hrprice = ifnull(highriseDeals.executeXPath("deal/price/text()"),"");
+// 				if(hrprice != "")
+// 				{
+// 					DealMap.put("Amount",hrprice);
+// 				}
+// 				hrcurrency = ifnull(highriseDeals.executeXPath("deal/currency/text()"),"");
+// 				if(hrcurrency != "")
+// 				{
+// 					DealMap.put("Currency",hrcurrency);
+// 				}
+// 				hrdeal_name = ifnull(highriseDeals.executeXPath("deal/name/text()"),"");
+// 				if(hrdeal_name != "")
+// 				{
+// 					DealMap.put("Deal_Name",hrdeal_name);
+// 				}
+// 				status = ifnull(highriseDeals.executeXPath("deal/status/text()"),"");
+// 				if(status != "")
+// 				{
+// 					DealMap.put("Stage",status);
+// 				}
+// 				category = ifnull(highriseDeals.executeXPath("deal/category/name/text()"),"");
+// 				if(category != "")
+// 				{
+// 					if(category == "Instagram")
+// 					{
+// 						category = "Instagram";
+// 					}
+// 					else if(category == "BestAccessDoors.com")
+// 					{
+// 						category = "BestAccessDoors.com";
+// 					}
+// 					else if(category == "BestAccessDoors.ca")
+// 					{
+// 						category = "BestAccessDoors.ca";
+// 					}
+// 					else if(category == "AccessDoorsAndPanels.com")
+// 					{
+// 						category = "AccessDoorsAndPanels.com";
+// 					}
+// 					else if(category == "Existing Business")
+// 					{
+// 						category = "Existing Business";
+// 					}
+// 					else if(category == "New Business")
+// 					{
+// 						category = "New Business";
+// 					}
+// 					DealMap.put("Type",category);
+// 				}
+// 				description = ifnull(highriseDeals.executeXPath("deal/background/text()"),"");
+// 				if(description != "")
+// 				{
+// 					DealMap.put("Description",description);
+// 				}
+// 				info "--------------------------------------------";
+// 				DealMap.put("HighriseID",highriseID);
+// 				if(dealContactError == "")
+// 				{
+// 					coql_map = Map();
+// 					coql_map.put("select_query","select Contact_Name, Deal_Name, HR_ContactID from Deals where Deal_Name = '" + hrdeal_name + "'");
+// 					deallist = invokeurl
+// 					[
+// 						url :"https://www.zohoapis.com/crm/v2/coql"
+// 						type :POST
+// 						parameters:coql_map.tostring()
+// 						connection:"crm_connection"
+// 					];
+// 					info " --- " + deallist.get("data").size();
+// 					info "mrec " + deallist.get("data");
+// 					if(deallist.get("data").size() == 0)
+// 					{
+// 						info "created:";
+// 						createDeal = zoho.crm.createRecord("Deals",DealMap);
+// 						newDealID = createDeal.get("id");
+// 					}
+// 					else if(deallist.get("data").size() == 1)
+// 					{
+// 						info "updated: ";
+// 						dealRecord = deallist.get("data");
+// 						dealcrmID = dealRecord.get(0).get("id");
+// 						createDeal = zoho.crm.updateRecord("Deals",dealcrmID,DealMap);
+// 						newDealID = createDeal.get("id");
+// 					}
+// 					info "----------  deal res " + createDeal + " - " + createDeal.get("id") + " ----------";
+// 					//get notes from highrise
+// 					highrisenotesURL = geturl("https://bestaccessdoors.highrisehq.com/deals/" + highriseID + "/notes.xml",{"Authorization":highriseAuth});
+// 					notesExists = highrisenotesURL.containsIgnoreCase("notes/note");
+// 					if(notesExists == true)
+// 					{
+// 						notesResponse = highrisenotesURL.executexpath("notes/note").toXmlList();
+// 						notesList = List();
+// 						for each  index_item in notesResponse
+// 						{
+// 							notesMap = Map();
+// 							notesMap.put("Parent_Id",newDealID);
+// 							notesMap.put("se_module","Deals");
+// 							notesMap.put("Note_Title",index_item.executexpath("note/subject-name/text()") + "--" + index_item.executexpath("note/id/text()"));
+// 							notesMap.put("Note_Content",index_item.executexpath("note/body/text()").replaceAll("\n"," ").toString());
+// 							if(index_item.containsIgnoreCase("attachments"))
+// 							{
+// 								noteAttachmentFound = true;
+// 								info "attachments exists";
+// 								notesAttachment = "," + index_item.executexpath("note/id/text()");
+// 							}
+// 							else
+// 							{
+// 								info "attachments not exists";
+// 								noteCreate = zoho.crm.createRecord("Notes",notesMap);
+// 								info " -- noteCreate " + noteCreate + " - " + index_item.executexpath("note/body/text()");
+// 							}
+// 						}
+// 					}
+// 					HRdealMap.put("Notes_Attachment",notesAttachment);
+// 					HRdealMap.put("Zoho_CRM_ID",newDealID);
+// 					HRdealMap.put("Status","Created Newly");
+// 					HRdealMap.put("Conflict_Message","");
+// 					updateHR_Data = zoho.crm.updateRecord("Highrise_Data",crmRecordID,HRdealMap);
+// 					info "deal contact error is empty";
+// 				}
+// 				else
+// 				{
+// 					HRdealMap.put("Conflict_Message",dealContactError);
+// 					if(noemailFound == false)
+// 					{
+// 						HRdealMap.put("Status","Error");
+// 					}
+// 					else
+// 					{
+// 						HRdealMap.put("Status","");
+// 					}
+// 					updateHR_Data = zoho.crm.updateRecord("Highrise_Data",crmRecordID,HRdealMap);
+// 					info "deal contact error is not empty" + updateHR_Data;
+// 				}
+// 				info "res :" + createDeal;
+// 			}
+//  catch (e)
+// 			{				info "catch block " + e;
+// 				HRdealMap = Map();
+// 				HRdealMap.put("Status","Re-process");
+// 				updateHR_Data = zoho.crm.updateRecord("Highrise_Data",crmRecordID,HRdealMap);
+// 				info "catch block reprocess " + updateHR_Data;
+// 			}
+// 		}
+// 	}
+// 	else
+// 	{
+// 		HRdealMap = Map();
+// 		HRdealMap.put("Status","Record Deleted");
+// 		updateHR_Data = zoho.crm.updateRecord("Highrise_Data",crmRecordID,HRdealMap);
+// 		info "record not found " + updateHR_Data;
+// 	}
+// 	info "--/--/----/---/-----/---/----/---/----/----/----/----/--";
+// }
+//################################################ notes #######################################################
+// noteslist =zoho.crm.getRelatedRecords("Notes", "Contacts", 3106252000065344204);
+// info noteslist;
+// notesMap = Map();
+// // 							notesMap.put("Parent_Id",3106252000065344204);
+// // 							notesMap.put("se_module","Contacts");
+// 							notesMap.put("Note_Title","");
+// 							notesMap.put("Note_Content","checking with no title update");
+// 							noteCreate = zoho.crm.updateRecord("Notes",3106252000085268236,notesMap);
+// info "note "+ noteCreate;
+//################################################ date time #######################################################
+// highrisePeople = geturl("https://bestaccessdoors.highrisehq.com/people/317183187.xml",{"Authorization":highriseAuth});
+// phone = ifnull(highrisePeople.executeXPath("person/contact-data/phone-numbers/phone-number[1]/number/text()"),"");
+// info "phone" +phone;
+// coql_map = Map();
+// 					coql_map.put("select_query", "select HighriseID, Created_Time from Contacts where Phone = '"+phone+"'");
+// 					getContact = invokeurl
+// 					[
+// 						url :"https://www.zohoapis.com/crm/v2/coql"
+// 						type :POST
+// 						parameters:coql_map.tostring()
+// 						connection:"crm_connection"
+// 					];
+// 					info " --- " + getContact.get("data").size();
+// 					info "mrec " + getContact.get("data");
+// info "-----get contacts using phone - inside phone number condition---- : - " + getContact;
+// ctime = zoho.currenttime;
+// date = zoho.currenttime.subHour(2).subMinutes(10).toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'");
+// Rdate = date.subString(0,19);
+// fetchdate = Rdate.replaceAll("[-:T]","");
+// info "HR module current datetime " + ctime + " formared date " + date + " Rdate " + Rdate + " fetchdate " + fetchdate + " test " + zoho.currenttime.subHour(2);
+//-------------------------------------
+// salesperson = zoho.loginuserid;
+// info salesperson;
+// userTypeMap = Map();
+// // userTypeMap.put("id",salesperson);
+// userTypeMap.put("type","ActiveUsers");
+// responseUser = zoho.crm.invokeConnector("crm.getusers",userTypeMap);
+// info responseUser.get("response").get("users");
+// userList =  responseUser.get("response").get("users");
+// coql_POmap = Map();
+// // 	coql_POmap.put("select_query","select * from Users where id  = '" + salesperson + "'");
+// 	poList = invokeurl
+// 	[
+// 		url :"https://www.zohoapis.com/crm/v2/users/"+salesperson
+// 		type :GET
+// 		connection:"crm_connection"
+// 	];
+// info poList;
+// cont = zoho.crm.updateRecord("Contacts",3106252000070526659,{"Email":"lks.balaji7+2@gmail.com"});
+// info cont;
+// for each user in responseUser.get("response")
+// {
+// 	info user.get("id");
+// }
+// get_Invoices = zoho.books.getRecords("Invoices",666840843,"currency_code='USD'&page=1&sort_column=created_time");
+// info get_Invoices.get("page_context").get("has_more_page");
+}

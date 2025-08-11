@@ -1,0 +1,27 @@
+void automation.update_tracking_no_cendrex_ups(Int entry_id)
+{
+resp = zoho.crm.getRecordById("Vendor_Parsings",entry_id);
+carrier_names = {"UPS","UPS TD","FedEX","UPS Online","USPS","DHL","BlueDart"};
+ds_number = resp.get("Name");
+Carrier = resp.get("Carrier");
+if(carrier_names.containsValue("UPS TD"))
+{
+	Carrier = "UPS";
+}
+if(!carrier_names.containsValue(Carrier))
+{
+	Carrier = "Other";
+}
+Date_1 = resp.get("Date_1");
+Tracking_Number = resp.get("Tracking_Number");
+upd_map = Map();
+upd_map.put("Carrier",Carrier);
+upd_map.put("Ship_Date",Date_1);
+upd_map.put("Tracking_Number",Tracking_Number);
+dropship_orders = zoho.crm.searchRecords("Purchase_Orders","(DS_Number:equals:" + ds_number + ")");
+for each  dropship_order in dropship_orders
+{
+	info dropship_order.get("id");
+	info zoho.crm.updateRecord("Purchase_Orders",dropship_order.get("id"),upd_map,{"trigger":{"workflow"}});
+}
+}

@@ -1,0 +1,11 @@
+string button.rk_sendEmail()
+{
+sendmail
+[
+	from :zoho.adminuserid
+	to :"rajatbhatt92@gmail.com"
+	subject :"This is test Email"
+	message :"This is test."
+]
+return "Email Sent";
+}

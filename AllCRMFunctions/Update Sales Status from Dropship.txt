@@ -1,0 +1,494 @@
+void automation.Update_Sales_Status_from_Dropship(Int id)
+{
+fetch_drop_module = zoho.crm.getRecordById("Purchase_Orders",id);
+Vendor_Name = "";
+vendorDetais = fetch_drop_module.get("Vendor_Name");
+if(vendorDetais != null)
+{
+	Vendor_Name = vendorDetais.get("name");
+}
+DSO_Source = if(!isnull(fetch_drop_module.get("Source")),fetch_drop_module.get("Source"),"");
+get_order_key = fetch_drop_module.get("Sales_Order");
+if(get_order_key != null && get_order_key != "")
+{
+	get_order_no = get_order_key.get("name");
+	get_order_id = get_order_key.get("id");
+	get_sales_order_status = zoho.crm.getRecordById("Sales_Orders",get_order_id);
+	get_all_records = zoho.crm.searchRecords("Purchase_Orders","Sales_Order:equals:" + get_order_id);
+	record_count = get_all_records.size();
+	info "record_count =" + record_count;
+	salesstatus = get_sales_order_status.get("Status");
+	list_count = 0;
+	send_vendor_count = 0;
+	Cancel_count = 0;
+	/** start: Created by dhanapal */
+	CAVDate = list();
+	OnHoldDate = list();
+	send_vendor_count_Date = list();
+	ship_date_count = list();
+	canceled_date_count = list();
+	CAVStatus = false;
+	EstimatedShipDate = list();
+	minEstShipDate = list();
+	maxEstShipDate = list();
+	testOnDate = list();
+	OnHoldStatus = "";
+	MaxandMinStatus = false;
+	soMinEstShipDate = ifnull(get_sales_order_status.get("Min_Est_Ship_Date"),0);
+	cancld_dt = ifnull(get_sales_order_status.get("Canceled_Date_Time"),0);
+	if(soMinEstShipDate != 0)
+	{
+		soMinEstShipDate = get_sales_order_status.get("Min_Est_Ship_Date").toTime().toLong();
+	}
+	totOnHoldCount = 0;
+	sumOfDSOHoldHrs = 0.0;
+	//added by Vijay kumar
+	ord_proc_time = 0.0;
+	ship_date_rec_tim = 0.0;
+	ord_conf_veri_tim = 0.0;
+	canc_po_cont = 0;
+	/**end */
+	Get_current_time = zoho.currenttime.tolong();
+	Get_current_date = zoho.currentdate.tolong();
+	if(salesstatus != "Cancelled")
+	{
+		for each  item in get_all_records
+		{
+			item_map = item.toMap();
+			map_status = item_map.get("Status");
+			snd_vndr = item_map.get("sendtovendor");
+			//added by Vijay Kumar
+			if(map_status == "Cancelled")
+			{
+				canc_po_cont = canc_po_cont + 1;
+			}
+			snd_vndr = item_map.get("sendtovendor");
+			tot_ordrproc_hrs = item_map.get("Order_processed_in_Hrs");
+			tot_ship_hrs = item_map.get("Ship_Date_in_hrs");
+			tot_conf_ver_hrs = item_map.get("Confirmation_and_Verification_in_hrs");
+			ord_proc_time = ord_proc_time + ifnull(tot_ordrproc_hrs,0.0);
+			ship_date_rec_tim = ship_date_rec_tim + ifnull(tot_ship_hrs,0.0);
+			ord_conf_veri_tim = ord_conf_veri_tim + ifnull(tot_conf_ver_hrs,0.0);
+			//Till here by vijay
+			/** start: Created by dhanapal */
+			internalOnHoldStatus = false;
+			CAVStatus = item_map.get("Confirmed_and_Verified");
+			// Confirmed and Verified
+			OnHoldStatus = map_status;
+			//item_map("Status"); 
+			info "CAV Status " + CAVStatus;
+			if(item_map.get("Estimated_Ship_Date") != null && DSO_Source != "Amazon Store")
+			{
+				info "Date before:: " + Get_current_date + " :: " + item_map.get("Estimated_Ship_Date").toTime().toLong();
+				if(Get_current_date <= item_map.get("Estimated_Ship_Date").toTime().toLong())
+				{
+					info "Date :: " + Get_current_date + " :: " + item_map.get("Estimated_Ship_Date").toTime().toLong();
+					minEstShipDate.add(item_map.get("Estimated_Ship_Date").toTime().toLong());
+					MaxandMinStatus = true;
+				}
+				else
+				{
+					maxEstShipDate.add(item_map.get("Estimated_Ship_Date").toTime().toLong());
+				}
+			}
+			if(CAVStatus && item_map.get("Confirmed_and_Verified_Time") != null)
+			{
+				// Min date update
+				CAVDate.add(item_map.get("Confirmed_and_Verified_Time").replaceAll('T',' ').toTime().toLong());
+				if(item_map.get("Estimated_Ship_Date") != null)
+				{
+					EstimatedShipDate.add(item_map.get("Estimated_Ship_Date"));
+				}
+				// Estimated Ship Date
+			}
+			onholdUpdate = false;
+			if(OnHoldStatus.toString() == "Hold" || OnHoldStatus.toString() == "On Hold" && DSO_Source != "Amazon Store")
+			{
+				info "map_status " + map_status;
+				if(item_map.get("On_Hold_Process_Date") == null && !item_map.get("On_Hold_State_Change"))
+				{
+					onholdUpdate = true;
+					workflow = Map();
+					workflow.put("trigger",{});
+					updatemap = Map();
+					updatemap.put("On_Hold_Process_Date",item_map.get("Modified_Time"));
+					updatemap.put("On_Hold_State_Change",true);
+					update_purchaseorder = zoho.crm.updateRecord("Purchase_Orders",item_map.get("id"),updatemap,workflow);
+				}
+				info "Update On Hold Process :: " + update_purchaseorder;
+				// Max date.
+				if(onholdUpdate)
+				{
+					OnHoldDate.add(item_map.get("Modified_Time").replaceAll('T',' ').toTime().toLong());
+				}
+				else
+				{
+					if(item_map.get("On_Hold_Process_Date") != null)
+					{
+						OnHoldDate.add(item_map.get("On_Hold_Process_Date").replaceAll('T',' ').toTime().toLong());
+					}
+				}
+				// 			OnHoldDate.add(item_map.get("Modified_Time").replaceAll('T',' ').toTime().toLong());
+				// 			testOnDate.add(item_map.get("Modified_Time").replaceAll('T',' ').toTime().toLong());
+				// 			internalOnHoldStatus = true;
+			}
+			// 		if(internalOnHoldStatus)
+			// 		{
+			// 			workflow = Map();
+			// 			workflow.put("trigger",{});
+			// 			updatemap = Map();
+			// 			updatemap.put("On_Hold_Process_Date",item_map.get("Modified_Time"));
+			// 			updatemap.put("On_Hold_State_Change",false);
+			// 			update_purchaseorder = zoho.crm.updateRecord("Purchase_Orders",item_map.get("id"),updatemap,workflow);
+			// 			info "Update On Hold Process :: " + update_purchaseorder;
+			// 		}
+			internalOnHoldStatus = false;
+			/**end */
+			info "map_status " + map_status;
+			if(map_status.toString() == "Shipped")
+			{
+				list_count = list_count + 1;
+				// 			internalOnHoldStatus = false;
+			}
+			if(map_status == "Sent to Dropshippers" || map_status == "Send to Dropshippers")
+			{
+				send_vendor_count = send_vendor_count + 1;
+				internalOnHoldStatus = true;
+			}
+			else if(Vendor_Name == "Siva Test Do Not Process" && map_status == "Ready for EDI")
+			{
+				send_vendor_count = send_vendor_count + 1;
+			}
+			if(snd_vndr == true)
+			{
+				//added by vijay 3/11/2020
+				opt = item_map.get("Order_Processed_Time");
+				if(opt != Null)
+				{
+					info "time = " + item_map.get("Order_Processed_Time");
+					send_vendor_count_Date.add(item_map.get("Order_Processed_Time").replaceAll('T',' ').toTime().toLong());
+				}
+			}
+			sdut = item_map.get("Ship_Date_Updated_Time");
+			if(sdut != Null)
+			{
+				info "time = " + item_map.get("Ship_Date_Updated_Time");
+				ship_date_count.add(item_map.get("Ship_Date_Updated_Time").replaceAll('T',' ').toTime().toLong());
+			}
+			if(map_status == "Cancelled" && DSO_Source != "Amazon Store")
+			{
+				Cancel_count = Cancel_count + 1;
+				// added by vijay to update cancelled date
+				if(cancld_dt != 0 || cancld_dt != Null)
+				{
+					canceled_date_count.add(item_map.get("Canceled_Date_Time").replaceAll('T',' ').toTime().toLong());
+				}
+				// 			internalOnHoldStatus = false;
+			}
+			if(internalOnHoldStatus)
+			{
+				if(item_map.get("On_Hold_Process_Date") != null && item_map.get("On_Hold_State_Change"))
+				{
+					workflow = Map();
+					workflow.put("trigger",{});
+					updatemap = Map();
+					updatemap.put("On_Hold_To_SCS",item_map.get("Modified_Time"));
+					updatemap.put("On_Hold_State_Change",true);
+					update_purchaseorder = zoho.crm.updateRecord("Purchase_Orders",item_map.get("id"),updatemap,workflow);
+					info "Proces to shipped/cancel" + update_purchaseorder;
+				}
+			}
+			if(item_map.get("On_Hold_State_Change"))
+			{
+				totOnHoldCount = totOnHoldCount + 1;
+				sumOfDSOHoldHrs = sumOfDSOHoldHrs + ifnull(item_map.get("OnHold_Time_Hrs"),0.0);
+			}
+		}
+		tot_po_cnt = record_count - canc_po_cont;
+		info "\nlist_count" + list_count + "==" + record_count + "==" + send_vendor_count;
+		Dropship_Status_request = "list_count" + list_count + " record_count:" + record_count + " send_vendor_count:" + send_vendor_count;
+		logMap = Map();
+		logMap.put("Workflow_Name","Update Sales Status from Dropship");
+		logMap.put("Name","Dropship Orders");
+		logMap.put("Dropship_Order_Record_ID",id.toString());
+		logMap.put("PO_Request",Dropship_Status_request);
+		logMap.put("Start_Time",Get_current_time.toString());
+		logMap.put("End_Time",Get_current_time.toString());
+		// 			logMap.put("PO_response",Shipment_Response);
+		logMap.put("Function_Name","Update Sales Order status based on Dropship Order");
+		Create_log = zoho.crm.createRecord("Sales_Order_PO_Log",logMap);
+		info Create_log;
+		workflow = Map();
+		workflow.put("trigger",{"workflow"});
+		updatemap = Map();
+		info "Cancel_count = " + Cancel_count;
+		if(tot_po_cnt == list_count)
+		{
+			info "enter same completed";
+			updatemap.put("Status","Completed");
+			/** Line added dhanapal - Start*/
+			updatemap.put("Ship_Status",true);
+			updatemap.put("Shipped_Date",toString(Get_current_time.toTime(),"yyyy-MM-dd'T'HH:mm:ss") + "-05:00");
+			//updatemap.put("Shipped_Date",now.toString("YYYY-MM-dd'T'HH:mm:ss'-05:00'"));
+			/**Added by vijay for updating shipped date to Invoice */
+			so_shippeddate = get_sales_order_status.get("Shipped_Date_for_Invoice");
+			if(DSO_Source != "Amazon Store")
+			{
+				info "not amazon store order";
+				if(so_shippeddate == Null)
+				{
+					updatemap.put("Shipped_Date_for_Invoice",toString(Get_current_time.toTime(),"yyyy-MM-dd'T'HH:mm:ss") + "-05:00");
+					//updatemap.put("Shipped_Date_for_Invoice",now.toString("YYYY-MM-dd'T'HH:mm:ss'-05:00'"));
+					info "Ship date for invoice: " + so_shippeddate;
+				}
+			}
+			else
+			{
+				/**added by vijay to update shipped date for Non FBA orders*/
+				so_fullfill = get_sales_order_status.get("Fullfillment");
+				if(so_fullfill == "Seller")
+				{
+					if(so_shippeddate == Null)
+					{
+						updatemap.put("Shipped_Date_for_Invoice",toString(Get_current_time.toTime(),"yyyy-MM-dd'T'HH:mm:ss") + "-05:00");
+						//updatemap.put("Shipped_Date_for_Invoice",now.toString("YYYY-MM-dd'T'HH:mm:ss'-05:00'"));
+					}
+				}
+				else
+				{
+					shp_by_dt = fetch_drop_module.get("Ship_By_Date");
+					if(shp_by_dt == Null)
+					{
+						info "Ship by date is not null";
+						info "ship by date = " + toString(shp_by_dt.toTime(),"yyyy-MM-dd'T'HH:mm:ss");
+						updatemap.put("Shipped_Date_for_Invoice",toString(shp_by_dt.toTime(),"yyyy-MM-dd'T'HH:mm:ss") + "-05:00");
+					}
+				}
+			}
+			/** end */
+			if(salesstatus != "Completed" && DSO_Source != "Amazon Store")
+			{
+				//update_saleorder = zoho.crm.updateRecord("Sales_Orders",get_order_id,updatemap,workflow); code commented by Pooja L on nov 05 2020
+				//info "update_saleorder" + update_saleorder; code commented by Pooja L on nov 05 2020
+				logMap = Map();
+				logMap.put("Workflow_Name","Update Sales Status from Dropship");
+				logMap.put("Name","Dropship Orders");
+				logMap.put("Dropship_Order_Record_ID",id.toString());
+				logMap.put("PO_Request",updatemap);
+				logMap.put("Start_Time",Get_current_time.toString());
+				logMap.put("End_Time",Get_current_time.toString());
+				logMap.put("Function_Name","Update Sales Order status based on Dropship Order");
+				// 			get_sales_order_status.update("Status","Completed");
+			}
+		}
+		else if(tot_po_cnt == send_vendor_count && DSO_Source != "Amazon Store")
+		{
+			//added by vijay
+			ordrproc_max_dt = "";
+			if(send_vendor_count_Date.size() > 0)
+			{
+				ordrproc_max_dt = toString(send_vendor_count_Date.largest().toTime(),"yyyy-MM-dd'T'HH:mm:ss") + "-05:00";
+				updatemap.put("Order_Processed_Date_and_Time",ordrproc_max_dt);
+			}
+			info "same shipment";
+			if(salesstatus != "Awaiting Shipment" && DSO_Source != "Amazon Store")
+			{
+				updatemap.put("Status","Awaiting Shipment");
+				//update_saleorder = zoho.crm.updateRecord("Sales_Orders",get_order_id,updatemap,workflow); code commented by Pooja L on nov 05 2020
+				//info "update_saleorder" + update_saleorder; code commented by Pooja L on nov 05 2020
+				logMap = Map();
+				logMap.put("Workflow_Name","Update Sales Status from Dropship");
+				logMap.put("Name","Dropship Orders");
+				logMap.put("Dropship_Order_Record_ID",id.toString());
+				logMap.put("PO_Request",updatemap);
+				logMap.put("Start_Time",Get_current_time.toString());
+				logMap.put("End_Time",Get_current_time.toString());
+				logMap.put("Function_Name","Update Sales Order status based on Dropship Order");
+			}
+		}
+		else if(tot_po_cnt > list_count && list_count > 0 && DSO_Source != "Amazon Store")
+		{
+			info "same partially";
+			if(salesstatus != "Partially Shipped")
+			{
+				updatemap.put("Status","Partially Shipped");
+				//update_saleorder = zoho.crm.updateRecord("Sales_Orders",get_order_id,updatemap,workflow); code commented by Pooja L on nov 05 2020
+				//info "update_saleorder" + update_saleorder; code commented by Pooja L on nov 05 2020
+				logMap = Map();
+				logMap.put("Workflow_Name","Update Sales Status from Dropship");
+				logMap.put("Name","Dropship Orders");
+				logMap.put("Dropship_Order_Record_ID",id.toString());
+				logMap.put("PO_Request",updatemap);
+				logMap.put("Start_Time",Get_current_time.toString());
+				logMap.put("End_Time",Get_current_time.toString());
+				logMap.put("Function_Name","Update Sales Order status based on Dropship Order");
+			}
+		}
+		else
+		{
+			//info "List count " + list_count + "Total Po count " + tot_po_cnt;
+			info "None of status updated!!!";
+		}
+		if(Cancel_count == record_count && DSO_Source != "Amazon Store")
+		{
+			info "cccccccccccc inside cancelled";
+			if(canceled_date_count != Null || canceled_date_count != 0)
+			{
+				cmaxDate = toString(canceled_date_count.largest().toTime(),"yyyy-MM-dd'T'HH:mm:ss") + "-05:00";
+				updatemap.put("Cancelled_Date",cmaxDate);
+			}
+			updatemap.put("Status","Cancelled");
+			//update_saleorder = zoho.crm.updateRecord("Sales_Orders",get_order_id,updatemap,workflow); code commented by Pooja L on nov 05 2020
+			//info "update_saleorder" + update_saleorder; code commented by Pooja L on nov 05 2020
+			logMap = Map();
+			logMap.put("Workflow_Name","Update Sales Status from Dropship");
+			logMap.put("Name","Dropship Orders");
+			logMap.put("Dropship_Order_Record_ID",id.toString());
+			logMap.put("PO_Request",updatemap);
+			logMap.put("Start_Time",Get_current_time.toString());
+			logMap.put("End_Time",Get_current_time.toString());
+			logMap.put("Function_Name","Update Sales Order status based on Dropship Order");
+		}
+		if(updatemap.size() > 0)
+		{
+			update_saleorder = zoho.crm.updateRecord("Sales_Orders",get_order_id,updatemap,workflow);
+			info "update_saleorder" + update_saleorder;
+			logMap.put("PO_response",update_saleorder);
+			Create_log = zoho.crm.createRecord("Sales_Order_PO_Log",logMap);
+			info Create_log;
+		}
+		/**Start: Created By Dhanapal */
+		updateInternalFields = Map();
+		// Max date need update
+		if(CAVDate.size() > 0 && CAVDate.size() == tot_po_cnt && DSO_Source != "Amazon Store")
+		{
+			maxDate = toString(CAVDate.largest().toTime(),"yyyy-MM-dd'T'HH:mm:ss") + "-05:00";
+			info "Position :: " + CAVDate.indexOf(CAVDate.largest());
+			if(EstimatedShipDate.size() > 0)
+			{
+				estShipDate = toString(EstimatedShipDate.get(CAVDate.indexOf(CAVDate.largest())),"yyyy-MM-dd'T'HH:mm:ss");
+				updateInternalFields.put("Est_Ship_Date",estShipDate);
+			}
+			info "Update CAV Date !!" + estShipDate;
+			// DSO_Status value in Table "ConfirmAndVerified"
+			updateInternalFields.put("DSO_Status","ConfirmAndVerified");
+			updateInternalFields.put("CAV_Date",maxDate);
+			//updateInternalFields.put("On_Hold_Date","");
+			//update_saleorder = zoho.crm.updateRecord("Sales_Orders",get_order_id,updateInternalFields,workflow); code commented by Pooja L on nov 05 2020
+			//info "True CAV :: " + update_saleorder; code commented by Pooja L on nov 05 2020
+		}
+		else
+		{
+			updateInternalFields.put("DSO_Status","");
+			//update_saleorder = zoho.crm.updateRecord("Sales_Orders",get_order_id,updateInternalFields,workflow); code commented by Pooja L on nov 05 2020
+			//info "Else CAV :: " + update_saleorder; code commented by Pooja L on nov 05 2020
+		}
+		info "DSO Source : " + DSO_Source;
+		if(DSO_Source != "Amazon Store")
+		{
+			if(tot_po_cnt > 0)
+			{
+				avgOnholdTime = 0;
+				if(sumOfDSOHoldHrs > 0)
+				{
+					avgOnholdTime = sumOfDSOHoldHrs / totOnHoldCount;
+				}
+				updateInternalFields.put("Avg_On_Hold_Time",avgOnholdTime);
+				// 		updateInternalFields.put("On_Hold_Date","");
+				//update_saleorder = zoho.crm.updateRecord("Sales_Orders",get_order_id,updateInternalFields,workflow); code commented by Pooja L on nov 05 2020
+				//info "True CAV :: " + update_saleorder; code commented by Pooja L on nov 05 2020
+			}
+		}
+		// min date need to update.
+		if(OnHoldDate.size() > 0)
+		{
+			minDate = toString(OnHoldDate.smallest().toTime(),"yyyy-MM-dd'T'HH:mm:ss") + "-05:00";
+			info "Sales Order NHOLD Date :: " + minDate;
+			// DSO_Status value in table "OnHold"
+			updateInternalFields.put("DSO_Status","OnHold");
+			updateInternalFields.put("On_Hold_Date",minDate);
+			//update_saleorder = zoho.crm.updateRecord("Sales_Orders",get_order_id,updateInternalFields,workflow); code commented by Pooja L on nov 05 2020
+			//info "update_saleorder" + update_saleorder; code commented by Pooja L on nov 05 2020
+		}
+		if(MaxandMinStatus)
+		{
+			if(minEstShipDate.size() > 0)
+			{
+				info "Update Min :: " + minEstShipDate.smallest() + " ;; " + soMinEstShipDate;
+				if(minEstShipDate.smallest() != soMinEstShipDate)
+				{
+					minDate = toString(minEstShipDate.smallest().toTime(),"yyyy-MM-dd");
+					info "Update Min Estimated Ship date :: " + minDate;
+					// DSO_Status value in table "OnHold"
+					updateInternalFields.put("Min_Est_Ship_Date",minDate);
+					//update_saleorder = zoho.crm.updateRecord("Sales_Orders",get_order_id,updateInternalFields,workflow); code commented by Pooja L on nov 05 2020
+					//info "update_saleorder" + update_saleorder; code commented by Pooja L on nov 05 2020
+				}
+			}
+		}
+		else
+		{
+			if(maxEstShipDate.size() > 0)
+			{
+				info "Update Min :: " + maxEstShipDate.largest() + " ;; " + soMinEstShipDate;
+				if(maxEstShipDate.largest() != soMinEstShipDate)
+				{
+					minDate = toString(maxEstShipDate.largest().toTime(),"yyyy-MM-dd");
+					info "Update Min Estimated Ship date :: " + minDate;
+					// DSO_Status value in table "OnHold"
+					updateInternalFields.put("Min_Est_Ship_Date",minDate);
+					// update_saleorder = zoho.crm.updateRecord("Sales_Orders",get_order_id,updateInternalFields,workflow);
+					// info "update_saleorder" + update_saleorder; code commented by Pooja L on nov 05 2020
+				}
+			}
+		}
+		//Added by Vijay Kumar
+		if(DSO_Source != "Amazon Store")
+		{
+			info "amazon store";
+			total_order_processed_time = ifnull(ord_proc_time,0.0);
+			avg_order_processed_time_fin = total_order_processed_time / ifnull(record_count,1);
+			total_order_confimed_time = ifnull(ship_date_rec_tim,0.0);
+			avg_order_confirmed_time_fin = total_order_confimed_time / ifnull(record_count,1);
+			total_order_verified_time = ifnull(ord_conf_veri_tim,0.0);
+			avg_order_verified_time = total_order_verified_time / ifnull(record_count,1);
+			info "ship_date_count" + ship_date_count;
+			ship_max_dt = "";
+			if(ship_date_count.size() > 0)
+			{
+				ship_max_dt = toString(ship_date_count.largest().toTime(),"yyyy-MM-dd'T'HH:mm:ss") + "-05:00";
+			}
+			info "ship_date_count" + ship_date_count;
+			info "avg_order_verified_time" + avg_order_processed_time_fin;
+			//mp = Map(); commented by Pooja L on nov 05 2020
+			updateInternalFields.put("Avg_Order_Process_time",avg_order_processed_time_fin.round(2));
+			updateInternalFields.put("Avg_Order_Confirmed_Time",avg_order_confirmed_time_fin.round(2));
+			updateInternalFields.put("Avg_Order_Verified_Time",avg_order_verified_time.round(2));
+			updateInternalFields.put("Order_Confirmed_Date_Time",ship_max_dt);
+			if(send_vendor_count_Date.size() > 0 && send_vendor_count_Date.size() == tot_po_cnt)
+			{
+				maxDate1 = toString(send_vendor_count_Date.largest().toTime(),"yyyy-MM-dd'T'HH:mm:ss") + "-05:00";
+				//info "Position :: " + CAVDate.indexOf(CAVDate.largest());
+				// DSO_Status value in Table "Order Processed"
+				info "maxDate1 = " + maxDate1;
+				updateInternalFields.put("DSO_Status","Order Processed");
+				updateInternalFields.put("Order_Processed_Date_and_Time",maxDate1);
+			}
+			else
+			{
+				updateInternalFields.put("DSO_Status","");
+			}
+		}
+		info "update_saleorder = " + updateInternalFields;
+		workflow.put("trigger",{});
+		update_saleorder = zoho.crm.updateRecord("Sales_Orders",get_order_id,updateInternalFields,workflow);
+		//added by Pooja L on nov 05 2020
+		// Added by vijay till here
+		/** end:  */
+	}
+	else
+	{
+		info "The ordr was Canclled. Do not update it.....";
+	}
+}
+}

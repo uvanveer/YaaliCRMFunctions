@@ -1,0 +1,38 @@
+void automation.Create_Contact_Account(Int CrmContactId)
+{
+getconatact = zoho.crm.getRecordById("Contacts",CrmContactId);
+FullName = getconatact.get("Full_Name");
+if(getconatact.get("Company_Name") != null && getconatact.get("Company_Name") != "")
+{
+	FullName = getconatact.get("Company_Name");
+}
+Account = getconatact.get("Account_Name");
+if(isNull(Account))
+{
+	createaccount = Map();
+	createaccount.put("Account_Name",getconatact.get("Full_Name"));
+	createaccount.put("Phone",getconatact.get("Phone"));
+	createaccount.put("Billing_Street",getconatact.get("Other_Street"));
+	createaccount.put("Billing_City",getconatact.get("Other_City"));
+	createaccount.put("Billing_State",getconatact.get("Other_State"));
+	createaccount.put("Billing_Country",getconatact.get("Other_Country"));
+	createaccount.put("Billing_Code",getconatact.get("Other_Zip"));
+	createaccount.put("Shipping_Street",getconatact.get("Mailing_Street"));
+	createaccount.put("Shipping_City",getconatact.get("Mailing_City"));
+	createaccount.put("Shipping_State",getconatact.get("Mailing_State"));
+	createaccount.put("Shipping_Country",getconatact.get("Mailing_Country"));
+	createaccount.put("Shipping_Code",getconatact.get("Mailing_Zip"));
+	createaccount.put("Source_Created","Contact");
+	creataccountres = zoho.crm.createRecord("Accounts",createaccount);
+	info "creataccountres response:" + creataccountres;
+	accid = creataccountres.get("id");
+	info accid;
+	//update conatct
+	updatemap = Map();
+	updatemap.put("Account_Name",accid);
+	updatemap.put("Mass_Update","");
+	updatemap.put("Update_Source","ZCRM-Contact-3106252000051122461-" + now.toLong());
+	updatecontact = zoho.crm.updateRecord("Contacts",CrmContactId,updatemap);
+	info "------Update Contact" + updatecontact;
+}
+}

@@ -1,0 +1,14 @@
+void automation.Untitled_Function49()
+{
+start_range = 1;
+end_range = 100;
+counter = start_range;
+range_dif = end_range - start_range;
+x = rightpad("t",range_dif).replaceall(" ",",t").toList();
+for each  x1 in x
+{
+	geturl = geturl("https://www.zohoapis.com/books/v3/salesorders?organization_id=org663942562");
+	info geturl;
+	counter = counter + 1;
+}
+}

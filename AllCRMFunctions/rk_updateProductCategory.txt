@@ -1,0 +1,7 @@
+void automation.rk_updateProductCategory(Int id)
+{
+getp = zoho.crm.getRecordById("Products",id.toLong());
+//up = zoho.crm.update("Products",id.toLong(),{"Categories":"BEST -Universal Flush, Draft Stop Access Door"});
+//up = zoho.crm.update("Products",3106252000011042064,{"Categories":"BEST -Universal Flush, Draft Stop Access Door"});
+//info up;
+}

@@ -1,0 +1,13 @@
+void automation.test4()
+{
+// info zoho.currenttime;
+// info zoho.crm.searchRecords("Amazon_Shipment_Service", "(Dropship_Order:equals:3106252000077928172)");
+// info 
+// info zoho.crm.getRecordById("Purchase_Orders",3106252000078253150);
+// info zoho.crm.searchRecords("Purchase_Orders", (id:equals:3106252000078253150));
+// info zoho.crm.getRecordById("Sales_Orders","3106252000115659062");
+Get_crm_salesorderid = "113-8941483-4964201";
+ordID = "666840843";
+getrecfrominventory = zoho.inventory.getRecords("salesorders",ordID,"cf_amazon_order_id=" + Get_crm_salesorderid);
+info getrecfrominventory;
+}

@@ -1,0 +1,50 @@
+void automation.getCRMRecordID(Int ContactID)
+{
+contactmap = Map();
+contactmap.put("CRM_ID",ContactID);
+contactmap.put("Module_Name","CRM-Contact");
+info contactmap;
+// CreateStore = zoho.creator.v1.createRecord("zoho_zoho1502","quotes","Mapping_Form",contactmap);
+Tempmap = Map();
+CreateStore = zoho.creator.createRecord("zoho_zoho1502","quotes","Mapping_Form",contactmap,Tempmap,"zcreator_connecction");
+info CreateStore;
+Createcontv3 = zoho.creator.createRecord("zoho_zoho1502","quotesv3","Mapping_Form",contactmap,Tempmap,"zcreator_connecction");
+info Createcontv3;
+// warm zoho contact field update dev by surya 17/05/23
+getSalesOrder = zoho.crm.getRecordById("Contacts",ContactID);
+warmcontact = getSalesOrder.get("Warm_Contact");
+warmzohocon = getSalesOrder.get("Warm_Zoho_Contact");
+updatemp = Map();
+if(warmcontact != null && warmcontact != "")
+{
+	updatedata = "Yes";
+	updatemp.put("Warm_Zoho_Contact",updatedata);
+	update = zoho.crm.updateRecord("Contacts",ContactID,updatemp);
+}
+info update;
+info "ss" + updatedata;
+// end by warm zoho contact update script
+//if(ContactID == 100)
+// {
+// 	contactmig = zoho.crm.getRecords("Contacts",49,200);
+// 	counter = 0;
+// 	for each  getconatct in contactmig
+// 	{
+// 		counter = counter + 1;
+// 		contactmap = Map();
+// 		contactmap.put("CRM_ID",getconatct.get("id"));
+// 		contactmap.put("Module_Name","CRM-Contact");
+// 		CreateStore = zoho.creator.createRecord("zoho_zoho1502","quotes","Mapping_Form",contactmap);
+// 	}
+// 	contactmig = zoho.crm.getRecords("Contacts",50,200);
+// 	for each  getconatct in contactmig
+// 	{
+// 		counter = counter + 1;
+// 		contactmap = Map();
+// 		contactmap.put("CRM_ID",getconatct.get("id"));
+// 		contactmap.put("Module_Name","CRM-Contact");
+// 		CreateStore = zoho.creator.createRecord("zoho_zoho1502","quotes","Mapping_Form",contactmap);
+// 	}
+// 	info counter;
+// }
+}

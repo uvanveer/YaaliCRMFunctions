@@ -1,0 +1,26 @@
+void automation.SetCurrencyFirstPage(Int contact_id)
+{
+contact_details = zoho.crm.getRecordById("Contacts",contact_id);
+first_page_visited = contact_details.get("First_Visited_URL");
+info "first" + first_page_visited;
+if(!isNull(first_page_visited))
+{
+	if(first_page_visited.contains("bestaccessdoors.com"))
+	{
+		currency = "USD";
+	}
+	else if(first_page_visited.contains("bestaccessdoors.ca"))
+	{
+		currency = "CAD";
+	}
+	else if(first_page_visited.contains("accessdoorscanada.ca"))
+	{
+		currency = "CAD";
+	}
+	else if(first_page_visited.contains("accessdoorsandpanels.com"))
+	{
+		currency = "USD";
+	}
+	update = zoho.crm.updateRecord("Contacts",contact_id,{"Currency":currency});
+}
+}

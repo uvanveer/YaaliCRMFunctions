@@ -1,0 +1,60 @@
+void automation.Create_Tasks(Int Quote_Id)
+{
+Get_Quote_details = zoho.crm.getRecordById("Quotes",Quote_Id);
+info Get_Quote_details;
+//info Get_Quote_details.get("Contact_Name") ;
+Get_sales_quote_number = Get_Quote_details.get("Sales_Quote_Number");
+Get_currency_symbol = Get_Quote_details.get("$currency_symbol");
+Get_quote_value = Get_Quote_details.get("Grand_Total");
+Get_Owner_details = Get_Quote_details.get("Owner");
+Get_owner_data = Get_Owner_details.get("id");
+Get_contact_details = Get_Quote_details.get("Contact_Name");
+Get_contact_id = Get_contact_details.get("id");
+contact_details = zoho.crm.getRecordById("Contacts",Get_contact_id);
+Get_time_zone = contact_details.get("Time_Zone_1");
+mp = Map();
+mp.put("Subject","Follow up on Quote - Quote # ( " + Get_sales_quote_number + " )- (" + Get_currency_symbol + " " + Get_quote_value + ")");
+Get_call_date = zoho.currentdate.addDay(2);
+if(Get_call_date.getDayOfWeek() == 1)
+{
+	Get_call_start_date = zoho.currentdate.addDay(3);
+}
+else if(Get_call_date.getDayOfWeek() == 7)
+{
+	Get_call_start_date = zoho.currentdate.addDay(4);
+}
+else
+{
+	Get_call_start_date = zoho.currentdate.addDay(2);
+}
+Get_reminder_time = Get_call_start_date.toString("yyyy-MM-dd HH:mm:ss");
+Get_date = Get_reminder_time.getprefix(" ");
+Get_time = Get_reminder_time.getsuffix(" ");
+Get_call_starttime = Get_date + "T" + "09:00:00" + "-04:00";
+mp.put("What_Id",Quote_Id);
+mp.put("Due_Date",Get_date);
+mp.put("Who_Id",Get_contact_id);
+mp.put("Owner",Get_owner_data.tolong());
+mp.put("$se_module","Quotes");
+if(Get_time_zone != null)
+{
+	mp.put("Time_Zone",Get_time_zone);
+}
+// mp.put("Call_Type","Outbound");
+// mp.put("Call_Purpose","Prospecting");
+// mp.put("Call_Start_Time",Get_call_starttime);
+mp.put("Description","Follow Up Task at Quote Sent");
+workflow = Map();
+workflow.put("trigger",{"workflow"});
+create_task = zoho.crm.createRecord("Tasks",mp,workflow);
+info create_task;
+Get_task_id = create_task.get("id");
+// 	info create_task;
+shipment_update_response = Map();
+shipment_update_response.put("Note_Title","Quote_Link");
+shipment_update_response.put("Note_Content","https://1.door-pay.com/pq/quotepdf.php?q=" + Get_sales_quote_number + "&n=" + zoho.encryption.base64Encode(Get_sales_quote_number));
+shipment_update_response.put("Parent_Id",Get_task_id);
+shipment_update_response.put("$se_module","Tasks");
+createres = zoho.crm.createRecord("Notes",shipment_update_response);
+info createres;
+}

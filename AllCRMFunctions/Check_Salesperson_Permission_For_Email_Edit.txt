@@ -1,0 +1,63 @@
+map validation_rule.Check_Salesperson_Permission_For_Email_Edit(String crmAPIRequest)
+{
+/* Created By prashanth on 2020 */
+/* contact module - email field validation  */
+//---------------------------------------------
+/* The snippet below shows you how to get a list of fields, their values from a MAP object. The fields’ values can be obtained from the same MAP object.                                                  */
+entityMap = crmAPIRequest.toMap().get("record");
+/* The example below demonstrates how a field’s value (email) can be obtained from a MAP object. Here, entityMap - Map Object, Email - Field's API name
+Sample entityMap= {'Email': 'xxx@xxx.com', 'Last_Name': 'xxx'};                                   */
+email = entityMap.get("Email");
+id = entityMap.get("id");
+modify = entityMap.get("Allow_Email_Modify");
+info modify;
+response = Map();
+// salesperson = zoho.loginuserid;
+// userTypeMap = Map();
+// userTypeMap.put("id",salesperson);
+// responseUser = zoho.crm.invokeConnector("crm.getusers",userTypeMap);
+// info responseUser;
+// 	coql_POmap = Map();
+// 	coql_POmap.put("select_query","select * from Users where  = '" + VendorID + "'");
+// 	poList = invokeurl
+// 	[
+// 		url :"https://www.zohoapis.com/crm/v2/users/"+salesperson
+// 		type :GET
+// 		parameters:coql_POmap.tostring()
+// 		connection:"crm_connection"
+// 	];
+if(modify == "true" || modify == true)
+{
+	response.put('status','success');
+}
+else
+{
+	response.put('status','error');
+	response.put('message',"A contact's emaill can not be changed, please contact your Administrator");
+}
+// emailNull = email == null || email == "";
+// sendmail
+// [
+// 	from :zoho.adminuserid
+// 	to :"dinesh@bizappln.com"
+// 	subject :"checking"
+// 	message :"modify " + entityMap + " === " + response + ":" + modify + ":" + emailNull + ":" + email
+// ]
+// sendmail
+// [
+// 	from :zoho.adminuserid
+// 	to :"prashanth@bizappln.com"
+// 	subject :"checking"
+// 	message :"modify " + entityMap + " === " + ":" + modify + ":" + email + " --id " + id
+// ]
+/* ---------------------------------------------------------------------------------------------- */
+/* Start writing your code here to perform the necessary field validation                         */
+/* ---------------------------------------------------------------------------------------------- */
+/* If the code identifies a validation error, set the status and alert message as shown below:    */
+//response.put('status','error');
+//response.put('message', '<your message(100 characters)>');
+/* If there are no errors found during validation, set the status as shown below:                 */
+// response.put('status','success');
+/* ---------------------------------------------------------------------------------------------- */
+return response;
+}

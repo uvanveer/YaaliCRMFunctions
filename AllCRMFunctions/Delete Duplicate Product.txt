@@ -1,0 +1,67 @@
+string standalone.Delete_DuplicateProduct(Int start)
+{
+// Crm_Product_Duplicate_Migration()
+// 	random = randomNumber(10);
+// 	get_product = zoho.crm.getRecords("Products","Is_Processed:eqauls:false",random.toLong(),100);
+get_product = zoho.crm.searchRecords("Products","Is_Processed:equals:false",start,50);
+info get_product;
+// 		get_product = [];
+// info "start time" + zoho.currenttime;
+// for each  getproduct in get_product
+// {
+// 	sku = getproduct.getJson("Product_Code");
+// 	store = getproduct.getJson("Store").getJson("name");
+// 	// 	sku = "BA-BTA";
+// 	// 	store = "Best_Access_Doors";
+// 	searchproduct = zoho.crm.searchRecords("Products","((Product_Code:equals:" + sku + ")and(Store:equals:" + store + "))");
+// 	// 		info searchproduct;
+// 	// 	for each searchproduct in fetch_searchproduct
+// 	// 	{ 
+// 	pro_org_id = searchproduct.getJson("id");
+// 	if(searchproduct.size() > 0)
+// 	{
+// 		count = 0;
+// 		pro_org_id = searchproduct.getJson("id");
+// 		for each  getpro in searchproduct
+// 		{
+// 			proid = getpro.getJson("id");
+// 			info proid;
+// 			updatemap = Map();
+// 			updatemap.put("Is_Processed",true);
+// 			updateflag = zoho.crm.updateRecord("Products",proid.toLong(),updatemap);
+// 			// 			info "\nupdateflag" + updateflag;
+// 			if(pro_org_id != proid)
+// 			{
+// 				productmap = Map();
+// 				productmap.put("Is_Processed",true);
+// 				productmap.put("Is_Duplicate",true);
+// 				deleteRecordMap = Map();
+// 				deleteRecordMap.put("module","Products");
+// 				deleteRecordMap.put("id",proid);
+// 				deleteResp = zoho.crm.invokeConnector("crm.delete",deleteRecordMap);
+// 				info deleteResp.getJSON("response");
+// 				if(deleteResp.getJSON("response").getJSON("data").getJSON("code") == "SUCCESS")
+// 				{
+// 					existingItemDatas = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Items?CRMRecordID=" + proid);
+// 					creatorid = existingItemDatas.getJSON("ID");
+// 					url = "https://creator.zoho.com/api/zoho_zoho1502/json/quotes/form/Add_Items/record/delete";
+// 					data_map = Map();
+// 					data_map.put("authtoken","8e9640c1f4b7e8e3443fd95d7c16b7e6");
+// 					data_map.put("scope","creatorapi");
+// 					data_map.put("Record_ID",creatorid);
+// 					response = postUrl(url,data_map);
+// 					info "response" + response;
+// 				}
+// 				count = count + 1;
+// 			}
+// 		}
+// 		info "procount" + count;
+// 	}
+// 	else
+// 	{
+// 		info "No Duplicate";
+// 	}
+// }
+// info "\nEnd time" + zoho.currenttime;
+return '';
+}

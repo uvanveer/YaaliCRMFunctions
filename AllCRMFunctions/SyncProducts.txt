@@ -1,0 +1,404 @@
+void automation.Untitled_Function12(Int ProductID,Int VendorName)
+{
+// coded by dinesh from yaali
+// created on: 06/04/2019
+/* storemap = Map();
+storemap.put("CRM_ID",ProductID);
+storemap.put("Module_Name","CRM-Products");
+CreateStore = zoho.creator.createRecord("zoho_zoho1502","quotes","Mapping_Form",storemap); */
+//itemdata = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Items?CRMRecordID="+productID);
+// fetching product details from CRM
+crmData = zoho.crm.getRecordById("Products",ProductID);
+// info crmData;
+// fieldmap = zoho.crm.searchRecords("CREATE_UPDATE_BC_CRM", (store_name1:equals:crmData.get("Store").get("name")));
+info crmData.get("Store").get("name");
+Tax_Class = crmData.get("Tax_Class");
+Product_type = crmData.get("Product_type");
+if(Product_type == null)
+{
+	Product_type = "";
+}
+if(crmData.get("Product_Active") == "true")
+{
+	Product_Active = "True";
+}
+else if(crmData.get("Product_Active") == 'false')
+{
+	Product_Active = "False";
+}
+if(crmData.getJSON("Free_Shipping") == "true")
+{
+	Free_Shipping = "True";
+}
+else if(crmData.getJSON("Free_Shipping") == "false")
+{
+	Free_Shipping = "False";
+}
+Product_Availability = "True";
+Product_Visibility = "True";
+if(crmData.get("Product_Visibility") == "false")
+{
+	Product_Visibility = "false";
+}
+Lead_Time = crmData.get("Lead_Time");
+update_leadtime = "";
+if(Lead_Time != null && Lead_Time != "")
+{
+	update_leadtime = Lead_Time;
+}
+Avalara_Product_Tax_Code = crmData.get("Avalara_Product_Tax_Code");
+Manufacturer = crmData.get("Manufacturer");
+Fixed_Shipping_Price = crmData.get("Fixed_Shipping_Price");
+SKU = crmData.get("Product_Code");
+item_Name = crmData.get("Product_Name");
+/* COGS_Account = crmData.get("qb_cogs_account");
+Income_Account = crmData.get("qb_income_account");
+Shipping_Line = crmData.get("qb_shipping_line");
+Product_sales_Account = crmData.get("qb_product_sales_account");*/
+Dropship_Print = crmData.get("Dropship_Print");
+Youtube_URL = crmData.get("Youtube_URL");
+Vendor_Name = crmData.get("VendorName");
+VendorName = crmData.get("Vendor_Name");
+if(VendorName != null)
+{
+	actualVendorName = VendorName.get('name');
+}
+else
+{
+	info "No Vendor Name Founded in Product";
+}
+Option_SKU = crmData.get("Option_SKU");
+storedata = crmData.get("Store");
+storeName = null;
+if(crmData.get("Store") != null)
+{
+	storeName = storedata.get("name");
+}
+ownerdata = crmData.get("Owner");
+ownerName = null;
+if(crmData.get("Owner") != null)
+{
+	ownerName = ownerdata.get("name");
+}
+Sales_Rate = crmData.get("Unit_Price");
+Bigcommerce_Unique_ID = crmData.get("Bigcommerce_Unique_ID");
+/*Spec Sheet URL */
+Dropship_Print = crmData.get("Dropship_Print");
+CRMRecordID = crmData.get("id");
+check_Limit = crmData.get("check_Limit");
+Bigcommerce_ID = crmData.get("Bigcommerce_ID");
+Image1 = crmData.get("Image1");
+Image2 = crmData.get("Image2");
+Image3 = crmData.get("Image3");
+Image4 = crmData.get("Image4");
+Image5 = crmData.get("Image5");
+Image6 = crmData.get("Image6");
+// Image7 = crmData.get("Image7");
+// Image8 = crmData.get("Image8");
+// Image9 = crmData.get("Image9");
+// Image10 = crmData.get("Image10");
+Vendor_SKU = crmData.get("Vendor_SKU");
+Unit_Price = crmData.get("Unit_Price");
+Cost_Price = crmData.get("Cost_Price");
+Sales_Price = crmData.get("Sale_Price");
+if(crmData.get("Taxable") == "true")
+{
+	Taxable = "True";
+}
+else if(crmData.get("Taxable") == "false")
+{
+	Taxable = "False";
+}
+Profit_Margin = crmData.get("Profit_Margin");
+Commission_Rate = crmData.get("Commission_Rate");
+Retail_Price = crmData.get("Retail_Price");
+Tax = crmData.get("Tax");
+// Tax = List();
+// Tax.add("Vat")
+Total_Profit = crmData.get("Total_Profit");
+Weight = crmData.get("Weight");
+Height = crmData.get("Height");
+Width = crmData.get("Width");
+Depth = crmData.get("Depth");
+Product_Currency = crmData.get("Product_Currency");
+Usage_Unit = crmData.get("Usage_Unit");
+Quantity_in_Stock = crmData.get("Qty_in_Stock");
+Qty_Ordered = crmData.get("Qty_Ordered");
+Reorder_Level = crmData.get("Reorder_Level");
+Quantity_in_Demand = crmData.get("Qty_in_Demand");
+Handler = crmData.get("Handler");
+Options_Option_Set = crmData.get("Options_Option_Set");
+Global_Trade_Item_Number = crmData.get("Global_Trade_Item_Number");
+Manufacturer_Part_Number = crmData.get("Manufacturer_Part_Number");
+Product_UPC_EAN = crmData.get("Product_UPC_EAN");
+Bin_Picking_Number = crmData.get("Bin_Picking_Number");
+Product_Condition = crmData.get("Product_Condition");
+Warranty_Information = crmData.get("Warranty_Information");
+Minimum_Purchase_Quantity = crmData.get("Min_P_Q");
+Maximum_Purchase_Quantity = crmData.get("Max_P_Q");
+Inventory_Level = crmData.get("Inventory_Level");
+Categories_ids = crmData.get("Categories_ids");
+// fetching data finished
+// forming map for creator
+dataMapForCreator = Map();
+// for custom fields handling
+// fieldMapperData = zoho.crm.searchRecords("CREATE_UPDATE_BC_CRM","((store_name1:equals:" + crmData.get("Store").get("name") + "))");
+// fieldMapperMap = Map();
+// for each  singleField in fieldMapperData
+// {
+// 	fieldMapperMap.put(singleField.get("crm_field"),singleField.get("creator_field"));
+// }
+// custom field handling mapper done
+// checking and mapping the correct keys for custom fields
+crmfieldKeys = crmData.keys();
+counterlist = list();
+counterlist.add(1);
+counterlist.add(2);
+counterlist.add(3);
+counterlist.add(4);
+counterlist.add(5);
+counterlist.add(6);
+counterlist.add(7);
+counterlist.add(8);
+counterlist.add(9);
+counterlist.add(10);
+counterlist.add(11);
+counterlist.add(12);
+counterlist.add(13);
+counterlist.add(14);
+counterlist.add(15);
+counterlist.add(16);
+counterlist.add(17);
+counterlist.add(18);
+counterlist.add(19);
+counterlist.add(20);
+counterlist.add(21);
+counterlist.add(22);
+counterlist.add(23);
+cvalue = 1;
+info "crmfieldKeys:" + crmfieldKeys;
+for each  counter in counterlist
+{
+	// 	info "counter:" + cvalue;
+	// 	info "Custom_Field_" + cvalue + "_ID";
+	// 	Custom_ID = crmData.get("Custom_Field_" + cvalue.toString() + "_ID");
+	// 	info Custom_ID;
+	Custom_ID = crmData.get("Custom_Field_" + cvalue.toString() + "_ID");
+	Custom_Name = crmData.get("Custom_Field_" + cvalue.toString() + "_Name");
+	Custom_Value = crmData.get("Custom_Field_" + cvalue.toString() + "_Value");
+	if(!Custom_ID.isNull())
+	{
+		Custom_ID = Custom_ID.removeAllAlpha();
+		Custom_ID = Custom_ID.replaceAll("[/\-\(\)_@#\^!\$%\&\*:;`~ ]","");
+	}
+	dataMapForCreator.put("Custom_Field_" + cvalue + "_ID",Custom_ID);
+	dataMapForCreator.put("Custom_Field_" + cvalue + "_Name",Custom_Name);
+	dataMapForCreator.put("Custom_Field_" + cvalue + "_Value",Custom_Value);
+	cvalue = cvalue + 1;
+}
+// crmfieldKeys = crmData.keys();
+// fieldMapperKeys = fieldMapperMap.keys();
+// for each  fieldMapperKey in fieldMapperKeys
+// {
+// 	if(crmfieldKeys.contains(fieldMapperKey))
+// 	{
+// Custom_.'counter'._ID =crmData.get("Custom_.'counter'._ID");
+// dataMapForCreator.put(fieldMapperMap.get(Custom_.'counter'._ID)));
+// 	}
+// }
+// if ( crmData.get("PDF") != null ) 
+// {
+// PDF = crmData.get("PDF");
+// spec_sheet = "<a href=\""+PDF+"\"> </a>";
+// dataMapForCreator.put("Spec_Sheet",spec_sheet);
+// }
+dataMapForCreator.put("SKU",SKU);
+dataMapForCreator.put("item_Name",ifNull(item_Name,""));
+dataMapForCreator.put("Sales_Rate",Sales_Rate);
+dataMapForCreator.put("Vendor_Str",actualVendorName);
+dataMapForCreator.put("Store_Str",storeName);
+dataMapForCreator.put("Bigcommerce_Unique_ID",Bigcommerce_Unique_ID);
+dataMapForCreator.put("Dropship_Print",Dropship_Print);
+dataMapForCreator.put("CRMRecordID",CRMRecordID);
+dataMapForCreator.put("Owner_Str",ownerName);
+dataMapForCreator.put("Tax_Class",Tax_Class);
+dataMapForCreator.put("Product_type",Product_type);
+dataMapForCreator.put("Product_Active",Product_Active);
+dataMapForCreator.put("Product_Availability",Product_Availability);
+dataMapForCreator.put("Option",Product_Visibility);
+dataMapForCreator.put("Lead_Time",update_leadtime);
+dataMapForCreator.put("Free_Shipping",Free_Shipping);
+dataMapForCreator.put("Avalara_Product_Tax_Code",Avalara_Product_Tax_Code);
+dataMapForCreator.put("Manufacturer",Manufacturer);
+dataMapForCreator.put("Fixed_Shipping_Price",Fixed_Shipping_Price);
+dataMapForCreator.put("check_Limit",check_Limit);
+dataMapForCreator.put("Bigcommerce_ID",Bigcommerce_ID);
+if(!isNull(Image1) && Image1 != "")
+{
+	imageMap = Map();
+	imageMap.put("value",Image1);
+	imageMap.put("url",Image1);
+	dataMapForCreator.put("Image1",imageMap);
+}
+if(!isNull(Image2) && Image2 != "")
+{
+	imageMap = Map();
+	imageMap.put("value",Image2);
+	imageMap.put("url",Image2);
+	dataMapForCreator.put("Image2",imageMap);
+}
+if(!isNull(Image3) && Image3 != "")
+{
+	imageMap = Map();
+	imageMap.put("value",Image3);
+	imageMap.put("url",Image3);
+	dataMapForCreator.put("Image3",imageMap);
+}
+if(!isNull(Image4) && Image4 != "")
+{
+	imageMap = Map();
+	imageMap.put("value",Image4);
+	imageMap.put("url",Image4);
+	dataMapForCreator.put("Image4",imageMap);
+}
+if(!isNull(Image5) && Image5 != "")
+{
+	imageMap = Map();
+	imageMap.put("value",Image5);
+	imageMap.put("url",Image5);
+	dataMapForCreator.put("Image5",imageMap);
+}
+if(!isNull(Image6) && Image6 != "")
+{
+	imageMap = Map();
+	imageMap.put("value",Image6);
+	imageMap.put("url",Image6);
+	dataMapForCreator.put("Image6",imageMap);
+}
+if(!isNull(actualVendorName) && actualVendorName != "" && actualVendorName == "Cendrex")
+{
+	info "Data :: " + Option_SKU;
+	dataMapForCreator.put("Option_SKU",Option_SKU);
+}
+dataMapForCreator.put("Vendor_SKU",Vendor_SKU);
+dataMapForCreator.put("Unit_Price",Unit_Price);
+dataMapForCreator.put("Cost_Price",Cost_Price);
+dataMapForCreator.put("Sales_Price",Sales_Price);
+dataMapForCreator.put("Taxable",Taxable);
+dataMapForCreator.put("Profit_Margin",Profit_Margin);
+dataMapForCreator.put("Commission_Rate",Commission_Rate);
+dataMapForCreator.put("Retail_Price",Retail_Price);
+dataMapForCreator.put("Tax",Tax.toString());
+dataMapForCreator.put("Total_Profit",Total_Profit);
+dataMapForCreator.put("Weight",Weight);
+dataMapForCreator.put("Height",Height);
+dataMapForCreator.put("Width",Width);
+dataMapForCreator.put("Depth",Depth);
+dataMapForCreator.put("Product_Currency",Product_Currency);
+dataMapForCreator.put("Usage_Unit",Usage_Unit);
+dataMapForCreator.put("Quantity_in_Stock",Quantity_in_Stock);
+dataMapForCreator.put("Qty_Ordered",Qty_Ordered);
+dataMapForCreator.put("Reorder_Level",Reorder_Level);
+dataMapForCreator.put("Quantity_in_Demand",Quantity_in_Demand);
+dataMapForCreator.put("Handler",Handler);
+dataMapForCreator.put("Usage_Unit",Usage_Unit);
+dataMapForCreator.put("Option_set_strg",Options_Option_Set);
+dataMapForCreator.put("Global_Trade_Item_Number",Global_Trade_Item_Number);
+dataMapForCreator.put("Manufacturer_Part_Number",Manufacturer_Part_Number);
+dataMapForCreator.put("Product_UPC_EAN",Product_UPC_EAN);
+dataMapForCreator.put("Bin_Picking_Number",Bin_Picking_Number);
+dataMapForCreator.put("Product_Condition",Product_Condition);
+dataMapForCreator.put("Warranty_Information",Warranty_Information);
+dataMapForCreator.put("Minimum_Purchase_Quantity",Minimum_Purchase_Quantity);
+dataMapForCreator.put("Maximum_Purchase_Quantity",Maximum_Purchase_Quantity);
+dataMapForCreator.put("Inventory_Level",Inventory_Level);
+dataMapForCreator.put("Categories_ids",Categories_ids);
+// dataMapForCreator.put("Youtube_URL",Youtube_URL);
+// forming map finished
+// checking whether the product is available in creator
+info "dataMapForCreator" + dataMapForCreator;
+itemData = Map();
+Tempmap = Map();
+// Tempmap.put("Content-Type","application/json");
+Data_map = Map();
+Data_map.put("data",dataMapForCreator);
+Data_list = LIST();
+Data_list.add(dataMapForCreator);
+// existingItemDatas = zoho.creator.v1.getRecords("zoho_zoho1502","quotes","All_Items?CRMRecordID=" + ProductID);
+existingItemDatas = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Items","CRMRecordID=" + ProductID,1,1,"zcreator_connecction");
+info "existingItemDatas" + existingItemDatas;
+// the response will be list of map, if no data is matched it will return a message, if exists then data (one map in a list)
+// itemData = existingItemDatas.get(0);
+itemData = existingItemDatas;
+if(itemData.get("code") == 3100)
+{
+	// no data available
+	// 	messageStr = itemData.get("message");
+	// create new item
+	// 	createdRes = zoho.creator.v1.createRecord("zoho_zoho1502","quotes","Add_Items",dataMapForCreator);
+	// 	info "createdRes" + createdRes;
+	// 	dat_map = MAP();
+	// 	dat_map.put("data",dataMapForCreator);
+	// // 			createdRes = zoho.creator.createRecord("zoho_zoho1502","quotes","Add_Items",dat_map,Tempmap,"zcreator_connecction");
+	// 	info "dataMapForCreator test:" + dataMapForCreator;
+	createdRes = zoho.creator.createRecord("zoho_zoho1502","quotes","Add_Items",dataMapForCreator,Tempmap,"zcreator_connecction");
+	info "Created_res:" + createdRes;
+	// 	createdRes_value = createdRes.get("values");
+	createdRes_value = createdRes.get("data");
+	// 	// 	info "craedata" + createdRes_value;
+	creatorid = createdRes_value.get("ID").toString();
+	info creatorid;
+	// 	url = "https://creator.zoho.com/api/zoho_zoho1502/json/quotes/form/Product_Sync_Option/record/add";
+	data_map = Map();
+	// 	data_map.put("authtoken","8e9640c1f4b7e8e3443fd95d7c16b7e6");
+	// 	data_map.put("scope","creatorapi");
+	data_map.put("Product_Name",item_Name);
+	data_map.put("Record_ID",creatorid);
+	// 	response = postUrl(url,data_map);
+	// 	info response;
+	// 		Create_Product_option = zoho.creator.v1.createRecord("zoho_zoho1502","quotes","Product_Sync_Option",dataMapForCreator);
+	Create_Product_option = zoho.creator.createRecord("zoho_zoho1502","quotes","Product_Sync_Option",data_map,Tempmap,"zcreator_connecction");
+	info Create_Product_option;
+}
+else
+{
+	itemData = itemData.get("data").get(0);
+	// data already exists in creator, updating the item
+	zohoCreatorItemID = itemData.get("ID");
+	// 	editedRes = zoho.creator.v1.updateRecord("zoho_zoho1502","quotes","Add_Items",zohoCreatorItemID.toLong(),dataMapForCreator);
+	zohoCreatorItemID = zohoCreatorItemID.toLong();
+	info "Creator_ItemID: " + zohoCreatorItemID;
+	//info dataMapForCreator.get("code");
+	info dataMapForCreator;
+	editedRes = zoho.creator.updateRecord("zoho_zoho1502","quotes","All_Items",zohoCreatorItemID,dataMapForCreator,Tempmap,"zcreator_connecction");
+	info "UPDATE_Res:" + editedRes;
+	if(editedRes.get('code') != 2930)
+	{
+		// 	creatorid = editedRes.get("criteria");
+		creatorid = editedRes.get("data");
+		creatorid = creatorid.get("ID");
+		if(!isNull(creatorid))
+		{
+			// 		creatorid = creatorid.getSuffix("ID==");
+			// 		url = "https://creator.zoho.com/api/zoho_zoho1502/json/quotes/form/Product_Sync_Option/record/add";
+			// 		data_map = Map();
+			// 		data_map.put("authtoken","8e9640c1f4b7e8e3443fd95d7c16b7e6");
+			// 		data_map.put("scope","creatorapi");
+			// 		data_map.put("Product_Name",item_Name);
+			// 		data_map.put("Record_ID",creatorid);
+			// 		response = postUrl(url,data_map);
+			// 		info response;
+			data_map = Map();
+			// 	data_map.put("authtoken","8e9640c1f4b7e8e3443fd95d7c16b7e6");
+			// 	data_map.put("scope","creatorapi");
+			data_map.put("Product_Name",item_Name);
+			data_map.put("Record_ID",creatorid);
+			// 	response = postUrl(url,data_map);
+			// 	info response;
+			// 		Create_Product_option = zoho.creator.v1.createRecord("zoho_zoho1502","quotes","Product_Sync_Option",dataMapForCreator);
+			Create_Product_option = zoho.creator.createRecord("zoho_zoho1502","quotes","Product_Sync_Option",data_map,Tempmap,"zcreator_connecction");
+			info Create_Product_option;
+		}
+	}
+}
+}

@@ -1,0 +1,93 @@
+void automation.Untitled_Function31(String status,String gateway,String gateway_transaction_id,String subject_id,String storename,String prev_state)
+{
+ph_num = {"+12894898735","+19059022441"};
+email_list = {"anthony@bestaccessdoors.com","citrigno@bestaccessdoors.com","sankar@bizappln.com","dinesh@bizappln.com"};
+if((prev_state == "Pending" || prev_state == "Awaiting Fulfillment" || prev_state == "Incomplete") && (status == "Awaiting Shipment" || status == "Awaiting Fulfillment") && (isnull(gateway) || gateway.isempty() || isnull(gateway_transaction_id) || gateway_transaction_id.isempty()))
+{
+	// 	Send Email notification regardin the sale order udpate
+	email_sub = subject_id + " Email Notification";
+	email_message = "The Sale Order with subject as " + subject_id + " in " + storename + " status was updated from " + prev_state + " to " + status + " and either have no Gateway or Transaction Details. Gateway : " + gateway + " Gateway Transaction ID : " + gateway_transaction_id + ".";
+	sendmail
+	[
+		from :zoho.adminuserid
+		to :email_list
+		subject :email_sub
+		message :"First Condition in Edit <br>" + email_message
+	]
+	// Sending SMS notification regarding the Sale Order update
+	// 	for each  ph in ph_num
+	// 	{
+	// 		sms_message = "Order " + subject_id + " in " + storename + " status " + prev_state + "=>" + status + " Gateway " + gateway + " Transaction ID " + gateway_transaction_id;
+	// 		base = zoho.encryption.base64Encode("AC87968065b88bde04e72528a3eaa0ec89:3651311cce750f19664a1032ebd34563");
+	// 		base = base.remove("\n");
+	// 		url = "https://api.twilio.com/2010-04-01/Accounts/AC87968065b88bde04e72528a3eaa0ec89/Messages.json";
+	// 		reqMap = Map();
+	// 		reqMap.put("Body",sms_message);
+	// 		reqMap.put("To",ph);
+	// 		reqMap.put("From","+13656510243");
+	// 		hMap = Map();
+	// 		hMap.put("Authorization","Basic " + base);
+	// 		post = postUrl(url,reqMap,hMap);
+	// 		info post;
+	// 	}
+}
+// else if((prev_state == "Pending" || prev_state == "Incomplete") && (status == "Awaiting Shipment" || status == "Awaiting Fulfillment") && isnull(gateway) || gateway.isempty() || isnull(gateway_transaction_id) || gateway_transaction_id.isempty())
+else if(prev_state != "Pending" && prev_state != "Awaiting Fulfillment" && prev_state != "Incomplete" && (status == "Awaiting Shipment" || status == "Awaiting Fulfillment") && !isnull(gateway) && !gateway.isempty() && !isnull(gateway_transaction_id) && !gateway_transaction_id.isempty())
+{
+	// 	Send Email notification regardin the sale order udpate
+	email_sub = subject_id + " Email Notification";
+	email_message = "The Sale Order with subject as " + subject_id + " in " + storename + " status was updated from " + prev_state + " to " + status + ". Gateway : " + gateway + " Gateway Transaction ID : " + gateway_transaction_id + ".";
+	sendmail
+	[
+		from :zoho.adminuserid
+		to :email_list
+		subject :email_sub
+		message :"Second Condition in Edit <br>" + email_message
+	]
+	// Sending SMS notification regarding the Sale Order update
+	// 	for each  ph in ph_num
+	// 	{
+	// 		sms_message = "Order " + subject_id + " in " + storename + " status " + prev_state + "=>" + status + " Gateway : " + gateway + " Transaction ID : " + gateway_transaction_id;
+	// 		base = zoho.encryption.base64Encode("AC87968065b88bde04e72528a3eaa0ec89:3651311cce750f19664a1032ebd34563");
+	// 		base = base.remove("\n");
+	// 		url = "https://api.twilio.com/2010-04-01/Accounts/AC87968065b88bde04e72528a3eaa0ec89/Messages.json";
+	// 		reqMap = Map();
+	// 		reqMap.put("Body",sms_message);
+	// 		reqMap.put("To",ph);
+	// 		reqMap.put("From","+13656510243");
+	// 		hMap = Map();
+	// 		hMap.put("Authorization","Basic " + base);
+	// 		post = postUrl(url,reqMap,hMap);
+	// 		info post;
+	// 	}
+}
+else if(prev_state != "Pending" && prev_state != "Incomplete" && (status == "Awaiting Shipment" || status == "Awaiting Fulfillment") && (isnull(gateway) || gateway.isempty() || isnull(gateway_transaction_id) || gateway_transaction_id.isempty()))
+{
+	// 	Send Email notification regardin the sale order udpate
+	email_sub = subject_id + " Email Notification";
+	email_message = "The Sale Order with subject as " + subject_id + " in " + storename + " status was updated from " + prev_state + " to " + status + "and either have no Gateway or Transaction Details. Gateway : " + gateway + " Gateway Transaction ID : " + gateway_transaction_id + ".";
+	sendmail
+	[
+		from :zoho.adminuserid
+		to :email_list
+		subject :email_sub
+		message :"Third Condition in Edit <br>" + email_message
+	]
+	// Sending SMS notification regarding the Sale Order update
+	// 	for each  ph in ph_num
+	// 	{
+	// 		sms_message = "Order " + subject_id + " in " + storename + " status " + prev_state + "=>" + status + " Gateway " + gateway + " Transaction ID " + gateway_transaction_id;
+	// 		base = zoho.encryption.base64Encode("AC87968065b88bde04e72528a3eaa0ec89:3651311cce750f19664a1032ebd34563");
+	// 		base = base.remove("\n");
+	// 		url = "https://api.twilio.com/2010-04-01/Accounts/AC87968065b88bde04e72528a3eaa0ec89/Messages.json";
+	// 		reqMap = Map();
+	// 		reqMap.put("Body",sms_message);
+	// 		reqMap.put("To",ph);
+	// 		reqMap.put("From","+13656510243");
+	// 		hMap = Map();
+	// 		hMap.put("Authorization","Basic " + base);
+	// 		post = postUrl(url,reqMap,hMap);
+	// 		info post;
+	// 	}
+}
+}

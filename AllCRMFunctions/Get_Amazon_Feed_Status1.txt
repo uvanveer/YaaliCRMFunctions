@@ -1,0 +1,27 @@
+void automation.Get_Amazon_Feed_Status(Int recordId)
+{
+/* Created By Ezhilarasu on 06/05/2020 */
+/* Update Amazon Order Tracking */
+info recordId;
+dropshipOrderInfo = zoho.crm.getRecordById("Purchase_Orders",recordId);
+// info dropshipOrderInfo;
+if(!dropshipOrderInfo.get("Confirm_Shipment_Feed_ID").equals("ERROR"))
+{
+	feedId = dropshipOrderInfo.get("Confirm_Shipment_Feed_ID");
+	amazonStoreRegion = dropshipOrderInfo.get("Amazon_Store_Region");
+	feedResultURL = "http://13.58.56.188:8080/createShipment/getfeedresponse?crmRecordId=" + recordId + "&feedSubmissionId=" + feedId;
+	// info feedResultURL;
+	feedResponse = getUrl(feedResultURL);
+	info feedResponse;
+	// logger
+	logMap = Map();
+	logMap.put("Workflow_Name","Amazon_Confirm_Shipment_Feed_Result");
+	logMap.put("Name","Dropship Orders");
+	logMap.put("Dropship_Order_Number","");
+	logMap.put("Dropship_Order_Record_ID",recordId.toString());
+	logMap.put("PO_Request","");
+	logMap.put("PO_response",feedResponse);
+	info zoho.crm.createRecord("Sales_Order_PO_Log",logMap);
+	// info feedResponse;
+}
+}

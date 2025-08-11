@@ -1,0 +1,25 @@
+void automation.exchangeRateUpdate()
+{
+vendors = zoho.crm.getRecords("Vendor_Contact",1,200,{"cvid":3106252000088884322});
+// vendor=zoho.crm.getRecordById("Vendor_Contact","3106252000048879295");
+for each  vendor in vendors
+{
+	updatedummyCurrency = zoho.crm.updateRecord("Vendor_Contact",vendor.get("id"),{"Actual_Currency":vendor.get("Currency"),"Currency":"CAD","Previous_Exchange_Rate":vendor.get("Exchange_Rate").toString()});
+	info "1st" + updatedummyCurrency;
+	updateOriginalCurrency = zoho.crm.updateRecord("Vendor_Contact",vendor.get("id"),{"Currency":"USD"});
+	info "2nd" + updateOriginalCurrency;
+	create_map = Map();
+	create_map.put("Name",vendor.get("id").toString());
+	create_map.put("New_Exchange_Rate",1);
+	create_map.put("Old_Exchange_Rate",vendor.get("Exchange_Rate").toLong());
+	create_map.put("Source","Vendors Contacts");
+	info "Creation" + zoho.crm.createRecord("Lead_Log",create_map);
+	/*updatedummyCurrency = zoho.crm.updateRecord("Leads",lead.get("id"),{"Actual_Currency":lead.get("Currency"),"Currency":"CAD","Previous_Exchange_Rate":lead.get("Exchange_Rate").toString()});
+	updateOriginalCurrency = zoho.crm.updateRecord("Leads",lead.get("id"),{"Currency":"USD"});	
+	create_map = Map();
+	create_map.put("Name",lead.get("id").toString());
+	create_map.put("New_Exchange_Rate",1);
+	create_map.put("Old_Exchange_Rate",lead.get("Exchange_Rate").toLong());
+	info zoho.crm.createRecord("Lead_Log",create_map);*/
+}
+}

@@ -1,0 +1,205 @@
+void automation.Duplicate_Finder(String emailid)
+{
+// emailarry = "".toList(",");
+// // info emailarry;
+// for each  emailid in emailarry
+// {
+info "Processingemail-----:" + emailid;
+getconatc = zoho.crm.searchRecords("Contacts","Email:equals:" + emailid);
+orginalid = getconatc.getJSON("id");
+info "orginalid1" + orginalid;
+orginalid = List();
+contactmap = Map();
+duplicate_contact_id = List();
+getconatclist = "[" + getconatc + "]";
+for each  contactdata in getconatclist
+{
+	// 			info "contactdata" + contactdata.getJSON("id");
+	bcid = contactdata.get("Bigcommerce_Unique_ID");
+	contactdupid = Map();
+	contactid = contactdata.getJSON("id");
+	contactdupid.put("id",contactid);
+	duplicate_contact_id.add(contactdupid);
+	if(bcid != null)
+	{
+		contact_store = contactdata.get("Store").get("name");
+		contactbcid = contactdata.get("Bigcommerce_Unique_ID");
+		contactmap.put(contact_store,contactbcid);
+	}
+	getorginal = Map();
+	if(contactdata.get("Account_Name") != null)
+	{
+		orginalid.add(contactid);
+	}
+}
+// 	info contactmap;
+if(orginalid.size() > 0)
+{
+	info "orginalid" + orginalid;
+	orginalid = orginalid.get(0);
+}
+info "orginalidfinal" + orginalid;
+if(duplicate_contact_id.size() > 1)
+{
+	salorderidslist = List();
+	//fetch contact related Salesorder 
+	for each  dupconid in duplicate_contact_id
+	{
+		dupcon = dupconid.get('id').toLong();
+		getsalorders = zoho.crm.searchRecords("Sales_Orders","(Contact_Name:equals:" + dupcon + ")");
+		getsalorders = "[" + getsalorders + "]";
+		for each  saleorderid in getsalorders
+		{
+			salorderids = Map();
+			if(saleorderid.get("id") != null)
+			{
+				salorderids.put("saleordid",saleorderid.get("id"));
+			}
+			salorderidslist.add(salorderids);
+		}
+		getPOreletedrecords = zoho.crm.getRelatedRecords("PurchaseOrders","Contacts",dupcon);
+		if(getPOreletedrecords.size() > 0)
+		{
+			for each  getporeltrcd in getPOreletedrecords
+			{
+				datamap = Map();
+				datamap.put("Contact_Name",orginalid);
+				updatepo = zoho.crm.updateRecord("Purchase_Orders",getporeltrcd.get("id"),datamap);
+			}
+		}
+		// //**************************************Task Update***********************//
+		// info "dupcon" + dupcon;
+		getEventsreletedrecords = zoho.crm.getRelatedRecords("Events","Contacts",dupcon);
+		if(getEventsreletedrecords.size() > 0)
+		{
+			for each  geteventreltrcd in getEventsreletedrecords
+			{
+				datamap = Map();
+				attchment = Map();
+				attchment.put("id",orginalid);
+				datamap.put("Who_Id",attchment);
+				datamap.put("$se_module",geteventreltrcd.getJSON("$se_module"));
+				updateevent = zoho.crm.updateRecord("Events",geteventreltrcd.getJSON("id"),datamap);
+				// 	info "Events" + updateevent ;
+			}
+		}
+		getCasesreletedrecords = zoho.crm.getRelatedRecords("Cases","Contacts",dupcon);
+		if(getCasesreletedrecords.size() > 0)
+		{
+			for each  getCasesreltrcd in getCasesreletedrecords
+			{
+				datamap = Map();
+				attchment = Map();
+				attchment.put("id",orginalid);
+				datamap.put("Who_Id",attchment);
+				datamap.put("$se_module",getCasesreltrcd.getJSON("$se_module"));
+				updateCases = zoho.crm.updateRecord("Cases",getCasesreltrcd.getJSON("id"),datamap);
+				info "Cases" + updateCases;
+			}
+		}
+		getDealsreletedrecords = zoho.crm.getRelatedRecords("Deals","Contacts",dupcon);
+		if(getDealsreletedrecords.size() > 0)
+		{
+			for each  getDealsreltrcd in getDealsreletedrecords
+			{
+				datamap = Map();
+				attchment = Map();
+				attchment.put("id",orginalid);
+				datamap.put("Who_Id",attchment);
+				datamap.put("$se_module",getDealsreltrcd.getJSON("$se_module"));
+				updateDeals = zoho.crm.updateRecord("Deals",getDealsreltrcd.getJSON("id"),datamap);
+				info "Deals" + updateDeals;
+			}
+		}
+		geCallsreletedrecords = zoho.crm.getRelatedRecords("Calls","Contacts",dupcon);
+		if(geCallsreletedrecords.size() > 0)
+		{
+			for each  getcallreltrcd in geCallsreletedrecords
+			{
+				datamap = Map();
+				attchment = Map();
+				attchment.put("id",orginalid);
+				datamap.put("Who_Id",attchment);
+				datamap.put("$se_module",getcallreltrcd.getJSON("$se_module"));
+				updateCalls = zoho.crm.updateRecord("Calls",getcallreltrcd.getJSON("id"),datamap);
+				info "Calls" + updateCalls;
+			}
+		}
+		gettaskreletedrecords = zoho.crm.getRelatedRecords("Tasks","Contacts",dupcon);
+		if(gettaskreletedrecords.size() > 0)
+		{
+			for each  gettaskreltrcd in gettaskreletedrecords
+			{
+				datamap = Map();
+				attchment = Map();
+				attchment.put("id",orginalid);
+				datamap.put("Who_Id",attchment);
+				datamap.put("$se_module",gettaskreltrcd.getJSON("$se_module"));
+				updatetask = zoho.crm.updateRecord("Tasks",gettaskreltrcd.getJSON("id"),datamap);
+				// 	info updatetask ;
+			}
+		}
+		// //**************************************Notes Update***********************//
+		getreletedrecords = zoho.crm.getRelatedRecords("Notes","Contacts",dupcon);
+		// info "getreletedrecords" + getreletedrecords;
+		if(getreletedrecords.size() > 0)
+		{
+			for each  getreltrcd in getreletedrecords
+			{
+				datamap = Map();
+				attchment = Map();
+				attchment.put("id",orginalid);
+				datamap.put("Parent_Id",attchment);
+				datamap.put("$se_module",getreltrcd.getJSON("$se_module"));
+				updatenotes = zoho.crm.updateRelatedRecord("Notes",getreltrcd.getJSON("id"),"Contacts",orginalid,datamap);
+				// 	info "updatenotes" + updatenotes;
+			}
+		}
+		//**************************************Notes Update End***********************//
+	}
+	info "salorderidslist" + salorderidslist;
+	//update saleorder contact
+	if(salorderidslist.size() > 0)
+	{
+		for each  saleorderids in salorderidslist
+		{
+			saleorder_id = saleorderids.get('saleordid').toLong();
+			salorderupdate = Map();
+			salorderupdate.put("Contact_Name",orginalid);
+			updatesalorder = zoho.crm.updateRecord("Sales_Orders",saleorder_id,salorderupdate);
+			// 			info "updatesalorder" + updatesalorder;
+		}
+	}
+	//update Contact Bc Ids in Original Ids 
+	updatecontact = zoho.crm.updateRecord("Contacts",orginalid,contactmap);
+	// 		info "updatecontact" + updatecontact;
+	// 	info "duplicate_contact_id:" + duplicate_contact_id;
+	for each  dubcontactids in duplicate_contact_id
+	{
+		if(dubcontactids.get("id") != orginalid)
+		{
+			statusdata = Map();
+			statusdata.put("Is_Duplicate","Yes");
+			info "deletable Contacts" + dubcontactids.get("id");
+			updatedeletionstatus = zoho.crm.updateRecord("Contacts",dubcontactids.get("id"),statusdata);
+			// 			info updatedeletionstatus;
+		}
+		else
+		{
+			statusdata = Map();
+			statusdata.put("Is_Duplicate","No");
+			updatedeletionstatus = zoho.crm.updateRecord("Contacts",dubcontactids.get("id"),statusdata);
+			info "OrginalUpdateStatus" + updatedeletionstatus.get("id");
+		}
+	}
+}
+else
+{
+	statusdata = Map();
+	statusdata.put("Is_Duplicate","No");
+	Updateorginal = zoho.crm.updateRecord("Contacts",orginalid,statusdata);
+	info "Updateorginal" + Updateorginal;
+	updatecontact = zoho.crm.updateRecord("Contacts",orginalid,contactmap);
+}
+// }
+}

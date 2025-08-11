@@ -1,0 +1,43 @@
+void automation.Pagination_Deals_HR_Data_To_ZohoCRM(String date,String module,String index,String datetime)
+{
+highriseAuth = "Basic OWZiYjY1ODg2NWY5MTUyODlmN2U5ZDNiM2E3MWNkYmI6WA==";
+highriseDeals = geturl("https://bestaccessdoors.highrisehq.com/deals.xml?n=" + index + "&since=" + date,{"Authorization":highriseAuth});
+highriseDeals = highriseDeals.executeXPath("deals/deal").toXmlList();
+info "highriseCompanies " + highriseDeals.size();
+if(highriseDeals.size() > 0)
+{
+	// 	sendmail
+	// 	[
+	// 		from :zoho.loginuserid
+	// 		to :"prashanth@bizappln.com"
+	// 		subject :"1.highrise pagination workflow function for deals called for index " + index
+	// 		message :"pagination function called first time " + datetime + " - " + date + " - " + module + " - " + highriseDeals.size()
+	// 	]
+	processCount = 0;
+	for each  deal in highriseDeals
+	{
+		processCount = processCount + 1;
+		criteria = "(Highrise_ID:equals:" + deal.executeXPath("deal/id/text()") + ")";
+		searchRes_highrise = zoho.crm.searchRecords("Highrise_Data",criteria);
+		if(searchRes_highrise.size() == 0)
+		{
+			createResp = zoho.crm.createRecord("Highrise_Data",{"Highrise_ID":deal.executeXPath("deal/id/text()"),"Module":"Deals","Highrise_Created_Time":deal.executeXPath("deal/created-at/text()"),"Highrise_Created_Time":deal.executeXPath("deal/updated-at/text()"),"Date_String":date},{"trigger":{"workflow"}});
+		}
+	}
+	if(processCount == highriseDeals.size())
+	{
+		getContactindex = zoho.crm.getRecordById("Highrise_Connector",3106252000065101001);
+		updatedCount = getContactindex.get("Deals_Start_Index").toNumber() + processCount;
+		info updatedCount;
+		updateprocessCount = zoho.crm.updateRecord("Highrise_Connector",3106252000065101001,{"Deals_Start_Index":updatedCount,"Paginate_Deals":true});
+		createPagination = zoho.crm.createRecord("Highrise_Pagination",{"Index":updatedCount.toString(),"Module":"Deals","Date":date},{"trigger":{"workflow"}});
+		// 		sendmail
+		// 		[
+		// 			from :zoho.loginuserid
+		// 			to :"prashanth@bizappln.com"
+		// 			subject :"2.pagination function for deals reached another 500 " + index
+		// 			message :"res data after pagination " + updateprocessCount + " - " + createPagination + " - \n -- " + updatedCount + " --- " + updateprocessCount
+		// 		]
+	}
+}
+}

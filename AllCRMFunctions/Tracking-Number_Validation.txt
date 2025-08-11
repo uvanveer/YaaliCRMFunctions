@@ -1,0 +1,15 @@
+string standalone.Tracking_Number_Validation(Int ID)
+{
+// getdrop_record = zoho.crm.getRecordById("Purchase_Orders",ID);
+// info getdrop_record;
+// returnmsg = "tets";
+// if(getdrop_record.get("Status") == "created")
+// {
+// 	createtracking = Map();
+// 	createtracking.put("Tracking_Number","");
+// 	update_Response = zoho.crm.updateRecord("Purchase_Orders",ID,createtracking);
+// 	info update_Response;
+// 	returnmsg = "Please send Dropship Order...";
+// }
+return "returnmsg";
+}

@@ -1,0 +1,114 @@
+void automation.Create_Task_Salesperson(Int Sales_Order_Id)
+{
+if(!isNull(Sales_Order_Id))
+{
+	saleorderDetail = zoho.crm.getRecordById("Sales_Orders",Sales_Order_Id);
+	statusofOrder = saleorderDetail.get("Staff_Notes");
+	if(statusofOrder != null)
+	{
+		if(statusofOrder.contains("Quote #"))
+		{
+			quoteno = saleorderDetail.get("Staff_Notes").getSuffix("#");
+			info "first:" + quoteno;
+			quoteno = quoteno.getPrefix(" ");
+			info "test" + quoteno;
+			quoteno = saleorderDetail.get("Quote_Number");
+			Get_Quote_data = zoho.crm.searchRecords("Quotes","(Sales_Quote_Number:equals:" + quoteno + ")");
+			info "Quote_Data:" + Get_Quote_data;
+			creator_get_quote = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Quotes","Quote_Number==\"" + quoteno + "\"",1,1,"zcreator_connecction");
+			if(Get_Quote_data.size() > 0)
+			{
+				if(creator_get_quote.containKey("code") && creator_get_quote.get("code") == 3000)
+				{
+					creator_fetched_data = creator_get_quote.get("data");
+					for each  creator_data in creator_fetched_data
+					{
+						Cheque_manual_order = creator_data.get("Cheque_Manual_Order");
+						get_additional_transaction = creator_data.get("Additional_Transactions_Order_Type");
+						info "get_additional_transaction" + get_additional_transaction;
+					}
+					info "Cheque: " + Cheque_manual_order;
+					if(Cheque_manual_order == false && isNULL(get_additional_transaction))
+					{
+						info "Came inside";
+						Get_Quote_details = Get_Quote_data.tomap();
+						Get_Owner_details = Get_Quote_details.get("Owner");
+						info Get_Owner_details;
+						Get_owner_map = Get_Owner_details.tomap();
+						Get_owner_data = Get_owner_map.get("id");
+						Get_contact_details = Get_Quote_details.get("Contact_Name");
+						info "Get_contact_details" + Get_contact_details;
+						Get_contact_id = Get_contact_details.get("id");
+						if(Get_contact_id != NULL)
+						{
+							mp = Map();
+							mp.put("Subject","Customer Courtesy Followup for Quote#" + quoteno + " and Quote Link:https://1.door-pay.com/pq/quotepdf.php?q=" + quoteno);
+							Get_call_date = zoho.currentdate.addDay(14);
+							if(Get_call_date.getDayOfWeek() == 1)
+							{
+								Get_call_start_date = zoho.currentdate.addDay(15);
+							}
+							else if(Get_call_date.getDayOfWeek() == 7)
+							{
+								Get_call_start_date = zoho.currentdate.addDay(16);
+							}
+							else
+							{
+								Get_call_start_date = zoho.currentdate.addDay(14);
+							}
+							Get_start_time = Get_call_start_date.toString("yyyy-MM-dd HH:mm:ss");
+							Get_date = Get_start_time.getprefix(" ");
+							Get_time = "09:00:00";
+							Get_call_starttime = Get_date + "T" + Get_time + "-04:00";
+							Created_flag = 0;
+							Get_related_tasks = zoho.crm.getRelatedRecords("Tasks","Sales_Orders",Sales_Order_Id.tolong());
+							if(Get_related_tasks.size() > 0)
+							{
+								for each  rec_task in Get_related_tasks
+								{
+									Get_related_tasks_map = rec_task.toMap();
+									info "Get_related_task:" + Get_related_tasks_map;
+									Get_subject = Get_related_tasks_map.get("Subject");
+									info Get_subject;
+									if(Get_subject.contains("Customer Courtesy Followup"))
+									{
+										Created_flag = 1;
+									}
+								}
+							}
+							mp.put("$se_module","Sales_Orders");
+							mp.put("What_Id",Sales_Order_Id);
+							mp.put("Who_Id",Get_contact_id);
+							mp.put("Owner",Get_owner_data.tolong());
+							mp.put("Due_Date",Get_date);
+							// 			mp.put("Call_Type","Outbound");
+							// 			mp.put("Call_Purpose","Prospecting");
+							// 			mp.put("Call_Start_Time",Get_call_starttime);
+							workflow = Map();
+							workflow.put("trigger",{"workflow"});
+							if(Created_flag == 0)
+							{
+								create_Task = zoho.crm.createRecord("Tasks",mp,workflow);
+								Get_task_id = create_Task.get("id");
+								info Get_task_id;
+								// 	info create_task;
+								shipment_update_response = Map();
+								shipment_update_response.put("Note_Title","Quote_Link");
+								shipment_update_response.put("Note_Content","https://1.door-pay.com/pq/quotepdf.php?q=" + quoteno);
+								shipment_update_response.put("Parent_Id",Get_task_id);
+								shipment_update_response.put("$se_module","Tasks");
+								createres = zoho.crm.createRecord("Notes",shipment_update_response);
+								info createres;
+							}
+						}
+					}
+					else
+					{
+						info "cheque manual order";
+					}
+				}
+			}
+		}
+	}
+}
+}

@@ -1,0 +1,49 @@
+void automation.Pagination_Contacts_HR_To_ZohoCRM(String date,String module,String index,String datetime)
+{
+// highriseAuth = "Basic OWZiYjY1ODg2NWY5MTUyODlmN2U5ZDNiM2E3MWNkYmI6WA==";
+// highriseContacts = geturl("https://bestaccessdoors.highrisehq.com/people.xml?n=" + index + "&since=" + date,{"Authorization":highriseAuth});
+// // highriseContacts = geturl("https://bestaccessdoors.highrisehq.com/people.xml?since=" + fetchdate,{"Authorization":highriseAuth});
+// //info "highriseContacts "+highriseContacts;
+// processCount = 0;
+// highrisePeople = highriseContacts.executeXPath("people/person").toXmlList();
+// info "highrisePeople " + highrisePeople.size();
+// if(highrisePeople.size() > 0)
+// {
+// 	sendmail
+// 	[
+// 		from :zoho.loginuserid
+// 		to :"prashanth@bizappln.com"
+// 		subject :"1.highrise pagination workflow function for contacts called " + highrisePeople.size()
+// 		message :"pagination function called first time  - " + date + " - " + module + " - " + index
+// 	]
+// 	for each  person in highrisePeople
+// 	{
+// 		processCount = processCount + 1;
+// 		getContact = zoho.crm.searchRecords("Highrise_Data","((Highrise_ID:equals:" + person.executeXPath("person/id/text()") + "))");
+// 		if(getContact.size() == 0)
+// 		{
+// 			createResp = zoho.crm.createRecord("Highrise_Data",{"Highrise_ID":person.executeXPath("person/id/text()"),"Module":"Contacts","Highrise_Created_Time":person.executeXPath("person/created-at/text()"),"Highrise_Modified_Time":person.executeXPath("person/updated-at/text()"),"Date_String":date},{"trigger":{"workflow"}});
+// 			info createResp;
+// 		}
+// 	}
+// 	if(processCount == 500)
+// 	{
+// 		getContactindex = zoho.crm.getRecordById("Highrise_Connector",3106252000065101001);
+// 		updatedCount = getContactindex.get("Contact_Start_Index").toNumber() + 500;
+// 		updateprocessCount = zoho.crm.updateRecord("Highrise_Connector",3106252000065101001,{"Contact_Start_Index":updatedCount,"Paginate_Contacts":true});
+// 		createPagination = zoho.crm.createRecord("Highrise_Pagination",{"Index":updatedCount.toString(),"Module":"Contacts","Date":date},{"trigger":{"workflow"}});
+// 		sendmail
+// 		[
+// 			from :zoho.loginuserid
+// 			to :"prashanth@bizappln.com"
+// 			subject :"3.pagination function for contacts reached another 500 " + updateprocessCount + " index " + index
+// 			message :"res data after pagination " + createPagination + " - " + updateprocessCount
+// 		]
+// 	}
+// 	else
+// 	{
+// 		updateprocessCount = zoho.crm.updateRecord("Highrise_Connector",3106252000065101001,{"Paginate_Contacts":false});
+// 	}
+// }
+// // 	info "count " + processCount;
+}

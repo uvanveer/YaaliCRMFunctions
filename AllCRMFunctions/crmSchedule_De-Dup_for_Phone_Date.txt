@@ -1,0 +1,474 @@
+void schedule.Schedule_De_Dup_for_Phone_Date()
+{
+/* Created By prashanth & pooja */
+/* duplicat contact migrations  */
+// currently not in use
+//---------------------------------------------
+scheduleRecordID = 3106252000061961343;
+getfetchTime = zoho.crm.getRecordById("Merger_Schedule",scheduleRecordID);
+dateR = getfetchTime.get("De_Duplicate_Start_Date");
+// limit = getfetchTime.get("De_Duplicate_Limit");
+// offset = getfetchTime.get("De_Duplicate_Offset");
+offset = 1;
+limit = 10;
+page = getfetchTime.get("Last_Page");
+processCount = 0;
+info limit + " " + offset + " " + dateR;
+if(limit != null && offset != null)
+{
+	coql_map = Map();
+	// 	coql_map.put("select_query","select Email Full_Name, Created_Time from Contacts where (((Email is not null) and (Merged = false)) and (Created_Time >= '" + dateR + "')) LIMIT " + limit + " OFFSET " + offset);
+	coql_map.put("select_query","select Email Full_Name, Created_Time from Contacts where Email is null and Merged = false LIMIT " + limit + " OFFSET " + offset);
+	maillist = invokeurl
+	[
+		url :"https://www.zohoapis.com/crm/v2/coql"
+		type :POST
+		parameters:coql_map.tostring()
+		connection:"crm_connection"
+	];
+	for each  dataRecord in maillist
+	{
+		processCount = processCount + 1;
+		email = ifnull(dataRecord.get("Phone_Number_Merge"),"");
+		actualPhone = ifnull(dataRecord.get("Phone"),"");
+		info "email " + email + " = " + processCount;
+		//email="stevens@stevensmechanical.com";
+		if(email != "")
+		{
+			try 
+			{
+				criteria = "(Phone_Number_Merge:equals:" + email + ")";
+				duplicateRecords = zoho.crm.searchRecords("Contacts",criteria,1,200,{"Created_Time":"sort_by with desc"});
+				//info "email" + email;
+				info "---------start--------" + processCount + "--------" + duplicateRecords.size() + "-------";
+				info "duplicateRecords" + duplicateRecords;
+				highriseAuth = "Basic OWZiYjY1ODg2NWY5MTUyODlmN2U5ZDNiM2E3MWNkYmI6WA==";
+				msg = "";
+				masterRecId = 0;
+				masterRecAccId = 0;
+				latestRecAccId = 0;
+				latestRecId = 0;
+				masterFound = false;
+				additionalMail = "";
+				totSize = duplicateRecords.size();
+				info "duplicates count " + totSize;
+				count = 0;
+				//master data collection for address
+				masterMailingAddress = list();
+				masterOtherAddress = list();
+				masterMailingAddressMap = Map();
+				masterOtherAddressMap = Map();
+				//duplicate data collection for address
+				duplicateMailingAddress = list();
+				duplicateOtherAddress = list();
+				duplicateMailingAddressMap = Map();
+				duplicateOtherAddressMap = Map();
+				duplicateAddressRecId = 0;
+				masterMap = Map();
+				if(duplicateRecords.size() > 1)
+				{
+					/* 					for each  rec in duplicateRecords
+					{
+						count = count + 1;
+						if(rec.get("Bigcommerce_ID") != null && rec.get("Bigcommerce_ID") != "" && masterFound == false)
+						{
+							masterRecId = rec.get("id");
+							masterFound = true;
+						}
+						if(count == 1)
+						{
+							latestRecId = rec.get("id");
+						}
+					} */
+					sortedOrder = list();
+					sortedMap = Map();
+					bigCommerceSortedList = list();
+					bigCommerceSortedMap = Map();
+					for each  rec in duplicateRecords
+					{
+						if(rec.get("Email") == "" || rec.get("Email") == null)
+						{
+							gmt = rec.get("Created_Time").toTime("yyyy-MM-dd'T'HH:mm:ss","GMT");
+							sortedOrder.add(gmt);
+							sortedMap.put(gmt,rec.get("id"));
+							if(rec.get("Bigcommerce_ID") != null && rec.get("Bigcommerce_ID") != "")
+							{
+								//masterRecId = rec.get("id");
+								masterFound = true;
+								bigCommerceSortedList.add(gmt);
+								bigCommerceSortedMap.put(gmt,rec.get("id"));
+							}
+						}
+					}
+					info "all records " + sortedOrder;
+					sortedOrder = sortedOrder.sort(false);
+					info "all records sorted " + sortedOrder;
+					info "bigcommerce record " + bigCommerceSortedList;
+					bigCommerceSortedList = bigCommerceSortedList.sort(false);
+					info "bigcommerce record sorted " + bigCommerceSortedList;
+					masterMap.put("Master",true);
+					masterMap.put("Is_Duplicate_Merge","No");
+					info "masterRecId" + masterRecId;
+					info "latestRecId" + latestRecId;
+					if(!masterFound)
+					{
+						masterRecId = sortedMap.get(sortedOrder.get(0));
+					}
+					else
+					{
+						info "success " + bigCommerceSortedMap.get(bigCommerceSortedList.get(0));
+						masterRecId = bigCommerceSortedMap.get(bigCommerceSortedList.get(0));
+					}
+					for each  record in duplicateRecords
+					{
+						if(record.get("id").toLong() == masterRecId.toLong())
+						{
+							info "my master id " + masterRecId;
+							//Master Mailing Address
+							if(record.get("Mailing_City") != null && record.get("Mailing_City") != "")
+							{
+								masterMailingAddress.add("Mailing_City");
+								masterMailingAddressMap.put("Mailing_City",record.get("Mailing_City"));
+							}
+							if(record.get("Mailing_Country") != null && record.get("Mailing_Country") != "")
+							{
+								masterMailingAddress.add("Mailing_Country");
+								masterMailingAddressMap.put("Mailing_Country",record.get("Mailing_Country"));
+							}
+							if(record.get("Mailing_State") != null && record.get("Mailing_State") != "")
+							{
+								masterMailingAddress.add("Mailing_State");
+								masterMailingAddressMap.put("Mailing_State",record.get("Mailing_State"));
+							}
+							if(record.get("Mailing_Street") != null && record.get("Mailing_Street") != "")
+							{
+								masterMailingAddress.add("Mailing_Street");
+								masterMailingAddressMap.put("Mailing_Street",record.get("Mailing_Street"));
+							}
+							if(record.get("Mailing_Street_2") != null && record.get("Mailing_Street_2") != "")
+							{
+								masterMailingAddress.add("Mailing_Street_2");
+								masterMailingAddressMap.put("Mailing_Street_2",record.get("Mailing_Street_2"));
+							}
+							if(record.get("Mailing_Zip") != null && record.get("Mailing_Zip") != "")
+							{
+								masterMailingAddress.add("Mailing_Zip");
+								masterMailingAddressMap.put("Mailing_Zip",record.get("Mailing_Zip"));
+							}
+							if(record.get("MailingBCid") != null && record.get("MailingBCid") != "")
+							{
+								masterMailingAddress.add("MailingBCid");
+								masterMailingAddressMap.put("MailingBCid",record.get("MailingBCid"));
+							}
+							//Master Other Address
+							if(record.get("Other_City") != null && record.get("Other_City") != "")
+							{
+								masterOtherAddress.add("Other_City");
+								masterOtherAddressMap.put("Other_City",record.get("Other_City"));
+							}
+							if(record.get("Other_Country") != null && record.get("Other_Country") != "")
+							{
+								masterOtherAddress.add("Other_Country");
+								masterOtherAddressMap.put("Other_Country",record.get("Other_Country"));
+							}
+							if(record.get("Other_State") != null && record.get("Other_State") != "")
+							{
+								masterOtherAddress.add("Other_State");
+								masterOtherAddressMap.put("Other_State",record.get("Other_State"));
+							}
+							if(record.get("Other_Street") != null && record.get("Other_Street") != "")
+							{
+								masterOtherAddress.add("Other_Street");
+								masterOtherAddressMap.put("Other_Street",record.get("Other_Street"));
+							}
+							if(record.get("Other_Street_2") != null && record.get("Other_Street_2") != "")
+							{
+								masterOtherAddress.add("Other_Street_2");
+								masterOtherAddressMap.put("Other_Street_2",record.get("Other_Street_2"));
+							}
+							if(record.get("Other_Zip") != null && record.get("Other_Zip") != "")
+							{
+								masterOtherAddress.add("Other_Zip");
+								masterOtherAddressMap.put("Other_Zip",record.get("Other_Zip"));
+							}
+							if(record.get("ShippingBCid") != null && record.get("ShippingBCid") != "")
+							{
+								masterOtherAddress.add("ShippingBCid");
+								masterOtherAddressMap.put("ShippingBCid",record.get("ShippingBCid"));
+							}
+						}
+						else if(record.get("id").toLong() != masterRecId.toLong())
+						{
+							//cases
+							getCasesreletedrecords = zoho.crm.getRelatedRecords("Cases","Contacts",record.get("id"));
+							if(getCasesreletedrecords.size() > 0)
+							{
+								for each  getCasesreltrcd in getCasesreletedrecords
+								{
+									updateCases = zoho.crm.updateRecord("Cases",getCasesreltrcd.get("id"),{"Related_To":masterRecId});
+									info "Cases" + updateCases;
+								}
+							}
+							//deals
+							getDealsreletedrecords = zoho.crm.getRelatedRecords("Deals","Contacts",record.get("id"));
+							info "getDealsreletedrecords" + getDealsreletedrecords;
+							if(getDealsreletedrecords.size() > 0)
+							{
+								for each  getDealsreltrcd in getDealsreletedrecords
+								{
+									updateDeals = zoho.crm.updateRecord("Deals",getDealsreltrcd.get("id"),{"Contact_Name":masterRecId});
+									info "Deals" + updateDeals;
+								}
+							}
+							//Notes
+							getreletedrecords = zoho.crm.getRelatedRecords("Notes","Contacts",record.get("id"));
+							// info "getreletedrecords" + getreletedrecords;
+							if(getreletedrecords.size() > 0)
+							{
+								for each  getreltrcd in getreletedrecords
+								{
+									datamap = Map();
+									attchment = Map();
+									attchment.put("id",masterRecId);
+									datamap.put("Parent_Id",attchment);
+									datamap.put("$se_module",getreltrcd.get("$se_module"));
+									updatenotes = zoho.crm.updateRelatedRecord("Notes",getreltrcd.get("id"),"Contacts",masterRecId,datamap);
+									info "updatenotes" + updatenotes;
+								}
+							}
+							//Fill In Blank Address Info
+							if(duplicateMailingAddress.size() == 0 && duplicateOtherAddress.size() == 0)
+							{
+								//duplicate Mailing Address
+								duplicateAddressRecId = record.get("id");
+								if(record.get("Mailing_City") != null && record.get("Mailing_City") != "")
+								{
+									duplicateMailingAddress.add("Mailing_City");
+									duplicateMailingAddressMap.put("Mailing_City",record.get("Mailing_City"));
+								}
+								if(record.get("Mailing_Country") != null && record.get("Mailing_Country") != "")
+								{
+									duplicateMailingAddress.add("Mailing_Country");
+									duplicateMailingAddressMap.put("Mailing_Country",record.get("Mailing_Country"));
+								}
+								if(record.get("Mailing_State") != null && record.get("Mailing_State") != "")
+								{
+									duplicateMailingAddress.add("Mailing_State");
+									duplicateMailingAddressMap.put("Mailing_State",record.get("Mailing_State"));
+								}
+								if(record.get("Mailing_Street") != null && record.get("Mailing_Street") != "")
+								{
+									duplicateMailingAddress.add("Mailing_Street");
+									duplicateMailingAddressMap.put("Mailing_Street",record.get("Mailing_Street"));
+								}
+								if(record.get("Mailing_Street_2") != null && record.get("Mailing_Street_2") != "")
+								{
+									duplicateMailingAddress.add("Mailing_Street_2");
+									duplicateMailingAddressMap.put("Mailing_Street_2",record.get("Mailing_Street_2"));
+								}
+								if(record.get("Mailing_Zip") != null && record.get("Mailing_Zip") != "")
+								{
+									duplicateMailingAddress.add("Mailing_Zip");
+									duplicateMailingAddressMap.put("Mailing_Zip",record.get("Mailing_Zip"));
+								}
+								if(record.get("MailingBCid") != null && record.get("MailingBCid") != "")
+								{
+									duplicateMailingAddress.add("MailingBCid");
+									duplicateMailingAddressMap.put("MailingBCid",record.get("MailingBCid"));
+								}
+								//duplicate Other Address
+								if(record.get("Other_City") != null && record.get("Other_City") != "")
+								{
+									duplicateOtherAddress.add("Other_City");
+									duplicateOtherAddressMap.put("Other_City",record.get("Other_City"));
+								}
+								if(record.get("Other_Country") != null && record.get("Other_Country") != "")
+								{
+									duplicateOtherAddress.add("Other_Country");
+									duplicateOtherAddressMap.put("Other_Country",record.get("Other_Country"));
+								}
+								if(record.get("Other_State") != null && record.get("Other_State") != "")
+								{
+									duplicateOtherAddress.add("Other_State");
+									duplicateOtherAddressMap.put("Other_State",record.get("Other_State"));
+								}
+								if(record.get("Other_Street") != null && record.get("Other_Street") != "")
+								{
+									duplicateOtherAddress.add("Other_Street");
+									duplicateOtherAddressMap.put("Other_Street",record.get("Other_Street"));
+								}
+								if(record.get("Other_Street_2") != null && record.get("Other_Street_2") != "")
+								{
+									duplicateOtherAddress.add("Other_Street_2");
+									duplicateOtherAddressMap.put("Other_Street_2",record.get("Other_Street_2"));
+								}
+								if(record.get("Other_Zip") != null && record.get("Other_Zip") != "")
+								{
+									duplicateOtherAddress.add("Other_Zip");
+									duplicateOtherAddressMap.put("Other_Zip",record.get("Other_Zip"));
+								}
+								if(record.get("ShippingBCid") != null && record.get("ShippingBCid") != "")
+								{
+									duplicateOtherAddress.add("ShippingBCid");
+									duplicateOtherAddressMap.put("ShippingBCid",record.get("ShippingBCid"));
+								}
+							}
+							//mark as duplicate
+							updateDuplicate = zoho.crm.updateRecord("Contacts",record.get("id"),{"Is_Duplicate_Merge":"Yes","Master":false,"Merged":true,"Duplicate_Merge_Status":"Completed","Developer_Notes":"Moved Notes, Cases and Deals to Master Successfully."});
+							info "updateDuplicate" + updateDuplicate;
+						}
+					}
+				}
+				else
+				{
+					//msg = "No duplicate found!!";
+					for each  rec in duplicateRecords
+					{
+						masterRecId = rec.get("id");
+					}
+				}
+				highrisePeople = "";
+				highrisePerson = "";
+				highriseContactId = "";
+				highriseContactNote = "";
+				highriseLastNotesOwner = "";
+				additioanlEmail2 = "";
+				additioanlEmail3 = "";
+				additioanlEmail4 = "";
+				additioanlEmail5 = "";
+				if(masterRecId != 0)
+				{
+					highriseContact = geturl("https://bestaccessdoors.highrisehq.com/people/search.xml?criteria[phone]=" + actualPhone,{"Authorization":highriseAuth});
+					//info "highrisecontact"+highriseContact;
+					highrisePeople = highriseContact.executeXPath("people");
+					if(highrisePeople != "" && highrisePeople.containsIgnoreCase("person"))
+					{
+						highrisePeople1 = highriseContact.executeXPath("people/person").toXmlList();
+						highrisecontacts = list();
+						highrisecontactsMap = Map();
+						for each  highrise in highrisePeople1
+						{
+							//info "highrise"+highrise; 
+							//highriseContactId = highrisePeople.executeXPath("people/person[1]/id/text()");
+							info "highrise time" + highrise.executeXPath("person/created-at/text()");
+							crmTime = highrise.toxml().executeXPath("person/created-at/text()").replaceAll("T"," ").replaceAll("Z","").totime();
+							info "crm time" + highrise.toxml().executeXPath("person/created-at/text()").replaceAll("T"," ").replaceAll("Z","").totime();
+							if(!highrisecontacts.contains(crmTime))
+							{
+								highrisecontacts.add(crmTime);
+								highrisecontactsMap.put(crmTime,highrise.toxml().executeXPath("person/id/text()"));
+							}
+						}
+						info "highrisecontacts" + highrisecontacts;
+						info "highrisecontacts sorted" + highrisecontacts.sort(false);
+						//highriseContactId = highrisePeople.executeXPath("people/person[1]/id/text()");
+						highriseContactId = highrisecontactsMap.get(highrisecontacts.sort(false).get(0));
+						//person/author-id/text()
+						info highriseContactId;
+						try 
+						{
+							additioanlEmail2 = highrisePeople.executeXPath("people/person[1]/contact-data/email-addresses/email-address[2]/address/text()");
+							additioanlEmail3 = highrisePeople.executeXPath("people/person[1]/contact-data/email-addresses/email-address[3]/address/text()");
+							additioanlEmail4 = highrisePeople.executeXPath("people/person[1]/contact-data/email-addresses/email-address[4]/address/text()");
+							additioanlEmail5 = highrisePeople.executeXPath("people/person[1]/contact-data/email-addresses/email-address[5]/address/text()");
+						}
+ catch (e)
+						{							info "Additional Email Not Found";
+							msg = "Additional Email Not Found";
+						}
+						if(additioanlEmail2 != "")
+						{
+							masterMap.put("Additional_Email_2",additioanlEmail2);
+							//info "additioanlEmail2 "+additioanlEmail2;
+						}
+						if(additioanlEmail3 != "")
+						{
+							masterMap.put("Additional_Email_3",additioanlEmail3);
+						}
+						if(additioanlEmail4 != "")
+						{
+							masterMap.put("Additional_Email_4",additioanlEmail4);
+						}
+						if(additioanlEmail5 != "")
+						{
+							masterMap.put("Additional_Email_5",additioanlEmail5);
+						}
+					}
+					if(highriseContactId == "")
+					{
+						msg = "Contact Not found in Highrise";
+					}
+					else
+					{
+						highriseContactNotes = geturl("https://bestaccessdoors.highrisehq.com/people/" + highriseContactId + "/notes.xml",{"Authorization":highriseAuth});
+						highriseContactNote = highriseContactNotes.executeXPath("notes");
+						if(highriseContactNote != "" && highriseContactNote.containsIgnoreCase("note"))
+						{
+							highriseLastNotesOwner = highriseContactNotes.executeXPath("notes/note[1]/author-id/text()");
+							if(highriseLastNotesOwner == "")
+							{
+								msg = "Notes Not Available For the Contact So Contact Owner is Carlo";
+							}
+							else
+							{
+								highriseNoteOwnerDetails = geturl("https://bestaccessdoors.highrisehq.com/users/" + highriseLastNotesOwner + ".xml",{"Authorization":highriseAuth});
+								info "highriseNoteOwnerDetails " + highriseNoteOwnerDetails;
+								if(highriseNoteOwnerDetails.containsIgnoreCase("user"))
+								{
+									masterMap.put("Highrise_CRM_Owner",ifnull(highriseNoteOwnerDetails.executeXPath("user/name/text()"),"Carlo (User Not Available)"));
+								}
+								else
+								{
+									masterMap.put("Highrise_CRM_Owner","Carlo (User Not Available)");
+								}
+								msg = "Contact Owner Added Successfully";
+							}
+						}
+					}
+					masterMap.put("Duplicate_Merge_Status","Completed");
+					masterMap.put("Merged",true);
+					masterMap.put("Developer_Notes",msg);
+					//updating address in master
+					info "duplicateAddressRecId" + duplicateAddressRecId;
+					info "duplicateMailingAddress" + duplicateMailingAddress.size();
+					info "duplicateOtherAddress" + duplicateOtherAddress.size();
+					info "masterMailingAddress" + masterMailingAddress.size();
+					info "masterOtherAddress" + masterOtherAddress.size();
+					info "duplicateMailingAddressMap" + duplicateMailingAddressMap;
+					info "duplicateOtherAddressMap" + duplicateOtherAddressMap;
+					if(duplicateAddressRecId != 0 && (duplicateMailingAddress.size() > 0 || duplicateOtherAddress.size() > 0))
+					{
+						if(masterMailingAddress.size() < duplicateMailingAddress.size())
+						{
+							masterMap.put(duplicateMailingAddressMap);
+							//info "address added"+masterMap;
+						}
+						if(masterOtherAddress.size() < duplicateOtherAddress.size())
+						{
+							masterMap.put(duplicateOtherAddressMap);
+						}
+					}
+					info "masterMap" + masterMap;
+					info "my master id data" + masterRecId;
+					updateMaster = zoho.crm.updateRecord("Contacts",masterRecId,masterMap);
+					info "updateMaster" + updateMaster;
+				}
+				if(msg != "")
+				{
+					info "msg " + msg;
+					//msgLog=zoho.crm.createRecord("Duplicate_Moderation", {"Email":email,"Message":msg});
+				}
+				info "--------------end----------------------<br><br><br>";
+			}
+ catch (e)
+			{				errorMsgLog = zoho.crm.createRecord("Duplicate_Moderation_Log",{"Email":email,"Error_Details":e});
+			}
+		}
+	}
+	scheduleUpdateMap = Map();
+	scheduleUpdateMap.put("Last_Page",page + 1);
+	info "schedule map " + scheduleUpdateMap;
+	updatePageIndex = zoho.crm.updateRecord("Merger_Schedule",scheduleRecordID,scheduleUpdateMap);
+	info "updatePageIndex" + updatePageIndex;
+}
+}

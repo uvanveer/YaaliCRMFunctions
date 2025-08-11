@@ -1,0 +1,23 @@
+void automation.Test_Mail_Task(Int Contact_ID)
+{
+// Get_rel_rec_emails = zoho.crm.getRelatedRecords("Emails","Contacts",Contact_ID);
+// info Get_rel_rec_emails;parameters: <paramMap/string>
+// 3106252000763550107
+response = invokeurl
+[
+	url :"https://www.zohoapis.com/crm/v4/Contacts/3106252000782198515/Emails"
+	type :GET
+	connection:"crm_test"
+];
+info response;
+email_rsp = response.get("Emails");
+cnt = 0;
+for each  rec in email_rsp
+{
+	cnt = cnt + 1;
+	info cnt;
+	info rec.get("linked_record");
+	info rec.get("subject");
+	info rec.get("time");
+}
+}

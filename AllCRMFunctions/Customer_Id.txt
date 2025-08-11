@@ -1,0 +1,27 @@
+void automation.Set_Customer_ID(Int Contact_ID)
+{
+Get_last_customer = zoho.crm.getRecords("Contacts",1,3);
+info Get_last_customer;
+count = 0;
+for each  rec in Get_last_customer
+{
+	Get_latest_customer_ID = rec.get("Customer_ID_No");
+	if(count == 1)
+	{
+		break;
+	}
+	count = count + 1;
+}
+info Get_latest_customer_ID;
+Contact_update_map = Map();
+Contact_update_map.put("Customer_ID_No",Get_latest_customer_ID + 1);
+Update_contact = zoho.crm.updateRecord("Contacts",Contact_ID,Contact_update_map);
+info Update_contact;
+// sendmail
+// [
+// 	from :zoho.adminuserid
+// 	to :"balaji@bizappln.com"
+// 	subject :"Success"
+// 	message :"Workflow"
+// ]
+}

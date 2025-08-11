@@ -1,0 +1,6 @@
+void automation.EnableBCI(Int con_id)
+{
+field_map = Map();
+field_map.put("Enable_BCI",false);
+field_update = zoho.crm.updateRecord("Contacts",con_id,field_map);
+}

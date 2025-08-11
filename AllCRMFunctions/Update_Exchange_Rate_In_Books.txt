@@ -1,0 +1,90 @@
+string standalone.Update_Exchange_Rate_In_Books()
+{
+organizationID = 666840843;
+// 		update_data_map = Map();
+// 		update_data_map.put("exchange_rate",0.75);
+// 		response_update_status = zoho.books.updateRecord("Invoices",organizationID,1324986000022449663,update_data_map);
+// 	info response_update_status;
+getBooksPage = zoho.crm.getRecordById("Merger_Schedule",3106252000061961343);
+// booksid = getBooksPage.get("Books_ID");
+last_page = getBooksPage.get("Last_Page_Book_Index").toLong();
+processed_count = getBooksPage.get("Processing_Page_Book_Index").toLong();
+// if(last_page <= 24)
+// {
+info "| page | " + last_page + " == " + processed_count;
+get_Invoices = zoho.books.getRecords("Invoices",organizationID,"currency_code='USD'&page=" + last_page + "&sort_column=created_time");
+Invoice_List = get_Invoices.get("invoices");
+// processedInvoice = 0;
+notprocessedInvoice = 0;
+for each  s_invoice in Invoice_List
+{
+	if(s_invoice.get("exchange_rate") != 1 && s_invoice.get("currency_code") == "USD")
+	{
+		processed_count = processed_count + 1;
+		info s_invoice.get("invoice_id") + " rate " + s_invoice.get("exchange_rate") + " -- " + s_invoice.get("currency_code");
+		update_data_map = Map();
+		update_data_map.put("exchange_rate",1);
+		response_update_status = zoho.books.updateRecord("Invoices",organizationID,s_invoice.get("invoice_id"),update_data_map);
+		info response_update_status.get("message");
+		logs = zoho.crm.createRecord("Duplicate_Moderation_Log",{"Source":"Books-Invoice","Currency":s_invoice.get("currency_code"),"Message":s_invoice.get("invoice_id"),"Error_Details":s_invoice.get("exchange_rate") + " - " + s_invoice.get("currency_code")});
+		info "logs update " + logs.get("id");
+	}
+	else
+	{
+		notprocessedInvoice = notprocessedInvoice + 1;
+		// 		info "--- "+ s_invoice.get("invoice_id") + " rate " + s_invoice.get("exchange_rate") + " -- "+ s_invoice.get("currency_code");
+	}
+}
+update_last_page = last_page + 1;
+update_last_page = update_last_page.toString();
+updateMerger = zoho.crm.updateRecord("Merger_Schedule",3106252000061961343,{"Last_Page_Book_Index":update_last_page,"Processing_Page_Book_Index":processed_count.toString()});
+info " merger res || " + updateMerger.get("id");
+info "processed " + processed_count + " -- " + notprocessedInvoice + " -- " + get_Invoices.get("invoices").size();
+// }
+//======================================================================================================
+// get_PurchaseOrders = zoho.books.getRecords("Purchaseorders",organizationID,"currency_code=USD&page=1&sort_column=created_time");
+// info get_PurchaseOrders;
+// if(get_PurchaseOrders.get("message") == "success"){ 
+// 	for each s_po in get_PurchaseOrders.get("purchaseorders")
+//     {
+// 		if(s_po.get("exchange_rate") != 1){
+// 		// 		info s_po.get("purchaseorder_id") + " rate " + s_po.get("exchange_rate") + " -- "+ s_invoice.get("currency_code");
+// 		// 	update_data_map = Map();
+// 		// 	update_data_map.put("exchange_rate",1);
+// 		// 	response_update_status = zoho.books.updateRecord("Purchaseorders",organizationID,purchaseorder_id,update_data_map);
+// 		// 	info response_update_status;
+// 		}
+//     }
+// }
+//======================================================================================================
+// expenses
+// Get_Exp_data = zoho.books.getRecords("expenses","666840843","currency_code=USD&page=1&sort_column=created_time");
+// Get_Inv_Exp = Get_Exp_data.get("expenses");
+// processedExpense = 0;
+// 	for each  Exp_rec in Get_Inv_Exp
+// 	{
+// 		if(Exp_rec.get("exchange_rate") == 1 && Exp_rec.get("currency_code") == "USD"){
+// 			processedExpense = processedExpense +1;
+// 			info Exp_rec.get("expense_id") + " ,|E rate:| " + Exp_rec.get("exchange_rate") + " ,|created time:| "+ Exp_rec.get("created_time") + " ,|currency code:| "+ Exp_rec.get("currency_code");
+// 			Exp_Id = Exp_rec.get("expense_id");
+// 			Exp_map = Map();
+// 			Exp_map.put("exchange_rate",1);
+// 			// 		Update_Exp = zoho.books.updateRecord("expenses","666840843",Exp_Id,Exp_map);
+// 			// 		info Update_Exp;
+// 		}		
+// 	}
+// info "processed "+ processedExpense + " --- overall count "+ Get_Inv_Exp.size();
+//======================================================================================================
+// // bill
+// Get_Bill_data = zoho.books.getRecords("bills","666840843","currency_code=USD&page=1&sort_column=created_time");
+// info Get_Bill_data.get("bills").size();
+// if(Get_Bill_data.get("message")){
+// 	for each s_bill in Get_Bill_data.get("bills")
+//     {
+// 		if(s_bill.get("exchange_rate") == 1 && s_bill.get("currency_code") == "USD"){
+// 			info "id " + s_bill.get("bill_id") + " === "+ s_bill.get("exchange_rate");
+// 		}
+//     }
+// }
+return "completed";
+}

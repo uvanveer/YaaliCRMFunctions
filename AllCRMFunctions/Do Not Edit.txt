@@ -1,0 +1,60 @@
+map validation_rule.Do_Not_Edit(String crmAPIRequest)
+{
+/* The snippet below shows you how to get a list of fields, their values from a MAP object. The fields’ values can be obtained from the same MAP object.                                                  */
+entityMap = crmAPIRequest.toMap().get("record");
+/* The example below demonstrates how a field’s value (email) can be obtained from a MAP object. Here, entityMap - Map Object, Email - Field's API name
+Sample entityMap= {'Email': 'xxx@xxx.com', 'Last_Name': 'xxx'};                                   */
+email = entityMap.get("Email");
+// current_Available_Balance = entityMap.get("Available_Balance");
+current_Available_Balance = ifnull(entityMap.get("Available_Balance"),"");
+getcrmdata = zoho.crm.searchRecords("Leads","(Email:equals:" + email + ")");
+Past_Available_Balance = "";
+response = Map();
+if(getcrmdata != null)
+{
+	if(getcrmdata.size() > 0)
+	{
+		Past_Available_Balance = ifnull(getcrmdata.get(0).get("Available_Balance"),"");
+	}
+}
+// 	Past_Available_Balance = getcrmdata.getJSON("Available_Balance");
+// 	response = Map();
+// 	if(Past_Available_Balance == current_Available_Balance)
+// 	{
+// 		response.put('status','success');
+// 	}
+// 	else
+// 	{
+// 		response.put('status','error');
+// 		response.put('message','You dont have permission to edit the Available Balance');
+// 	}
+// }
+// else
+// {
+// 	response.put('status','success');
+// }
+response = Map();
+if(current_Available_Balance != "" && Past_Available_Balance != "")
+{
+	if(Past_Available_Balance == current_Available_Balance)
+	{
+		response.put('status','success');
+	}
+	else
+	{
+		response.put('status','error');
+		response.put('message','You dont have permission to edit this field!!!');
+	}
+}
+else
+{
+	response.put('status','success');
+}
+/* ---------------------------------------------------------------------------------------------- */
+/* Start writing your code here to perform the necessary field validation                         */
+/* ---------------------------------------------------------------------------------------------- */
+/* If the code identifies a validation error, set the status and alert message as shown below:    */
+/* If there are no errors found during validation, set the status as shown below:                 */
+/* ---------------------------------------------------------------------------------------------- */
+return response;
+}

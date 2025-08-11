@@ -1,0 +1,18 @@
+string standalone.Update_Sales_Order_Owner()
+{
+// saleorderDetail = zoho.crm.getRecordById("Sales_Orders",id);
+// store_id = saleorderDetail.get("Store").get("id");
+// storename = saleorderDetail.get("Store").get("name");
+// get_store = zoho.crm.getRecordById("Stores",store_id);
+// statusofOrder = saleorderDetail.get("Staff_Notes");
+// if(statusofOrder != null)
+// {
+// 	if(statusofOrder.contains("Quote #"))
+// 	{
+// 		quoteno = saleorderDetail.get("Staff_Notes").getSuffix("#");
+// 		quoteno = quoteno.getPrefix(" ");
+// 		info "quoteno:" + quoteno;
+// 		}
+// 		}
+return "";
+}

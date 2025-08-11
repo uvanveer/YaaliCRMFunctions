@@ -1,0 +1,570 @@
+void automation.Upsert_Highrise_Contacts_To_ZohoCRM(String highriseID,Int crmRecordID,Bool recordType)
+{
+/* Created By prashanth on feb-2020 */
+/* Data Sync from highrise to zoho  */
+// currently not in use
+//---------------------------------------------
+// HRmaillist = zoho.crm.getRecords("Highrise_Data",1,1,{"cvid":3106252000066365102});
+// maillist = List();
+// for each  hrcontact in HRmaillist
+// {
+// 	crmRecordID = hrcontact.get("id");
+// 	highriseID = hrcontact.get("Highrise_ID");
+//--------
+// highriseID = "321351121";
+// crmRecordID = 3106252000079015010;
+info crmRecordID + " " + highriseID;
+userlist = List();
+userlist.add({"name":"Fern Citrigno","crm_id":3106252000000152052,"hr_id":"1082383"});
+userlist.add({"name":"Rheanne Trottier","crm_id":3106252000024509019,"hr_id":"1382762"});
+userlist.add({"name":"Kristopher Clark","crm_id":3106252000058241283,"hr_id":"1414362"});
+userlist.add({"name":"Marko Savic","crm_id":3106252000037668001,"hr_id":"1406845"});
+userlist.add({"name":"Deborah Warner","crm_id":3106252000045664001,"hr_id":"1411870"});
+userlist.add({"name":"Christie Best","crm_id":3106252000025726001,"hr_id":"1395960"});
+userlist.add({"name":"Emma Burns","crm_id":3106252000025727001,"hr_id":"1382543"});
+userlist.add({"name":"Carlo  Citrigno","crm_id":3106252000000147013,"hr_id":"937881"});
+userlist.add({"name":"Franz Perez","crm_id":3106252000000147013,"hr_id":"1039649"});
+// no user found so using carlo as suggested by anthony
+userlist.add({"name":"Anthony La Rocca","crm_id":3106252000000147711,"hr_id":"1254582"});
+userlist.add({"name":"Chesia Melisa","crm_id":3106252000000152046,"hr_id":"1262788"});
+highriseAuth = "Basic OWZiYjY1ODg2NWY5MTUyODlmN2U5ZDNiM2E3MWNkYmI6WA==";
+// getCRMAccessToken = zoho.crm.getRecordById("Merger_Schedule",4244986000004523148);
+// accessToken = getCRMAccessToken.get("Authtoken");
+getfetchTime = zoho.crm.getRecordById("Highrise_Connector",3106252000065101001);
+inputfetchTime = getfetchTime.get("Date").subString(0,19);
+inputTime = inputfetchTime.replaceAll("T"," ").totime();
+globalError = "";
+contactMap = Map();
+//highriseID = 282535790;
+info "hr id " + highriseID;
+highrisePeople = geturl("https://bestaccessdoors.highrisehq.com/people/" + highriseID + ".xml",{"Authorization":highriseAuth});
+info "highrisePeople " + highrisePeople;
+for each  userrec in userlist
+{
+	if(highrisePeople.executeXPath("person/author-id/text()") == userrec.get("hr_id"))
+	{
+		hr_id = userrec.get("hr_id");
+		owner = userrec.get("crm_id");
+		contactMap.put("Owner",owner);
+		info " owner  " + owner.toLong() + " hr id " + hr_id;
+	}
+}
+firstName = ifnull(highrisePeople.executeXPath("person/first-name/text()"),"");
+if(firstName != "")
+{
+	contactMap.put("First_Name",firstName);
+}
+lastName = ifnull(highrisePeople.executeXPath("person/last-name/text()"),"");
+if(lastName != "")
+{
+	contactMap.put("Last_Name",lastName);
+}
+else
+{
+	contactMap.put("Last_Name","Last Name Empty");
+}
+primaryEmail = ifnull(highrisePeople.executeXPath("person/contact-data/email-addresses/email-address[1]/address/text()"),"");
+info "primaryEmail " + primaryEmail;
+if(primaryEmail != "")
+{
+	contactMap.put("Email",primaryEmail);
+	additioanlEmail2 = ifnull(highrisePeople.executeXPath("person/contact-data/email-addresses/email-address[2]/address/text()"),"");
+	if(additioanlEmail2 != "")
+	{
+		contactMap.put("Additional_Email_2",additioanlEmail2);
+	}
+	additioanlEmail3 = ifnull(highrisePeople.executeXPath("person/contact-data/email-addresses/email-address[3]/address/text()"),"");
+	if(additioanlEmail3 != "")
+	{
+		contactMap.put("Additional_Email_3",additioanlEmail3);
+	}
+	additioanlEmail4 = ifnull(highrisePeople.executeXPath("person/contact-data/email-addresses/email-address[4]/address/text()"),"");
+	if(additioanlEmail4 != "")
+	{
+		contactMap.put("Additional_Email_4",additioanlEmail4);
+	}
+	additioanlEmail5 = ifnull(highrisePeople.executeXPath("person/contact-data/email-addresses/email-address[5]/address/text()"),"");
+	if(additioanlEmail5 != "")
+	{
+		contactMap.put("Additional_Email_5",additioanlEmail5);
+	}
+}
+phone = ifnull(highrisePeople.executeXPath("person/contact-data/phone-numbers/phone-number[1]/number/text()"),"");
+info phone;
+if(phone != "")
+{
+	contactMap.put("Phone",phone);
+	phNo = phone.toString();
+	phNo = phNo.replaceAll("[/\-\(\)_@#\^!\$%\&\*:;`~+.,']","");
+	phNo = phNo.removeAllAlpha();
+	data = '"';
+	phNo = phNo.replaceAll(data,"");
+	phNo = phNo.replaceAll(" ","");
+	contactMap.put("Phone_Number_Merge",phNo);
+}
+//info "phone "+phone;
+website = ifnull(highrisePeople.executeXPath("person/contact-data/web-addresses/web-address[1]/url/text()"),"");
+if(website != "")
+{
+	contactMap.put("Website",website);
+}
+billingStreet = ifnull(highrisePeople.executeXPath("person/contact-data/addresses/address[1]/street/text()"),"");
+if(billingStreet != "")
+{
+	contactMap.put("Mailing_Street",billingStreet);
+}
+//info "billingStreet "+billingStreet;
+billingState = ifnull(highrisePeople.executeXPath("person/contact-data/addresses/address[1]/state/text()"),"");
+if(billingState != "")
+{
+	contactMap.put("Mailing_State",billingState);
+}
+billingCity = ifnull(highrisePeople.executeXPath("person/contact-data/addresses/address[1]/city/text()"),"");
+if(billingCity != "")
+{
+	contactMap.put("Mailing_Country",billingCity);
+}
+billingCode = ifnull(highrisePeople.executeXPath("person/contact-data/addresses/address[1]/zip/text()"),"");
+if(billingCode != "")
+{
+	contactMap.put("Mailing_Zip",billingCode);
+}
+billingCountry = ifnull(highrisePeople.executeXPath("person/contact-data/addresses/address[1]/country/text()"),"");
+if(billingCountry != "")
+{
+	contactMap.put("Mailing_Country",billingCountry);
+}
+shippingStreet = ifnull(highrisePeople.executeXPath("person/contact-data/addresses/address[2]/street/text()"),"");
+if(shippingStreet != "")
+{
+	contactMap.put("Other_Street",shippingStreet);
+}
+shippingState = ifnull(highrisePeople.executeXPath("person/contact-data/addresses/address[2]/state/text()"),"");
+if(shippingState != "")
+{
+	contactMap.put("Other_State",shippingState);
+}
+shippingCity = ifnull(highrisePeople.executeXPath("person/contact-data/addresses/address[2]/city/text()"),"");
+if(shippingCity != "")
+{
+	contactMap.put("Other_City",shippingCity);
+}
+shippingCode = ifnull(highrisePeople.executeXPath("person/contact-data/addresses/address[2]/zip/text()"),"");
+if(shippingCode != "")
+{
+	contactMap.put("Other_Zip",shippingCode);
+}
+shippingCountry = ifnull(highrisePeople.executeXPath("person/contact-data/addresses/address[2]/country/text()"),"");
+if(shippingCountry != "")
+{
+	contactMap.put("Other_Country",shippingCountry);
+}
+//get notes from highrise
+highrisenotesURL = geturl("https://bestaccessdoors.highrisehq.com/people/" + highriseID + "/notes.xml",{"Authorization":highriseAuth});
+notesExists = highrisenotesURL.containsIgnoreCase("notes");
+//fetching tags
+tagsExist = highrisePeople.containsIgnoreCase("tags");
+if(tagsExist == true)
+{
+	tagsData = highrisePeople.executexpath("person/tags/tag").toXmlList();
+	tags = list();
+	tagString = "";
+	for each  index_item in tagsData
+	{
+		tagString = tagString + "," + index_item.executexpath("tag/name/text()");
+	}
+	tagString = tagString.subString(1);
+}
+contactMap.put("Date_Range_Import",true);
+highriseOwner = highrisePeople.executeXPath("person/author-id/text()");
+highriseNoteOwnerDetails = geturl("https://bestaccessdoors.highrisehq.com/users/" + highriseOwner + ".xml",{"Authorization":highriseAuth});
+info "highriseNoteOwnerDetails " + highriseNoteOwnerDetails;
+if(highriseNoteOwnerDetails.containsIgnoreCase("user"))
+{
+	contactMap.put("Highrise_Owner",ifnull(highriseNoteOwnerDetails.executeXPath("user/name/text()"),"Carlo (User Not Available)"));
+}
+else
+{
+	contactMap.put("Highrise_Owner","Carlo (User Not Available)");
+}
+//contactMap.put("First_Name",highriseId);
+companyName = ifnull(highrisePeople.executeXPath("person/company-name/text()"),"");
+UnableToFindAccountError = false;
+accountNotExist = false;
+emptyHRCompany = false;
+if(companyName != "")
+{
+	criteria = "(Account_Name:equals:" + companyName + ")";
+	getaccounts = zoho.crm.searchRecords("Accounts",criteria);
+	if(getaccounts.size() > 1)
+	{
+		UnableToFindAccountError = true;
+	}
+	else if(getaccounts.size() == 1)
+	{
+		for each  acc in getaccounts
+		{
+			contactMap.put("Account_Name",acc.get("id"));
+		}
+	}
+	else if(getaccounts.size() == 0)
+	{
+		accountNotExist = true;
+	}
+}
+else
+{
+	emptyHRCompany = true;
+}
+criteria = "(HighriseID:equals:" + highriseID + ")";
+searchRes_highrise = zoho.crm.searchRecords("Contacts",criteria);
+if(searchRes_highrise.size() == 1)
+{
+	firstRecID = searchRes_highrise.get(0).get("id");
+	updateContact = zoho.crm.updateRecord("Contacts",firstRecID,contactMap);
+	contactRecordID = updateContact.get("id");
+	info "update contact - using master founded " + updateContact + " --------------- " + contactRecordID;
+	objMap = {"Status":"Updated","Zoho_CRM_ID":contactRecordID,"Conflict_Message":""};
+	HighriseData_Updation = zoho.crm.updateRecord("Highrise_Data",crmRecordID,objMap);
+	info "HR Data module update - more than 1 contact found with master : - " + HighriseData_Updation;
+	updateNotes = true;
+	executeTags = true;
+}
+else if(searchRes_highrise.size() > 1 || searchRes_highrise.size() == 0)
+{
+	//fetch master record for updating contact
+	if(!primaryEmail == "")
+	{
+		getContacts = zoho.crm.searchRecords("Contacts","((Email:equals:" + primaryEmail + "))");
+		// info "get accounts : - " + getContacts;
+		if(getContacts.size() > 1)
+		{
+			info "****** more than 1 contacts found for " + primaryEmail + " *****";
+			masterFound = false;
+			for each  contactitem in getContacts
+			{
+				// 				info "----- " + contactitem;
+				if(contactitem.get("Master") == true)
+				{
+					masterFound = true;
+					masterID = contactitem.get("id");
+					info contactitem.get("id") + " - " + contactitem.get("Master");
+				}
+			}
+			if(masterFound == true)
+			{
+				contactMap.put("HighriseID",highriseID);
+				updateContact = zoho.crm.updateRecord("Contacts",masterID,contactMap);
+				contactRecordID = updateContact.get("id");
+				info "update contact - using master founded " + updateContact + " --------------- " + contactRecordID;
+				objMap = {"Status":"Updated","Zoho_CRM_ID":contactRecordID};
+				HighriseData_Updation = zoho.crm.updateRecord("Highrise_Data",crmRecordID,objMap);
+				info "HR Data module update - more than 1 contact found with master : - " + HighriseData_Updation;
+				executeTags = true;
+				updateNotes = true;
+			}
+			else
+			{
+				// 	objMap = {"Status":"Error","Zoho_CRM_ID":"","Conflict_Message":"More than 1 contact was found with no master record"};
+				// 	HighriseData_Updation = zoho.crm.updateRecord("Highrise_Data",crmRecordID,objMap);
+				info "HR Data module update - more than 1 contact found without master : - ";
+				globalError = globalError + " Search Email " + primaryEmail + " : No records was found with Master.";
+			}
+		}
+		else if(getContacts.size() == 1)
+		{
+			info "1 contact is found for search with email";
+			firstRecID = getContacts.get(0).get("id");
+			contactMap.put("HighriseID",highriseID);
+			updateContact = zoho.crm.updateRecord("Contacts",firstRecID,contactMap);
+			contactRecordID = updateContact.get("id");
+			info "update contact - one contact found for email search " + contactRecordID;
+			objMap = {"Status":"Updated","Zoho_CRM_ID":contactRecordID};
+			HighriseData_Updation = zoho.crm.updateRecord("Highrise_Data",crmRecordID,objMap);
+			info "HR update in 1 contact found condition : - " + HighriseData_Updation;
+			executeTags = true;
+			updateNotes = true;
+		}
+		else if(getContacts.size() == 0)
+		{
+			info "******* create new record for highriseid " + highriseID + " *******";
+			contactMap.put("Merged",true);
+			contactMap.put("Is_Duplicate_Merge","No");
+			contactMap.put("Merged_Relatedlist",true);
+			contactMap.put("Lead_Source","Highrise");
+			contactMap.put("HighriseID",highriseID);
+			createResp = zoho.crm.createRecord("Contacts",contactMap,{"trigger":{"workflow"}});
+			contactRecordID = createResp.get("id");
+			info "createResp " + createResp;
+			//update highriseData module
+			objMap = {"Status":"Created Newly","Zoho_CRM_ID":contactRecordID,"Conflict_Message":"","Account_Conflict":""};
+			HighriseData_Updation = zoho.crm.updateRecord("Highrise_Data",crmRecordID,objMap);
+			info "HR update : - " + HighriseData_Updation;
+			executeTags = true;
+			executeNotes = true;
+		}
+	}
+	if(primaryEmail == "" && phone != "")
+	{
+		info "primary email not found  - search using phone";
+		phNo = phone.toString();
+		phNo = phNo.replaceAll("[/\-\(\)_@#\^!\$%\&\*:;`~+.,']","");
+		phNo = phNo.removeAllAlpha();
+		data = '"';
+		phNo = phNo.replaceAll(data,"");
+		phNo = phNo.replaceAll(" ","");
+		info "Modified Phone No " + phNo;
+		getContact = zoho.crm.searchRecords("Contacts","((Phone:equals:" + phone + "))");
+		info "-----get contacts using phone - inside phone number condition---- : - " + getContact;
+		if(getContact.size() > 1)
+		{
+			info " get contacts using phone: more than 1 record was found in search ";
+			for each  contactitem in getContact
+			{
+				if(isNull(contactitem.get("Email")) == true && contactitem.get("Master") == true)
+				{
+					executeContactUpdate = true;
+					firstRecID = contactitem.get("id");
+				}
+			}
+			if(executeContactUpdate == true)
+			{
+				contactMap.put("HighriseID",highriseID);
+				updateContact = zoho.crm.updateRecord("Contacts",firstRecID,contactMap);
+				contactRecordID = updateContact.get("id");
+				info "update contact - email empty & master is true " + contactRecordID;
+				objMap = {"Status":"Updated","Zoho_CRM_ID":contactRecordID,"Conflict_Message":""};
+				HighriseData_Updation = zoho.crm.updateRecord("Highrise_Data",crmRecordID,objMap);
+				info "HR Data module update - inside phone search - email empty & master is true : - " + HighriseData_Updation;
+				executeTags = true;
+				updateNotes = true;
+			}
+			else
+			{
+				// 	objMap = {"Status":"Error","Zoho_CRM_ID":"","Conflict_Message":"No Master found in the resp. records ferched using phone number " + phNo};
+				// HighriseData_Updation = zoho.crm.updateRecord("Highrise_Data",crmRecordID,objMap);
+				globalError = globalError + " Search Phone " + phNo + " : No master records was found for query <!email & phonenumber with Master>";
+				info "HR Data module update - inside phone search - email empty & master is false : - " + globalError;
+			}
+		}
+		else if(getContact.size() == 1)
+		{
+			info " get contacts using phone: 1 record was found in search ";
+			firstRecID = getContact.get(0).get("id");
+			fetchedEmail = ifnull(getContact.get(0).get("Email"),"");
+			if(fetchedEmail == "")
+			{
+				contactMap.put("HighriseID",highriseID);
+				updateContact = zoho.crm.updateRecord("Contacts",firstRecID,contactMap);
+				contactRecordID = updateContact.get("id");
+				info "HR Data module update - inside phone search - email empty & 1 record found : - contactid " + contactRecordID + " update res " + updateContact;
+				executeTags = true;
+				updateNotes = true;
+			}
+		}
+		else if(getContact.size() == 0)
+		{
+			// 			globalError = globalError + " Search Phone " + phNo + " : No records was found for query <!email & !phonenumber>";
+			// 			info "HR Data module update - inside phone search - email empty & phone is empty : - " + globalError;
+			contactMap.put("HighriseID",highriseID);
+			contactMap.put("Lead_Source","Highrise");
+			contactMap.put("Is_Duplicate_Merge","No");
+			contactMap.put("Merged_Relatedlist",true);
+			contactMap.put("Merged",true);
+			createResp = zoho.crm.createRecord("Contacts",contactMap,{"trigger":{"workflow"}});
+			contactRecordID = createResp.get("id");
+			info " phone numb search empty result in crm : create contact Resp " + createResp;
+			//update highriseData module
+			objMap = {"Status":"Created Newly","Zoho_CRM_ID":contactRecordID,"Conflict_Message":"","Account_Conflict":""};
+			HighriseData_Updation = zoho.crm.updateRecord("Highrise_Data",crmRecordID,objMap);
+			info "HR update : - " + HighriseData_Updation;
+			executeTags = true;
+			executeNotes = true;
+		}
+	}
+	else if(primaryEmail == "" && phone == "")
+	{
+		objMap = {"Status":"Error","Zoho_CRM_ID":"","Conflict_Message":"No email & phone number was found in fetched highrise record"};
+		info objMap;
+		HighriseData_Updation = zoho.crm.updateRecord("Highrise_Data",crmRecordID,objMap);
+		info "HR Data module update - no email & phone number was found in fetched record : - " + HighriseData_Updation;
+		// 		contactMap.put("HighriseID",highriseID);
+		// 		contactMap.put("Lead_Source","Highrise");
+		// 		contactMap.put("Is_Duplicate_Merge","No");
+		// 		contactMap.put("Merged_Relatedlist",true);
+		// 		contactMap.put("Merged",true);
+		// 		createResp = zoho.crm.createRecord("Contacts",contactMap,{"trigger":{"workflow"}});
+		// 		contactRecordID = createResp.get("id");
+		// 		info "createResp " + createResp;
+		// 		//update highriseData module
+		// 		objMap = {"Status":"Created Newly","Zoho_CRM_ID":contactRecordID,"Conflict_Message":"","Account_Conflict":""};
+		// 		HighriseData_Updation = zoho.crm.updateRecord("Highrise_Data",crmRecordID,objMap);
+		// 		info "HR update : - " + HighriseData_Updation;
+		// 		executeTags = true;
+		// 		executeNotes = true;
+	}
+}
+info "string " + isNull(tagString) + "flag " + executeTags + " tagString - " + tagString;
+info "---- create notes:  exists --- " + notesExists + " - " + executeNotes;
+// if(notesExists == true && executeNotes == true)
+// {
+// 	notesResponse = highrisenotesURL.executexpath("notes/note").toXmlList();
+// 	notesList = List();
+// 	notesAttachment = "";
+// 	for each  index_item in notesResponse
+// 	{
+// 		if(index_item.containsIgnoreCase("note"))
+// 		{
+// 			info "notes exists";
+// 			Ntitle = index_item.executexpath("note/subject-name/text()") + " HR_ID :" + index_item.executexpath("note/id/text()");
+// 			notesMap = Map();
+// 			notesMap.put("Parent_Id",contactRecordID);
+// 			notesMap.put("se_module","Contacts");
+// 			notesMap.put("Note_Title",Ntitle);
+// 			notesMap.put("Note_Content",index_item.executexpath("note/body/text()").toString());
+// 			//replaceAll("\n","\\n").
+// 			if(index_item.containsIgnoreCase("attachments"))
+// 			{
+// 				noteAttachmentFound = true;
+// 				info "attachments exists " + index_item.executexpath("note/id/text()") + "\n";
+// 				notesAttachment = "," + index_item.executexpath("note/id/text()");
+// 			}
+// 			else
+// 			{
+// 				info "attachments not exists";
+// 				noteCreate = zoho.crm.createRecord("Notes",notesMap);
+// 				info " -- noteCreate " + noteCreate + " -----  ";
+// 				noteID = ifnull(noteCreate.get("id"),"");
+// 				if(noteID == "")
+// 				{
+// 					createLog = zoho.crm.createRecord("Duplicate_Moderation_Log",{"Module_Record_ID":contactRecordID,"HR_Notes_ID":index_item.executexpath("note/id/text()"),"Module":"Contacts","Source":"Connector"});
+// 				}
+// 			}
+// 		}
+// 		else
+// 		{
+// 			info "empty notes";
+// 		}
+// 	}
+// 	if(noteAttachmentFound == true)
+// 	{
+// 		objMap = {"Notes_Attachment":notesAttachment};
+// 		notesContact_Updation = zoho.crm.updateRecord("Contacts",contactRecordID,objMap);
+// 		info "attachment notes found " + notesContact_Updation;
+// 	}
+// }
+// //notes update 
+// info "notes exists -update " + notesExists + " - " + updateNotes;
+// if(notesExists == true && updateNotes == true)
+// {
+// 	//contact updated time
+// 	contactupdatedtime = highrisePeople.executeXPath("person/updated-at/text()").replaceAll("T"," ").replaceAll("Z","").totime();
+// 	lastsubhour = contactupdatedtime.subHour(2).subMinutes(10);
+// 	notesResponse = highrisenotesURL.executexpath("notes/note").toXmlList();
+// 	notesList = List();
+// 	notesAttachment = "";
+// 	for each  index_item in notesResponse
+// 	{
+// 		if(index_item.containsIgnoreCase("note"))
+// 		{
+// 			info "notes exists";
+// 			note_utcCreatedTime = index_item.executeXPath("note/created-at/text()").replaceAll("T"," ").replaceAll("Z","").totime();
+// 			if(note_utcCreatedTime >= lastsubhour)
+// 			{
+// 				Ntitle = index_item.executexpath("note/subject-name/text()") + " HR_ID :" + index_item.executexpath("note/id/text()");
+// 				notesMap = Map();
+// 				notesMap.put("Parent_Id",contactRecordID);
+// 				notesMap.put("se_module","Contacts");
+// 				notesMap.put("Note_Title",Ntitle);
+// 				notesMap.put("Note_Content",index_item.executexpath("note/body/text()").toString());
+// 				//.replaceAll("\n"," ")
+// 				if(index_item.containsIgnoreCase("attachments"))
+// 				{
+// 					noteAttachmentFound = true;
+// 					info "attachments exists";
+// 					notesAttachment = "," + index_item.executexpath("note/id/text()");
+// 				}
+// 				else
+// 				{
+// 					info "attachments not exists";
+// 					noteCreate = zoho.crm.createRecord("Notes",notesMap);
+// 					info " - " + noteCreate;
+// 					noteID = ifnull(noteCreate.get("id"),"");
+// 					if(noteID == "")
+// 					{
+// 						createLog = zoho.crm.createRecord("Duplicate_Moderation_Log",{"Module_Record_ID":contactRecordID,"HR_Notes_ID":index_item.executexpath("note/id/text()"),"Module":"Contacts","Source":"Connector"});
+// 					}
+// 				}
+// 			}
+// 		}
+// 		else
+// 		{
+// 			info "empty notes";
+// 		}
+// 	}
+// 	if(noteAttachmentFound == true)
+// 	{
+// 		objMap = {"Notes_Attachment":notesAttachment};
+// 		notesContact_Updation = zoho.crm.updateRecord("Contacts",contactRecordID,objMap);
+// 		info "attachment notes found " + notesContact_Updation;
+// 	}
+// }
+info "account errors " + UnableToFindAccountError + " - " + accountNotExist;
+// if(UnableToFindAccountError != "" || accountNotExist != "")
+errorLogMap = Map();
+if(UnableToFindAccountError == true)
+{
+	fetchedError = ifnull(globalError,"");
+	if(fetchedError == "")
+	{
+		errorLogMap.put("Account_Conflict","More than 1 Account record was found for " + companyName);
+		info "global error is null";
+	}
+	else
+	{
+		errorLogMap.put("Conflict_Message",globalError);
+		errorLogMap.put("Status","Error");
+		errorLogMap.put("Account_Conflict","More than 1 Account record was found for " + companyName);
+		info "global error is not null";
+	}
+	// 		errorLogMap.put("Account_Conflict","More than 1 Account record was found for " + companyName);
+	accountError = zoho.crm.updateRecord("Highrise_Data",crmRecordID,errorLogMap);
+	info "account cant find -update error " + accountError;
+}
+else if(accountNotExist == true)
+{
+	fetchedError = ifnull(globalError,"");
+	if(fetchedError == "")
+	{
+		errorLogMap.put("Account_Conflict","No Account was found in the name of " + companyName);
+	}
+	else
+	{
+		errorLogMap.put("Conflict_Message",globalError);
+		errorLogMap.put("Status","Error");
+		errorLogMap.put("Account_Conflict","No Account was found in the name of " + companyName);
+	}
+	// 		errorLogMap.put("Account_Conflict","No Account was found in the name of " + companyName);
+	accountError = zoho.crm.updateRecord("Highrise_Data",crmRecordID,errorLogMap);
+	info "account not exists in crm -update error " + accountError;
+}
+else if(emptyHRCompany == true)
+{
+	errorLogMap = Map();
+	fetchedError = ifnull(globalError,"");
+	if(fetchedError == "")
+	{
+		errorLogMap.put("Account_Conflict","No company was added in Highrise for this Contact.");
+	}
+	else
+	{
+		errorLogMap.put("Conflict_Message",globalError);
+		errorLogMap.put("Status","Error");
+		errorLogMap.put("Account_Conflict","No company was added in Highrise for this Contact.");
+	}
+	accountError = zoho.crm.updateRecord("Highrise_Data",crmRecordID,errorLogMap);
+	info "account empty in highrise -update error " + accountError;
+}
+// }
+// return "";
+}

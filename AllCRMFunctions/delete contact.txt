@@ -1,0 +1,8 @@
+void automation.deletecontact(Int contactid)
+{
+deleteRecordMap = Map();
+deleteRecordMap.put("module","Contacts");
+deleteRecordMap.put("id","contactid");
+deleteResp = zoho.crm.invokeConnector("crm.delete",{"module":"Contacts","id":contactid});
+info deleteResp;
+}

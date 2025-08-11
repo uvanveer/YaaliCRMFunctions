@@ -1,0 +1,18 @@
+string standalone.Onetime_Salesorder_migration_to_Books()
+{
+amazonsales = zoho.crm.searchRecords("Sales_Orders","Source:equals:Amazon Store");
+info amazonsales.size();
+// orderid = Map();
+// orderid.put("crmOrderId",id);
+// info orderid;
+// response = invokeurl
+// [
+// 	url :"https://www.1.door-pay.com/api/zohocrm/updateOrder"
+// 	type :POST
+// 	parameters:orderid
+// 	detailed:true
+// ];
+// // info response;
+response = "";
+return response;
+}

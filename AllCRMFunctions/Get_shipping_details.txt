@@ -1,0 +1,15 @@
+string button.Getting_Shipping_details(String Dropshiporder_Id)
+{
+get_domain = zoho.crm.getRecordById("Domain_Settings",3106252000056886136);
+base_url = get_domain.get("Domain_Name");
+Get_dropship_Order_details = zoho.crm.getRecordById("Purchase_Orders",Dropshiporder_Id);
+// info Get_dropship_Order_details;
+Get_tracking_no = Get_dropship_Order_details.get("Tracking_Number");
+info Get_tracking_no;
+// GET /v1/tracking?carrier_code=fedex&tracking_number=9405511899223197428490 HTTP/1.1
+// Host: api.shipengine.com
+// API-Key: __YOUR_API_KEY_HERE__
+// info base_url;
+// getd = zoho.crm.getRecordById("Purchase_Orders",id);
+return "";
+}

@@ -1,0 +1,358 @@
+string button.Create_Quote(String id)
+{
+// v2 migrated for creator api - prashanth on 1/29/2021 at 11.45pm ist
+crmcontact = zoho.crm.getRecordById("Contacts",id);
+email = crmcontact.get("Email");
+full_name = crmcontact.get("Full_Name");
+taxExempt = crmcontact.get("Tax_Exempt");
+if(crmcontact.get("Account_Name") != null)
+{
+	companyname = crmcontact.get("Account_Name").get("name");
+}
+else
+{
+	companyname = "";
+}
+/** // commented by T on 08-06-22 requested by Zyarina**/
+// if(taxExempt == "true" || taxExempt == true)
+// {
+// 	if(crmcontact.get("Contact_Tax_Exemptions").size() > 0)
+// 	{
+// 		info crmcontact.get("Contact_Tax_Exemptions");
+// 		contactTaxExemption = crmcontact.get("Contact_Tax_Exemptions").get(0);
+// 		taxAgency = contactTaxExemption.get("Tax_Agency");
+// 		taxState = contactTaxExemption.get("Tax_Exempt_State");
+// 		taxCertificateNumber = contactTaxExemption.get("Tax_Exempt_Cert_No");
+// 		taxexemptReason = contactTaxExemption.get("Exemption_Reason");
+// 		info taxAgency + "::" + taxState + " ::" + taxCertificateNumber + " :: " + taxexemptReason;
+// 		if(taxCertificateNumber.isNull() && taxAgency.isNull() && taxState.isNull() && taxexemptReason.isNull())
+// 		{
+// 			info "tax reason";
+// 			return "Please fill all fields value under 'Contact Tax Exemption' and save Or Contact Admin";
+// 		}
+// 		else if(taxCertificateNumber.isNull())
+// 		{
+// 			return "Please fill and save the Tax certificate Number Or Contact Admin";
+// 		}
+// 		else if(taxAgency.isNull())
+// 		{
+// 			return "Please select and save the Tax Agency Info Or Contact Admin";
+// 		}
+// 		else if(taxState.isNull())
+// 		{
+// 			return "Please select and save the Tax Exempt State Info Or Contact Admin";
+// 		}
+// 		else if(taxexemptReason.isNull())
+// 		{
+// 			return "Please select and save the Tax Exemption Reason Info Or Contact Admin";
+// 		}
+// 	}
+// 	else
+// 	{
+// 		return "Please fill atleast one row of data in Contact Tax Exemption sub form section";
+// 	}
+// }
+if(companyname != "")
+{
+	if(email != null)
+	{
+		creatorContact = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Contacts","ContactCRMRecordID == " + id,1,200,"zcreator_connecction");
+		// 		info "get_contact:" + creatorContact;
+		// 	ren = "Hi, Select Store to Enable All Fields ...";
+		if(!isNull(creatorContact))
+		{
+			if(creatorContact.get("code") == 3000)
+			{
+				list = creatorContact.get("data");
+				if(list.size() > 0)
+				{
+					//get_contact = list.get(0);
+					max_size = list.size();
+					get_contact = list.get(max_size - 1);
+					info "Create exits";
+					Creator_contact_email = get_contact.get("Email");
+					info Creator_contact_email;
+					info email;
+					if(!isNull(Creator_contact_email) && email.containsIgnoreCase(Creator_contact_email))
+					{
+						Cretor_ID = get_contact.get("ID");
+						loginuser = zoho.loginuserid;
+						if(get_contact.get("Account_Name") != "")
+						{
+							account = get_contact.get("Account_Name");
+						}
+						else
+						{
+							account = get_contact.get("Company_Name");
+						}
+						get_salesperson = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Employees","Email==\"" + zoho.loginuserid + "\"",1,200,"zcreator_connecction");
+						saleperon_id = "";
+						if(get_salesperson.get("code") == 3000)
+						{
+							list = get_salesperson.get("data");
+							if(list.size() > 0)
+							{
+								salespersonData = list.get(0);
+								saleperon_id = salespersonData.getJSON("ID");
+							}
+						}
+						else
+						{
+							response = "Salesperson not found " + zoho.loginuserid;
+						}
+						crm_acc = "";
+						crm_acc_id = "";
+						if(crmcontact.get("Account_Name").size() > 0)
+						{
+							crm_acc = crmcontact.get("Account_Name").get("name");
+							crm_acc_id = crmcontact.get("Account_Name").get("id");
+						}
+						crmaccount = ifnull(crm_acc,crmcontact.get("Company_Name"));
+						if(account != crmaccount)
+						{
+							info "crmaccount:" + crmaccount;
+							if(crm_acc_id != "")
+							{
+								tempdata = Map();
+								updatedata = Map();
+								updatedata.put("Company_Name",crmaccount);
+								info "updatedata: " + updatedata;
+								updatecontact = zoho.creator.updateRecord("zoho_zoho1502","quotes","All_Contacts",get_contact.get("ID").toLong(),updatedata,tempdata,"zcreator_connecction");
+								info "updatecontact: " + updatecontact;
+							}
+						}
+						// 						url = "https://creatorapp.zohopublic.com/zoho_zoho1502/quotes/form-perma/Create_Quote/FYDgOYE8UqBGJbOygHAzw4Cd6sgOUbxn4QSsXZhx3nHPy3vXdP21tnQZswXFkA4gv2JAuauJVFWvx724VEf9JCDFPDsZaVN5r6n7?Customer=" + Cretor_ID + "&Sales_Person=" + saleperon_id + "&Prepared_For=" + saleperon_id;
+						url = "https://creatorapp.zohopublic.com/zoho_zoho1502/quotes/form-perma/Create_Quote/bztDrdqpfD35asg5JSK9HW1ArEJbZhmFUAV0JqbrYWsAfH0KU7YhEUNUtUKwnJDE39PPyrQ4gfuXW5WzzA8Q68SYkOJYvwzQ2UgG?Customer=" + Cretor_ID + "&Sales_Person=" + saleperon_id + "&Prepared_For=" + saleperon_id;
+						if(max_size > 0)
+						{
+							openUrl(url,"open window");
+							info url;
+							Log_map = Map();
+							Get_timestamp = zoho.currenttime.tolong();
+							Log_map.put("Which_Module","Quotes");
+							Log_map.put("Salesperson",zoho.loginuser);
+							Log_map.put("Quote_Request",url);
+							Log_map.put("Name","Create Quote Button");
+							Log_map.put("Created_Edited_By",zoho.loginuser);
+							Log_map.put("Contact_Record_ID",id);
+							Log_map.put("Email",email);
+							Log_map.put("Contact_Name",if(full_name != null,full_name,""));
+							Log_map.put("Start_Time",Get_timestamp.tostring());
+							Log_map.put("End_Time",Get_timestamp.tostring());
+							Create_log = zoho.crm.createRecord("Log_ContactQuoteDeals",Log_map);
+							info "crm logs response: " + Create_log;
+							// 	ren = "Successfully opened";
+							response = '';
+						}
+					}
+					else
+					{
+						response = "Hi " + zoho.loginuser + ", The Creator Contact Email and the CRM Contact Email does not match!!!";
+					}
+				}
+			}
+			else if(creatorContact.get("code") == 3100)
+			{
+				loginuser = zoho.loginuserid;
+				get_salesperson = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Employees","Email==\"" + zoho.loginuserid + "\"",1,200,"zcreator_connecction");
+				saleperon_id = "";
+				if(get_salesperson.get("code") == 3000)
+				{
+					list = get_salesperson.get("data");
+					if(list.size() > 0)
+					{
+						salespersonData = list.get(0);
+						saleperon_id = salespersonData.getJSON("ID");
+						// 						url = "https://creatorapp.zohopublic.com/zoho_zoho1502/quotes/form-perma/Create_Quote/FYDgOYE8UqBGJbOygHAzw4Cd6sgOUbxn4QSsXZhx3nHPy3vXdP21tnQZswXFkA4gv2JAuauJVFWvx724VEf9JCDFPDsZaVN5r6n7?Sales_Person=" + saleperon_id + "&ContactCRMRecordID=" + id + "&Prepared_For=" + saleperon_id;
+						url = "https://creatorapp.zohopublic.com/zoho_zoho1502/quotes/form-perma/Create_Quote/bztDrdqpfD35asg5JSK9HW1ArEJbZhmFUAV0JqbrYWsAfH0KU7YhEUNUtUKwnJDE39PPyrQ4gfuXW5WzzA8Q68SYkOJYvwzQ2UgG?Sales_Person=" + saleperon_id + "&ContactCRMRecordID=" + id + "&Prepared_For=" + saleperon_id;
+						// + "&Company=" + companyname // CRM_Contact_ID
+						openUrl(url,"open window");
+						info url;
+						//Adding log to the Create Quote Button Action
+						Log_map = Map();
+						Get_timestamp = zoho.currenttime.tolong();
+						Log_map.put("Which_Module","Quotes");
+						Log_map.put("Salesperson",zoho.loginuser);
+						Log_map.put("Quote_Request",url);
+						Log_map.put("Name","Create Quote Button");
+						Log_map.put("Created_Edited_By",zoho.loginuser);
+						Log_map.put("Contact_Name",if(full_name != null,full_name,""));
+						Log_map.put("Email",email);
+						Log_map.put("Contact_Record_ID",toString(id));
+						Log_map.put("Start_Time",Get_timestamp.tostring());
+						Log_map.put("End_Time",Get_timestamp.tostring());
+						Create_log = zoho.crm.createRecord("Log_ContactQuoteDeals",Log_map);
+						info "Contact not found in creator: CRM log response " + Create_log;
+						info url;
+						response = '';
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		response = "Hi " + zoho.loginuser + ", Fill the Email id to proceed quote creation...";
+	}
+}
+else
+{
+	response = "Hi " + zoho.loginuser + ", Please fill the Account Name to proceed quote creation...";
+}
+// -------------/---------old script before creator v2 migrations---------/-------------------
+// crmcontact = zoho.crm.getRecordById("Contacts",id);
+// email = crmcontact.get("Email");
+// full_name = crmcontact.get("Full_Name");
+// if(crmcontact.get("Account_Name") != null)
+// {
+// 	companyname = crmcontact.get("Account_Name").get("name");
+// }
+// else
+// {
+// 	companyname = "";
+// }
+// if(email != null)
+// {
+// 	get_contact = zoho.creator.v1.getRecords("zoho_zoho1502","quotes","All_Contacts","ContactCRMRecordID ==" + id);
+// 	info "get_contact:" + get_contact;
+// 	// 	ren = "Hi, Select Store to Enable All Fields ...";
+// 	get_contact_message = get_contact.toMap();
+// 	Creator_contact_email = get_contact_message.get("Email");
+// 	if(!isNull(Creator_contact_email) && email.containsIgnoreCase(Creator_contact_email))
+// 	{
+// 		if(get_contact_message.containKey("message"))
+// 		{
+// 			// 		contactmap = Map();
+// 			// 		contactmap.put("CRM_ID",id);
+// 			// 		contactmap.put("Module_Name","CRM-Contact");
+// 			// testing
+// 			// 		CreateStore = zoho.creator.createRecord("zoho_zoho1502","quotes","Mapping_Form",contactmap);
+// 			loginuser = zoho.loginuserid;
+// 			get_salesperson = zoho.creator.v1.getRecords("zoho_zoho1502","quotes","All_Employees",'(Email == \"' + loginuser + '\")');
+// 			saleperon_id = "";
+// 			if(get_salesperson.size() > 0)
+// 			{
+// 				saleperon_id = get_salesperson.getJSON("ID");
+// 			}
+// 			url = "https://creatorapp.zohopublic.com/zoho_zoho1502/quotes/form-perma/Create_Quote/FYDgOYE8UqBGJbOygHAzw4Cd6sgOUbxn4QSsXZhx3nHPy3vXdP21tnQZswXFkA4gv2JAuauJVFWvx724VEf9JCDFPDsZaVN5r6n7?Sales_Person=" + saleperon_id + "&CRM_Contact_ID=" + id;
+// 			// + "&Company=" + companyname
+// 			openUrl(url,"open window");
+// 			//Adding log to the Create Quote Button Action
+// 			Log_map = Map();
+// 			Get_timestamp = zoho.currenttime.tolong();
+// 			Log_map.put("Which_Module","Quotes");
+// 			Log_map.put("Salesperson",zoho.loginuser);
+// 			Log_map.put("Quote_Request",url);
+// 			Log_map.put("Name","Create Quote Button");
+// 			Log_map.put("Created_Edited_By",zoho.loginuser);
+// 			Log_map.put("Contact_Name",if(full_name != null,full_name,""));
+// 			Log_map.put("Email",email);
+// 			Log_map.put("Contact_Record_ID",id);
+// 			Log_map.put("Start_Time",Get_timestamp.tostring());
+// 			Log_map.put("End_Time",Get_timestamp.tostring());
+// 			Create_log = zoho.crm.createRecord("Log_ContactQuoteDeals",Log_map);
+// 			info Create_log;
+// 			info url;
+// 			// 		ren = "Contact does not exsist in Quote Form. We have initiated New Contact Creation to Quote Form. Please try again after Few Minuts...";
+// 			ren = '';
+// 		}
+// 		else
+// 		{
+// 			max_size = get_contact.size();
+// 			get_contact = get_contact.get(max_size - 1);
+// 			info "Create exits";
+// 			Cretor_ID = get_contact.get("ID");
+// 			loginuser = zoho.loginuserid;
+// 			get_salesperson = zoho.creator.v1.getRecords("zoho_zoho1502","quotes","All_Employees",'(Email == \"' + loginuser + '\")');
+// 			saleperon_id = "";
+// 			if(get_salesperson.size() > 0)
+// 			{
+// 				saleperon_id = get_salesperson.getJSON("ID");
+// 			}
+// 			if(get_contact.get("Account_Name") != "")
+// 			{
+// 				account = get_contact.get("Account_Name");
+// 			}
+// 			else
+// 			{
+// 				account = get_contact.get("Company_Name");
+// 			}
+// 			// 		account = ifnull(get_contact.get("Account_Name"),get_contact.get("Company_Name"));
+// 			// 				info "account" + account;
+// 			crm_acc = "";
+// 			crm_acc_id = "";
+// 			if(crmcontact.get("Account_Name").size() > 0)
+// 			{
+// 				crm_acc = crmcontact.get("Account_Name").get("name");
+// 				crm_acc_id = crmcontact.get("Account_Name").get("id");
+// 				// 			info "crmid:" + crm_acc_id;
+// 			}
+// 			crmaccount = ifnull(crm_acc,crmcontact.get("Company_Name"));
+// 			if(account != crmaccount)
+// 			{
+// 				info "crmaccount:" + crmaccount;
+// 				if(crm_acc_id != "")
+// 				{
+// 					// account creation to creator
+// 					// 			get_accontcrtor = zoho.creator.getRecords("zoho_zoho1502","quotes","CRM_Accounts_Report",'(CRMRecordID == \"' + crm_acc_id + '\")');
+// 					// info "get_accontcrtor:" +get_accontcrtor;
+// 					// 			if (isnull(get_accontcrtor.getJSON("ID"))) 
+// 					// 			{
+// 					// 				accmap = Map();
+// 					// 				accmap.put("CRMAccount_Name", crm_acc);
+// 					// 				accmap.put("CRMRecordID", crm_acc_id);
+// 					// 				accmap.put("CRMPhone_Number", ifnull(crmcontact.get("Phone"),"")); 
+// 					// 				accid = zoho.creator.createRecord("zoho_zoho1502","quotes","CRM_Accounts",accmap);
+// 					// 				info "accid" + accid;
+// 					// 					if(accid.get("status") == "Success"){
+// 					// 						accid = accid.getJSON("values").getJSON("ID");
+// 					// 					}
+// 					// 				}else{ 
+// 					// 				info "elsepart";
+// 					// 				accid = get_accontcrtor.getJSON("ID");
+// 					// 			 }
+// 					updatedata = Map();
+// 					// 			updatedata.put("Account_Name", accid.toString());
+// 					updatedata.put("Company_Name",crmaccount);
+// 					info "updatedata:" + updatedata;
+// 					updatecontact = zoho.creator.v1.updateRecord("zoho_zoho1502","quotes","Add_Contacts",get_contact.get("ID").toLong(),updatedata);
+// 					info "updatecontact:" + updatecontact;
+// 				}
+// 			}
+// 			url = "https://creatorapp.zohopublic.com/zoho_zoho1502/quotes/form-perma/Create_Quote/FYDgOYE8UqBGJbOygHAzw4Cd6sgOUbxn4QSsXZhx3nHPy3vXdP21tnQZswXFkA4gv2JAuauJVFWvx724VEf9JCDFPDsZaVN5r6n7?Customer=" + Cretor_ID + "&Sales_Person=" + saleperon_id;
+// 			// + "&Company=" + companyname
+// 			if(max_size > 0)
+// 			{
+// 				openUrl(url,"open window");
+// 				info url;
+// 				Log_map = Map();
+// 				Get_timestamp = zoho.currenttime.tolong();
+// 				Log_map.put("Which_Module","Quotes");
+// 				Log_map.put("Salesperson",zoho.loginuser);
+// 				Log_map.put("Quote_Request",url);
+// 				Log_map.put("Name","Create Quote Button");
+// 				Log_map.put("Created_Edited_By",zoho.loginuser);
+// 				Log_map.put("Contact_Record_ID",id);
+// 				Log_map.put("Email",email);
+// 				Log_map.put("Contact_Name",if(full_name != null,full_name,""));
+// 				Log_map.put("Start_Time",Get_timestamp.tostring());
+// 				Log_map.put("End_Time",Get_timestamp.tostring());
+// 				Create_log = zoho.crm.createRecord("Log_ContactQuoteDeals",Log_map);
+// 				info Create_log;
+// 				// 			ren = "Successfully opened";
+// 				ren = '';
+// 			}
+// 		}
+// 	}
+// 	else
+// 	{
+// 		ren = "Hi " + zoho.loginuser + ", The Creator Contact Email and the CRM Contact Email does not match!!!";
+// 	}
+// }
+// else
+// {
+// 	ren = "Hi " + zoho.loginuser + ", Fill the Email id to Proceed Quote Creation...";
+// }
+// return ren;
+return response;
+}

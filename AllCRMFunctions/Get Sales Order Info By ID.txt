@@ -1,0 +1,5 @@
+string standalone.get_sales_order_info()
+{
+info zoho.crm.getRecordById("Sales_Orders",3106252000107164017);
+return "";
+}

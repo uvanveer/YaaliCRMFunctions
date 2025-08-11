@@ -1,0 +1,64 @@
+string standalone.Delete_Creator_Duplicate_Contacts_Using_Deleted_Contact_Module()
+{
+// //get Deleted Contacts List from custom view
+// contactList = zoho.crm.getRecords("Deleted_Duplicate_Contact",1,100,{"cvid":3106252000086009133,"sort_by":"Created_Time","sort_order":"asc"});
+// for each ZCcontact in contactList
+// {
+// 	info "contact name "+ ZCcontact.get("Name") + " - contactid " + ZCcontact.get("Contact_ID") + " - module recordid " + ZCcontact.get("id");
+// 	crmRecordID = ZCcontact.get("id");
+// 	crmContactID = ZCcontact.get("Contact_ID");
+// 	//get creator contact details using crm contact id
+// 	creatorContact = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Contacts","ContactCRMRecordID == " + crmContactID.toString());
+// 	// 	info "Creator contact "+ creatorContact;
+// 	info creatorContact;
+// 	for each CList in creatorContact
+// 	{
+// 		// 	info "checking "+ CList;
+// 		info "------" + CList.containKey("message");
+// 		if(CList.containKey("message")){
+// 			info "no contact found";
+// 			updateDeletedcontact = zoho.crm.updateRecord("Deleted_Duplicate_Contact", crmRecordID,{"Creator_Deletion_Processed":true,"Found Creator Contact":false});
+// 		}
+// 		else{
+// 			if(creatorContact.size() == 1)
+// 			{
+// 				info "1 creator contact was found with given id "+ crmContactID + " - "+ creatorContact.get(0).get("ID");
+// 				contactID = creatorContact.get(0).get("ID");
+// 				//get Quote details
+// 				creatorQuote = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Quotes","Customer == " +contactID );
+// 		// 		info "quote "+ creatorQuote;
+// 				info "quote size "+ creatorQuote.size();
+// 				if(creatorQuote.size() > 0){
+// 					info "contact has Quote associated with it. So do not delete.";
+// 				}else if(creatorQuote.size() == 0){
+// 					info "contact has no Quote associated with it. Can delete the contact.";
+// 					// deleteCreatorContact = delete from Add_Contacts [ ID == contactid ];
+// 					// deleteCreatorContact = zoho.creator.invokeConnector("crm.delete",deleteRecordMap);
+// 					// info deleteResp;
+// 					//update Creator Duplicate Contact so that we can remove it from creator
+// 					creatorUpdateMap = Map();
+// 					scheduleMap.put("Is_Duplicate",);
+// 					scheduleMap.put("Quote_ID",Quote_Id_in_Creator);
+// 					scheduleMap.put("Mail_Status","Sent");
+// 					creator_Contact_Update_Res = zoho.creator.updateRecord("zoho_zoho1502","quotes","Create_Quote",Quote_Id_in_Creator,QUpdateMap);
+// 				}
+// 			}
+// 		}
+// 	}
+// // 	else if(creatorContact.size() > 1)
+// // 	{
+// // 		info "more than 1 creator contacts was found with given id "+ ZCcontact.get("Contact_ID");
+// // 	}
+// // 	else if(creatorContact.size() == 0){
+// // 		info "no creator contact found with given id "+ ZCcontact.get("Contact_ID");
+// // 	}
+// // 	for each CContact in creatorContact
+// //     {
+// // 		info "ccontact "+ CContact.get("ID");
+// //     }
+// info "----------------";
+// // 	QuoteMap = Quote_in_Creator.get(0);
+// }
+// deletedContacts = List();
+return "Testing Starts";
+}

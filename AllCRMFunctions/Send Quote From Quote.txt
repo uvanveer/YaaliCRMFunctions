@@ -1,0 +1,149 @@
+string button.SendQuoteFromQuote(String quote_id)
+{
+// Quote = zoho.crm.getRecordById("Quotes",quote_id);
+// // info Quote;
+// if(Quote.get("Contact_Name") != null)
+// {
+// 	contatc_id = Quote.get("Contact_Name").get("id");
+// 	contact = zoho.crm.getRecordById("Contacts",contatc_id);
+// 	emailid = contact.get("Email");
+// 	info emailid;
+// 	rencont = "Quote sent to customer email " + emailid + ". ";
+// }
+// else
+// {
+// 	rencont = "";
+// }
+// Quote_Id_in_Creator = ifnull(Quote.get("Creator_Record_ID"),"");
+// Quote_Number = Quote.get("Subject").remove("#");
+// if(Quote.get("Quote_Stage") != "Paid")
+// {
+// 	if(Quote_Id_in_Creator != "")
+// 	{
+// 		Quote_in_Creator = zoho.creator.v1.getRecords("zoho_zoho1502","quotes","All_Mail_Schedules","Quote_ID == " + Quote_Id_in_Creator);
+// 		QuoteMap = Quote_in_Creator.get(0);
+// 		scheduleMap = Map();
+// 		scheduled_time = zoho.currenttime.addSeconds(60);
+// 		if(QuoteMap.contains("Quote_ID"))
+// 		{
+// 			scheduleMap.put("Quoteno",Quote_Number);
+// 			scheduleMap.put("Excution_Time",scheduled_time.toString());
+// 			scheduleMap.put("Source","CRM Send Quote");
+// 			schedule_id = QuoteMap.get("ID");
+// 			response = zoho.creator.v1.updateRecord("zoho_zoho1502","quotes","Send_Mail_Schedule",schedule_id,scheduleMap);
+// 			QUpdateMap = Map();
+// 			QUpdateMap.put("Quote_Status","Sent");
+// 			Quote_Res = zoho.creator.v1.updateRecord("zoho_zoho1502","quotes","Create_Quote",Quote_Id_in_Creator,QUpdateMap);
+// 			info "update " + response;
+// 		}
+// 		else
+// 		{
+// 			scheduleMap.put("Quoteno",Quote_Number);
+// 			scheduleMap.put("Quote_ID",Quote_Id_in_Creator);
+// 			scheduleMap.put("Source","CRM Send Quote");
+// 			scheduleMap.put("Excution_Time",scheduled_time.toString());
+// 			response = zoho.creator.v1.createRecord("zoho_zoho1502","quotes","Send_Mail_Schedule",scheduleMap);
+// 			QUpdateMap = Map();
+// 			QUpdateMap.put("Quote_Status","Sent");
+// 			Quote_Res = zoho.creator.v1.updateRecord("zoho_zoho1502","quotes","Create_Quote",Quote_Id_in_Creator,QUpdateMap);
+// 			info "create new " + response;
+// 		}
+// 	}
+// 	return rencont + "Customer will receive within 1 to 5 minutes ";
+// }
+// else
+// {
+// 	return "Quote is already Paid!";
+// }
+// v2 migrations
+Quote = zoho.crm.getRecordById("Quotes",quote_id);
+// info Quote;
+if(Quote.get("Contact_Name") != null)
+{
+	contatc_id = Quote.get("Contact_Name").get("id");
+	contact = zoho.crm.getRecordById("Contacts",contatc_id);
+	emailid = contact.get("Email");
+	info emailid;
+	rencont = "Sending quote to customer email " + emailid + " was initialized. ";
+}
+else
+{
+	rencont = "";
+}
+Quote_Id_in_Creator = ifnull(Quote.get("Creator_Record_ID"),"");
+Quote_Number = Quote.get("Subject").remove("#");
+if(Quote.get("Quote_Stage") != "Paid" || Quote.get("Quote_Stage") != "Won")
+{
+	if(Quote_Id_in_Creator != "")
+	{
+		Quote_in_Creator = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Mail_Schedules","Quote_ID == " + Quote_Id_in_Creator,1,200,"zcreator_connecction");
+		// 		info Quote_in_Creator;
+		tempMap = Map();
+		scheduleMap = Map();
+		scheduled_time = zoho.currenttime.addSeconds(60);
+		if(Quote_in_Creator.get("code") == 3000)
+		{
+			info "inside record exists conditions";
+			list = Quote_in_Creator.get("data");
+			if(list.size() > 0)
+			{
+				QuoteMap = list.get(0);
+				// 				info QuoteMap;
+				scheduleMap.put("Quoteno",Quote_Number);
+				scheduleMap.put("Excution_Time",scheduled_time.toString());
+				scheduleMap.put("Retry_Count",0);
+				scheduleMap.put("Source","CRM Send Quote");
+				schedule_id = QuoteMap.get("ID");
+				update_rec = zoho.creator.updateRecord("zoho_zoho1502","quotes","All_Mail_Schedules",schedule_id,scheduleMap,tempMap,"zcreator_connecction");
+				if(update_rec.get("code") == 3000)
+				{
+					//update creator quote status
+					QUpdateMap = Map();
+					QUpdateMap.put("Quote_Status","Pending");
+					// 					Quote_Res = zoho.creator.v1.updateRecord("zoho_zoho1502","quotes","Create_Quote",Quote_Id_in_Creator,QUpdateMap);
+					Quote_Res = zoho.creator.updateRecord("zoho_zoho1502","quotes","All_Quotes",Quote_Id_in_Creator,QUpdateMap,tempMap,"zcreator_connecction");
+					info "scheduler contains entry already so update " + update_rec + " -quote update " + Quote_Res;
+					response = "Mail will send on " + scheduled_time;
+				}
+				else
+				{
+					response = "Mail scheduler - time update failed " + update_rec;
+				}
+			}
+			else
+			{
+				response = "Fetched record count is 0";
+			}
+		}
+		else
+		{
+			info "insdide no records condition ";
+			scheduleMap.put("Quoteno",Quote_Number);
+			scheduleMap.put("Quote_ID",Quote_Id_in_Creator);
+			scheduleMap.put("Source","CRM Send Quote");
+			scheduleMap.put("Retry_Count",0);
+			scheduleMap.put("Excution_Time",scheduled_time.toString());
+			newRec = zoho.creator.createRecord("zoho_zoho1502","quotes","Send_Mail_Schedule",scheduleMap,tempMap,"zcreator_connecction");
+			if(newRec.get("code") == 3000)
+			{
+				//update creator quote status
+				QUpdateMap = Map();
+				QUpdateMap.put("Quote_Status","Pending");
+				Quote_Res = zoho.creator.updateRecord("zoho_zoho1502","quotes","All_Quotes",Quote_Id_in_Creator,QUpdateMap,tempMap,"zcreator_connecction");
+				response = "Mail will send on " + scheduled_time;
+				info "scheduler new entry " + newRec + " - quote update " + Quote_Res;
+			}
+			else
+			{
+				response = "Mail scheduler - time update failed " + newRec;
+			}
+		}
+	}
+	info "final response: " + response;
+	return rencont + "Customer will receive within 1 to 5 minutes ";
+}
+else
+{
+	return "Quote is already Paid!";
+}
+}

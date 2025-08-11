@@ -1,0 +1,183 @@
+string standalone.Ezhil_Temp_Test()
+{
+/* Ezhilarasu 19/06/2020 */
+/* Create ticket in desk whenever amazon order was returned */
+dataMap = Map();
+authToken = invokeurl
+[
+	url :"https://www.zohoapis.com/crm/v2/functions/generate_auth_token/actions/execute?auth_type=oauth"
+	type :GET
+	parameters:dataMap
+	connection:"crm_connection"
+];
+deskOrgId = 665802770;
+accessToken = authToken.get("details").get("output");
+info accessToken;
+amazonReturnRecId = 3106252000111916369;
+amazonReturnOrderInfo = zoho.crm.getRecordById("Amazon_Order_Returns",amazonReturnRecId);
+// info amazonReturnOrderInfo;
+amazonReturnOrderId = amazonReturnOrderInfo.get("Amazon_Order_ID");
+amazonSaleOrderRecId = amazonReturnOrderInfo.get("Sale_Order").get("id");
+amazonReturnCarrierName = amazonReturnOrderInfo.get("Carrier_Name");
+amazonReturnTrackingId = amazonReturnOrderInfo.get("Tracking_ID");
+amazonReturnReason = amazonReturnOrderInfo.get("Return_Reason");
+amazonReturnRequestDate = amazonReturnOrderInfo.get("Return_Request_Date");
+dropShipOrderNumber = "";
+dropShipOrderId = "";
+amazonReturnedProductRecId = amazonReturnOrderInfo.get("Returned_Product").get("id");
+serchdropship = zoho.crm.searchRecords("Purchase_Orders","Sales_Order:equals:" + amazonSaleOrderRecId);
+dropshiporderdeltionid = List();
+if(serchdropship.size() > 0)
+{
+	for each  dropshipInfo in serchdropship.toList()
+	{
+		productList = dropshipInfo.get("Product_Details");
+		for each  eachProductInfo in productList
+		{
+			productId = eachProductInfo.get("product").get("id");
+			if(amazonReturnedProductRecId == productId)
+			{
+				dropShipOrderId = dropshipInfo.get("id");
+				dropShipOrderNumber = dropshipInfo.get("Dropship_Number");
+			}
+		}
+	}
+	if(dropShipOrderId == "")
+	{
+		// Dropship Order Not Found & Send Email
+		// Amazon returned product not mached with dropship order product.
+	}
+}
+if(accessToken != "" && dropShipOrderId != "")
+{
+	// Dropship order info
+	dropshipOrderInfo = zoho.crm.getRecordById("Purchase_Orders",dropShipOrderId);
+	PO_Number = dropshipOrderInfo.get("Dropship_Number");
+	deskSearchParam = Map();
+	deskSearchParam.put("customField1","cf_order_number:" + amazonReturnOrderId);
+	deskSearchParam.put("customField2","cf_po_number:" + PO_Number);
+	deskTicketInfo = zoho.desk.searchRecords(deskOrgId,"tickets",deskSearchParam);
+	if(deskTicketInfo.get("data").size() > 0)
+	{
+		info "TICKET EXIST";
+	}
+	// info "Dropship Order Info : "+dropshipOrderInfo;
+	/*
+	PO_Number = dropshipOrderInfo.get("Dropship_Number");
+	vendorName = dropshipOrderInfo.get("Vendor_Name").get("name");
+	vendornamePrefix = "";
+	if(vendorName.contains("@"))
+	{
+		vendornamePrefix = vendorName.getPrefix("@");
+	}
+	else
+	{
+		vendornamePrefix = vendorName;
+	}
+	ticketVendor = "";
+	if(vendornamePrefix.equals("Elmdor Access Doors"))
+	{
+		ticketVendor = "Elmdor AC";
+	}
+	else if(vendornamePrefix.equals(""))
+	{
+	}
+	info "Vendor Name : " + vendornamePrefix;
+	deskContactId = 272635000010621929;
+	deskDepartmentId = 12345;
+	subject = "[" + PO_Number + "]" + " - Return Request";
+	ticketData = Map();
+	ticketData.put("subject",subject);
+	ticketData.put("departmentId","272635000000114056");
+	ticketData.put("contactId","272635000006240557");
+	ticketData.put("status","Open");
+	customFields = Map();
+	customFields.put("cf_type","Return");
+	customFields.put("cf_associated_type","Child");
+	customFields.put("cf_vendor",ticketVendor);
+	customFields.put("cf_store","Amazon");
+	customFields.put("cf_po_number",PO_Number);
+	customFields.put("cf_carrier_name",amazonReturnCarrierName);
+	customFields.put("cf_tracking_number",amazonReturnTrackingId);
+	customFields.put("cf_order_number",amazonReturnOrderId);
+	ticketData.put("cf",customFields);
+	ticketResponse = zoho.desk.create(deskOrgId,"tickets",ticketData);
+	info ticketResponse;
+	info "Ticket Number : " + ticketResponse.get("ticketNumber");
+	ticketId = ticketResponse.get("id");
+	info "Ticket Id : " + ticketId;
+	// ticketId = 272635000014345001;
+	returnReasonString = "";
+	if(amazonReturnReason.equals("AMZ-PG-BAD-DESC"))
+	{
+		returnReasonString = "Incorrect Description";
+	}
+	else if(amazonReturnReason.equals("CR-DEFECTIVE"))
+	{
+		returnReasonString = "Defective";
+	}
+	else if(amazonReturnReason.equals("CR-SWITCHEROO"))
+	{
+		returnReasonString = "Wrong Item Sent";
+	}
+	else if(amazonReturnReason.equals("CR-DAMAGED_BY_FC"))
+	{
+		returnReasonString = "Damaged By Amazon";
+	}
+	else if(amazonReturnReason.equals("CR-UNWANTED_ITEM"))
+	{
+		returnReasonString = "Ordered Accidently";
+	}
+	else if(amazonReturnReason.equals("CR-DAMAGED_BY_CARRIER"))
+	{
+		returnReasonString = "Damaged By Carrier";
+	}
+	else if(amazonReturnReason.equals("CR-ORDERED_WRONG_ITEM"))
+	{
+		returnReasonString = "Ordered Wrong Item";
+	}
+	else if(amazonReturnReason.equals("CR-UNAUTHORIZED_PURCHASE"))
+	{
+		returnReasonString = "Customer Did Not Authorize";
+	}
+	else if(amazonReturnReason.equals("CR-MISSED_ESTIMATED_DELIVERY"))
+	{
+		returnReasonString = "Delivery Date Missed";
+	}
+	mailContent = "<div>Hello,<br></div><div><br></div><div>Please issue RMA for PO " + PO_Number + ".<br><br>Customer is requesting to return the door due to " + returnReasonString + "</div>";
+	// Send Reply	
+	header = Map();
+	header.put("orgId",deskOrgId);
+	header.put("Content-Type","application/json");
+	header.put("Authorization","Zoho-oauthtoken " + accessToken);
+	bodyData = Map();
+	bodyData.put("channel","EMAIL");
+	bodyData.put("to","ezhil@bizappln.com");
+	bodyData.put("fromEmailAddress","help@bestaccessdoors.zohodesk.com");
+	bodyData.put("contentType","html");
+	bodyData.put("content",mailContent);
+	bodyData.put("isForward","true");
+	sendReplyUrl = "https://desk.zoho.com/api/v1/tickets/" + ticketId + "/sendReply";
+	respose = invokeurl
+	[
+		url :sendReplyUrl
+		type :POST
+		parameters:bodyData.toString()
+		headers:header
+	];
+	info "Reply Response : " + respose;
+	*/
+	// Ship engine tracking
+	// https://api.shipengine.com/v1/tracking?carrier_code=ups&tracking_number=1ZW761830351241702	
+	/*
+	carrier_code = "ups";
+	tracking_number = "1ZW761830351241702";
+	headerMap = Map();
+	headerMap.put("API-Key","7F2IiyWO0QSnRf81pKdlwJUrpz/53MR0xbuGR0gs8WE");
+	shipengineUrl = "https://api.shipengine.com/v1/tracking?carrier_code=" + carrier_code + "&tracking_number=" + tracking_number;
+	shippingResponse = getUrl(shipengineUrl,headerMap,true);
+	*/
+	// info "Shipping Response : " + shippingResponse;
+}
+return "";
+}

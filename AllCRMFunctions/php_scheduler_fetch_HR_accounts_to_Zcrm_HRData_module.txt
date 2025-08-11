@@ -1,0 +1,81 @@
+string standalone.php_scheduler_fetch_HR_accounts_to_Zcrm_HRData_module()
+{
+/* Created By prashanth on feb-2020 */
+/* Data Sync from highrise to zoho  */
+// currently not in use
+//---------------------------------------------
+highriseAuth = "Basic OWZiYjY1ODg2NWY5MTUyODlmN2U5ZDNiM2E3MWNkYmI6WA==";
+getData = zoho.crm.getRecordById("Highrise_Connector",3106252000065101001);
+// date = getData.get("Date");
+// info date;
+// fetchdate = date.subString(0,19);
+// fetchdate = fetchdate.replaceAll("[-:T]","");
+// info 'no ' + fetchdate;
+//--------------------
+date = zoho.currenttime.subHour(2).toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'");
+Rdate = date.subString(0,19);
+fetchdate = Rdate.replaceAll("[-:T]","");
+info "HR module date " + zoho.currenttime + " Rdate " + Rdate + " fetchdate " + fetchdate + " test " + zoho.currenttime.subHour(2);
+//--------------------
+highriseCompanies = geturl("https://bestaccessdoors.highrisehq.com/companies.xml?since=" + fetchdate,{"Authorization":highriseAuth});
+// info "1 " + highriseCompanies;
+highriseCompanies = highriseCompanies.executeXPath("companies/company").toXmlList();
+info "highriseCompanies size " + highriseCompanies.size();
+if(highriseCompanies.size() > 0)
+{
+	// 	sendmail
+	// 	[
+	// 		from :zoho.loginuserid
+	// 		to :"prashanth@bizappln.com"
+	// 		subject :"1.php_cron_scheduler: accounts fetching for date modified time " + date + " - index - 0" + fetchdate
+	// 		message :"create HR data " + date
+	// 	]
+	processCount = 0;
+	for each  company in highriseCompanies
+	{
+		info company.executeXPath("company/id/text()") + " name " + company.executeXPath("company/name/text()");
+		processCount = processCount + 1;
+		getContact = zoho.crm.searchRecords("Highrise_Data","((Highrise_ID:equals:" + company.executeXPath("company/id/text()") + "))");
+		if(getContact.size() == 0)
+		{
+			// 			info "hr details res " + company;
+			createResp = zoho.crm.createRecord("Highrise_Data",{"Highrise_ID":company.executeXPath("company/id/text()"),"Module":"Accounts","Highrise_Created_Time":company.executeXPath("company/created-at/text()"),"Highrise_Modified_Time":company.executeXPath("company/updated-at/text()"),"Date_String":fetchdate},{"trigger":{"workflow"}});
+			info "create res " + createResp.get("id") + " ------ end";
+		}
+		else if(getContact.size() > 0)
+		{
+			info "morethan 1 time occured ";
+			// 	createResp = zoho.crm.createRecord("Highrise_Data",{"Highrise_ID":company.executeXPath("company/id/text()"),"Module":"Accounts","Highrise_Created_Time":company.executeXPath("company/created-at/text()"),"Highrise_Modified_Time":company.executeXPath("company/updated-at/text()"),"Date_String":fetchdate, "New_Record": false},{"trigger":{"workflow"}});
+		}
+	}
+	if(processCount == 500)
+	{
+		info "500 reached so creating a pagination";
+		getaccountindex = zoho.crm.getRecordById("Highrise_Connector",3106252000065101001);
+		// 		updatedCount = getaccountindex.get("Account_Start_Index").toNumber() + 500;
+		updatedCount = 0 + 500;
+		updateprocessCount = zoho.crm.updateRecord("Highrise_Connector",3106252000065101001,{"Account_Start_Index":updatedCount});
+		createPagination = zoho.crm.createRecord("Highrise_Pagination",{"Index":updatedCount.toString(),"Module":"Accounts","Date":fetchdate},{"trigger":{"workflow"}});
+		// 		info "update " + updateprocessCount;
+		// 		sendmail
+		// 		[
+		// 			from :zoho.loginuserid
+		// 			to :"prashanth@bizappln.com"
+		// 			subject :"2.php_cron_scheduler: accounts : created HR_Data module data for last record while fetching for date modified time " + fetchdate + " - processed count is - " + processCount
+		// 			message :"create HR pagination " + createPagination + " processed "+ processCount +" - updated index count " + updatedCount
+		// 		]
+	}
+	else
+	{
+		info "500 not reached so not creating a pagination";
+		// 		sendmail
+		// 		[
+		// 			from :zoho.loginuserid
+		// 			to :"prashanth@bizappln.com"
+		// 			subject :"3.php_cron_scheduler: accounts : created HR_Data module data for last record while fetching for date modified time " + fetchdate + " - processed count is - " + processCount
+		// 			message :"processed count is below 500 create HR pagination " + createPagination +" processed "+ processCount +" - update index " + updatedCount
+		// 		]
+	}
+}
+return "completed " + processCount;
+}

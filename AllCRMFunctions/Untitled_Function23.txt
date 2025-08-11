@@ -1,0 +1,24 @@
+void automation.Untitled_Function23(Int id)
+{
+fetch_dropship_form = zoho.crm.getRecordById("Purchase_Orders",id);
+get_sales_order_map = fetch_dropship_form.get("Sales_Order");
+get_sales_order_no = get_sales_order_map.get("name");
+get_sales_order_id = get_sales_order_map.get("id");
+sales_record = zoho.crm.getRecordById("Sales_Orders",get_sales_order_id);
+related_records_of_order_no = zoho.crm.searchRecords("Purchase_Orders","Sales_Order:equals:" + get_sales_order_no);
+list_count = related_records_of_order_no.size();
+status_count = 0;
+for each  item in related_records_of_order_no
+{
+	get_map_status = item.get("Status");
+	if(get_map_status == "Completed")
+	{
+		status_count = status_count + 1;
+	}
+}
+if(status_count == list_count)
+{
+	info "x";
+	//sales_record.update("sales_record","Completed") ;
+}
+}

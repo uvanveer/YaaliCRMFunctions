@@ -1,0 +1,10 @@
+void automation.Notify_Saleorder_Without_Contact(Int id)
+{
+sendmail
+[
+	from :zoho.loginuserid
+	to :"vijaykumar@bizappln.com"
+	subject :"Sale order created without contact"
+	message :"Hi Dhanapal,<br><br>Sale order (" + id + ")created without contact. Please check it."
+]
+}

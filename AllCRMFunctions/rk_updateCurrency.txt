@@ -1,0 +1,8 @@
+void automation.rk_updateCurrency(Int id)
+{
+res = zoho.crm.getRecordById("Quotes",id);
+storeid = res.get("Store").get("id");
+res_s = zoho.crm.getRecordById("Stores",storeid.toLong());
+store_c = res_s.get("Currency");
+up = zoho.crm.updateRecord("Quotes",id,{"Currency":store_c});
+}

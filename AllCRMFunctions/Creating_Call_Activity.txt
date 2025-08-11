@@ -1,0 +1,6 @@
+void automation.Create_Call_Activity(Int Sales_Order_Id)
+{
+Get_Sales_Order_details = zoho.crm.getRecordById("Sales_Orders",Sales_Order_Id);
+Get_contacts_details = Get_Sales_Order_details.get("Contact_Name").get("id");
+info Get_contacts_details;
+}

@@ -1,0 +1,23 @@
+string button.Cancel_Email_Followup(String Creator_Quote_Id)
+{
+// Email_followup = Map();
+// Email_followup.put("Cancel_Followup_Email","true");
+// Update_Creator_Quote = zoho.creator.v1.updateRecord("zoho_zoho1502","quotes","Create_Quote",Creator_Quote_Id,Email_followup);
+// info Update_Creator_Quote;
+// v2 migrated by prashanth on 1/29/2021 at 1.11 am ist
+Email_followup = Map();
+tempMap = Map();
+Email_followup.put("Cancel_Followup_Email","true");
+// Update_Creator_Quote = zoho.creator.v1.updateRecord("zoho_zoho1502","quotes","Create_Quote",Creator_Quote_Id,Email_followup);
+Update_Creator_Quote = zoho.creator.updateRecord("zoho_zoho1502","quotes","All_Quotes",Creator_Quote_Id,Email_followup,tempMap,"zcreator_connecction");
+info Update_Creator_Quote;
+if(Update_Creator_Quote.get("code") == 3000)
+{
+	updateResponse = Update_Creator_Quote.get("message");
+}
+else
+{
+	updateResponse = Update_Creator_Quote.get("message");
+}
+return updateResponse;
+}

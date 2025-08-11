@@ -1,0 +1,56 @@
+void automation.Fetch_Highrise_Accounts_To_ZohoCRM11(String date)
+{
+/* Created By prashanth on 2020 */
+/* Data Sync from highrise to zoho  */
+// currently not in use
+highriseAuth = "Basic OWZiYjY1ODg2NWY5MTUyODlmN2U5ZDNiM2E3MWNkYmI6WA==";
+getData = zoho.crm.getRecordById("Highrise_Connector",3106252000065101001);
+date = getData.get("Date");
+index = getData.get("Account Start Index");
+paginate = getData.get("Paginate_Accounts");
+fetchdate = date.subString(0,19);
+fetchdate = fetchdate.replaceAll("[-:T]","");
+fromDate = fetchdate;
+sendmail
+[
+	from :zoho.adminuserid
+	to :"prashanth@bizappln.com"
+	subject :"1.pagination function for accounts called"
+	message :"res data after pagination " + paginate
+]
+if(paginate == true)
+{
+	highriseCompanies = geturl("https://bestaccessdoors.highrisehq.com/companies.xml?n=" + index + "&since=" + fetchdate,{"Authorization":highriseAuth});
+	highriseCompanies = highriseCompanies.executeXPath("companies/company").toXmlList();
+	info "highriseCompanies " + highriseCompanies.size();
+	if(highriseCompanies.size() > 0)
+	{
+		processCount = 0;
+		for each  company in highriseCompanies
+		{
+			if(processCount == 1)
+			{
+				createResp = zoho.crm.createRecord("Highrise_Data",{"Highrise_ID":company.executeXPath("company/id/text()"),"Module":"Accounts","Highrise_Created_Time":company.executeXPath("company/created-at/text()"),"Highrise_Created_Time":company.executeXPath("company/updated-at/text()"),"Input_Date_Provided":date},{"trigger":{"workflow"}});
+			}
+			processCount = processCount + 1;
+		}
+		sendmail
+		[
+			from :zoho.adminuserid
+			to :"prashanth@bizappln.com"
+			subject :"2.pagination function for accounts"
+			message :"res data after pagination " + highriseCompanies
+		]
+		if(processCount == 500)
+		{
+			getaccountindex = zoho.crm.getRecordById("Highrise_Connector",3106252000065101001);
+			updatedCount = getaccountindex.get("Account_Start_Index").toNumber() + 500;
+			updateprocessCount = zoho.crm.updateRecord("Highrise_Connector",3106252000065101001,{"Account_Start_Index":updatedCount,"Paginate_Accounts":true,"Paginate_Contacts":false,"Paginate_Deals":false},{"trigger":{"workflow"}});
+			info updateprocessCount;
+		}
+		else
+		{
+		}
+	}
+}
+}

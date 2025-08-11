@@ -1,0 +1,7 @@
+void automation.Update_stage(Int Quote_Id)
+{
+Status_map = Map();
+Status_map.put("Quote_Stage","Draft");
+Get_Quote = zoho.crm.updateRecord("Quotes",Quote_Id,Status_map);
+info Get_Quote;
+}

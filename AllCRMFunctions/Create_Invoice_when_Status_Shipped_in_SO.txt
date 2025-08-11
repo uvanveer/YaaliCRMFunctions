@@ -1,0 +1,115 @@
+void automation.Saleorder_ID(Int id)
+{
+// coded by T
+saleorderDetail = zoho.crm.getRecordById("Sales_Orders",id);
+info "SO" + saleorderDetail;
+statusofOrder = saleorderDetail.get("Status");
+products = saleorderDetail.get("Product_Details").toJSONList();
+vidM = Map();
+vendorKey = Map();
+productDetails = Map();
+tax = 0.0;
+for each  singleproduct in products
+{
+	salePro = Map();
+	pid = singleproduct.get("product").get("id");
+	//info "proid" + pid;
+	crmresp = zoho.crm.getRecordById("Products",pid);
+	// 	info crmresp;
+	// 		info crmresp;
+	vid = crmresp.get("Vendor_Name").get("id");
+	// 		info "venid" + vid;
+	if(vidM.containKey(vid))
+	{
+		exisProductList = list();
+		exisProductList = vidM.get(vid);
+		singleproduct.put("list_price",crmresp.get("list_price"));
+		exisProductList.add(singleproduct);
+	}
+	else
+	{
+		productList = list();
+		singleproduct.put("list_price",crmresp.get("list_price"));
+		productList.add(singleproduct);
+		vidM.put(vid,productList);
+	}
+	vendorKey.put(vid,"Keys");
+	salePro.put("item_id",pid);
+	// 	salePro.put("rate",singleproduct.get("unit_price"));
+	//info"Cost Price = " +crmresp.get("Cost_Price");
+	salePro.put("rate",crmresp.get("list_price"));
+	salePro.put("name",singleproduct.get("product").get("name"));
+	salePro.put("quantity",singleproduct.get("quantity"));
+	productDetails.put(pid,salePro);
+	tax = tax + singleproduct.get("Tax");
+}
+finalProduct = List();
+productkey = productDetails.keys();
+for each  singleProductKey in productkey
+{
+	finalProduct.add(productDetails.get(singleProductKey));
+}
+// Create Sales Order in Books
+vKey = vidM.keys();
+vendors = vendorKey.keys();
+for each  m in vendors
+{
+	//info "M = "+m ;
+	total = 0.0;
+	Create_Invoice = Map();
+	product = List();
+	prodm = "";
+	purchase = Map();
+	// info vKey;
+	for each  v in vKey
+	{
+		if(v == m)
+		{
+			// 			info "VIDM = "+vidM;
+			product = vidM.get(v);
+			info vidM.get(v);
+			break;
+		}
+	}
+}
+info product;
+temp = product.toMap();
+Create_Invoice = Map();
+Create_Invoice.put("Adjustment",saleorderDetail.get("Adjustment"));
+Create_Invoice.put("Owner",saleorderDetail.get("Owner").get("id"));
+Create_Invoice.put("Subject",saleorderDetail.get("Subject"));
+Create_Invoice.put("Account_Name",saleorderDetail.get("Account_Name").get("id"));
+//Create_Invoice.put("Vendor_Name",m);
+//Create_Invoice.put("Order_Date",orderDate);
+Create_Invoice.put("Status","created");
+Create_Invoice.put("Sales_Commission",saleorderDetail.get("Sales_Commission"));
+Create_Invoice.put("Sales_Order",saleorderDetail.get("id"));
+Create_Invoice.put("Sales_Order_RecID",saleorderDetail.get("id"));
+Create_Invoice.put("Due_Date",saleorderDetail.get("Due_Date"));
+Create_Invoice.put("Contact_Name",saleorderDetail.get("Contact_Name").get("id"));
+Create_Invoice.put("Billing_Street",saleorderDetail.get("Billing_Street"));
+Create_Invoice.put("Billing_City",saleorderDetail.get("Billing_City"));
+Create_Invoice.put("Billing_Code",saleorderDetail.get("Billing_Code"));
+Create_Invoice.put("Billing_State",saleorderDetail.get("Billing_State"));
+Create_Invoice.put("Billing_Country",saleorderDetail.get("Billing_Country"));
+Create_Invoice.put("Shipping_Street",saleorderDetail.get("Shipping_Street"));
+Create_Invoice.put("Shipping_City",saleorderDetail.get("Shipping_City"));
+Create_Invoice.put("Shipping_Code",saleorderDetail.get("Shipping_Code"));
+Create_Invoice.put("Shipping_Country",saleorderDetail.get("Shipping_Country"));
+Create_Invoice.put("Shipping_State",saleorderDetail.get("Shipping_State"));
+Create_Invoice.put("Product_Details",temp.toJSONList());
+Create_Invoice.put("Terms_and_Conditions",saleorderDetail.get("Terms_and_Conditions"));
+Create_Invoice.put("Description",saleorderDetail.get("Description"));
+//entries
+Create_Invoice.put("Staff_Notes",saleorderDetail.get("Staff_Notes"));
+Create_Invoice.put("Confirmation_Number","ACN");
+//entries
+info "Invoicemap----" + Create_Invoice;
+saleorderno = saleorderDetail.get("id");
+//searchfrminvoceid = zoho.crm.searchRecords("Invoices","(Sales_Order_RecID:equals:saleorderno)");
+//info "search data" + searchfrminvoceid;
+createinvoice = zoho.crm.createRecord("Invoices",Create_Invoice);
+info "invoice map respose--" + Create_Invoice;
+//getrecentInvoices = zoho.crm.getRecordById("Invoices",Create_Invoice.get("id"));
+//Invoices = getrecentInvoices.get("Invoices");
+}

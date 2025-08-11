@@ -1,0 +1,17 @@
+string button.Create_Duplicate_Quote1(String CRM_Quote_ID)
+{
+// Get_crm_quote = zoho.crm.getRecordById("Quotes",CRM_Quote_ID.tolong());
+// Get_creator_quote_number = Get_crm_quote.get("Creator_Record_ID");
+// Get_sales_person_email = Get_crm_quote.get("Owner").get("email");
+// salesperson_details = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Employees","Email=\"" + Get_sales_person_email + "\"");
+// salesperson_details_map = salesperson_details.tomap();
+// Get_salesperson_next_value = salesperson_details_map.get("Next_Value");
+// Get_salesperson_prefix_name = salesperson_details_map.get("Prefix_Name");
+// Latest_salesperson_Quote_Number = Get_salesperson_prefix_name + "" + Get_salesperson_next_value;
+// Quote_duplicate_map = Map();
+// Quote_duplicate_map.put("Quote_Id",Get_creator_quote_number);
+// Quote_duplicate_map.put("Status","In_Progress");
+// Create_Duplicate_Quote_Log = zoho.creator.createRecord("zoho_zoho1502","quotes","Duplicate_Quote_Create_Log",Quote_duplicate_map);
+// openUrl("https://creatorapp.zohopublic.com/zoho_zoho1502/quotes/page-perma/Quote_Page/E63wGZUjayWZns7YZva3dVWmgJddqerH4sJSRQVPPa9jACaUtN9pKjVv4q2R6O7DEuz1EpeYYKKhSsq4uStbqTpkJF3t0htDUGP9?quotenumber=" + Latest_salesperson_Quote_Number,"New window");
+return "";
+}

@@ -1,0 +1,35 @@
+string button.Retry_Amazon_Update_Tracking_ID(String recordId)
+{
+/* Ezhilarasu 05/05/2020 */
+/* Update Amazon Order Tracking */
+dropshipOrderInfo = zoho.crm.getRecordById("Purchase_Orders",recordId);
+info dropshipOrderInfo;
+if(dropshipOrderInfo.get("Update_Tracking_Feed_ID").equals("ERROR"))
+{
+	body = Map();
+	postURL = "http://3.23.22.44:8080/createShipment/updatetrackingid?crmRecordId=" + recordId;
+	createShipmentResponse = postUrl(postURL,body,false);
+	responseText = createShipmentResponse.get("responseText");
+	if(responseText.get("status").equals("success"))
+	{
+		responseData = responseText.get("data");
+		if(responseData.containKey("SubmitFeedResponse"))
+		{
+			submitFeedResponse = responseData.get("SubmitFeedResponse");
+			submitFeedResult = submitFeedResponse.get("SubmitFeedResult");
+			feedSubmissionInfo = submitFeedResult.get("FeedSubmissionInfo");
+			FeedSubmissionId = feedSubmissionInfo.get("FeedSubmissionId");
+			feedData = Map();
+			feedData.put("Update_Tracking_Feed_ID",FeedSubmissionId);
+			zoho.crm.updateRecord("Purchase_Orders",recordId,feedData);
+		}
+	}
+	else
+	{
+		feedData = Map();
+		feedData.put("Update_Tracking_Feed_ID","ERROR");
+		zoho.crm.updateRecord("Purchase_Orders",recordId,feedData);
+	}
+}
+return "";
+}

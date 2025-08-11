@@ -1,0 +1,15 @@
+void automation.checkCheckInTime()
+{
+//3106252000045620063
+entry = zoho.crm.getRecordById("Time_Entries_for_Employe",3106252000045620063);
+//checkin_hour = entry.get("Created_Time");
+createdtime = entry.get("Created_Time");
+info createdtime;
+// info createdtime.toTime("yyyy-MM-dd'T'HH:mm:ss");
+// info createdtime.toTime("yyyy-MM-dd'T'HH:mm:ss").toString().subString(12,20);
+checkin_hour = createdtime.toTime("yyyy-MM-dd'T'HH:mm:ss").getHour();
+checkin_minutes = createdtime.toTime("yyyy-MM-dd'T'HH:mm:ss").getMinutes();
+info checkin_minutes;
+info checkin_hour;
+//if
+}

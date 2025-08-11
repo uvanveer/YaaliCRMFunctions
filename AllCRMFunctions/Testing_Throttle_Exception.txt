@@ -1,0 +1,21 @@
+string standalone.Testing_Throttle_Exception()
+{
+// x = rightpad("t",500).replaceall(" ",",t").toList();
+// for each  x1 in x
+// {
+// 	response = zoho.crm.getRecordById("Contacts","3106252000078188084");
+// 	info response;
+// }
+query = Map();
+query.put("select_query","select Type_of_Call, Call_Type, Subject, Call_Duration_in_seconds,Created_Time,Who_Id  from Calls where  ( (Owner = 3106252000000152052 and Call_Type=Inbound) and (Created_Time between '2020-11-01T00:00:00-04:00' and '2020-11-30T23:59:59-04:00'))");
+info query;
+response = invokeurl
+[
+	url :"https://www.zohoapis.com/crm/v2/coql"
+	type :POST
+	parameters:query.toString()
+	connection:"crm_connection"
+];
+info response;
+return "";
+}

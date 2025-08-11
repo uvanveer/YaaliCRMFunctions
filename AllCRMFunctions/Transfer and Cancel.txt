@@ -1,0 +1,8 @@
+void automation.Transfer_and_cancel(Int Rec_id)
+{
+getting_sales_order = zoho.crm.getRelatedRecords("Dropship_Orders","Sales_Orders",Rec_id);
+for each  each_obj in getting_sales_order
+{
+	info each_obj;
+}
+}

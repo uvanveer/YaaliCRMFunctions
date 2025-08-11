@@ -1,0 +1,20 @@
+string button.Untitled_Function471(Int Id)
+{
+customerexsist = zoho.crm.searchRecords("Contacts","(id:equals:" + Id + ")");
+info customerexsist.tomap().get("Email");
+info customerexsist.tomap().get("First_Name");
+ordermaps = Map();
+profile = Map();
+profile.put("email",customerexsist.tomap().get("Email"));
+profile.put("first_name",customerexsist.tomap().get("First_Name"));
+profile.put("last_name",customerexsist.tomap().get("Last_Name"));
+ordermaps.put("api_key","pk_cc2fad1d2ce25d7d3c42e89c241ebb9f59");
+ordermaps.put("profiles",profile);
+info ordermaps;
+headerMapOrders = Map();
+requestMapOrders = Map();
+headerMapOrders.put("Content-Type","application/json");
+response = postUrl("https://a.klaviyo.com/api/v2/list/JLRDWN/members",ordermaps.toString(),headerMapOrders,false);
+info response;
+return customerexsist;
+}

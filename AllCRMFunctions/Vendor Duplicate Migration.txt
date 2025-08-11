@@ -1,0 +1,17 @@
+void automation.Vendor_Duplicate_Migration()
+{
+getvendor = zoho.crm.getRecords("Vendors",2,200);
+vendorname = getvendor.getJson("Vendor_Name");
+vendormap = Map();
+for each  vendorname in getvendor
+{
+	id = vendorname.getJson("id");
+	vendorname = vendorname.getJson("Vendor_Name");
+	info vendorname;
+	vendorname = replaceAll(vendorname," ","");
+	vendormap.put("Vendor_Name",vendorname);
+	info vendormap;
+	updatevendor = zoho.crm.updateRecord("Vendors",id,vendormap);
+	info updatevendor;
+}
+}

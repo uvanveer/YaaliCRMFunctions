@@ -1,0 +1,299 @@
+void automation.test3()
+{
+orgId = 666840843;
+// crm_api_map = crmAPIRequest.toMap();
+items_stracture = {"Item","Description","UoM","Ordered_Quantity","Invoiced_Quantity","Net_Unit_Price","Total_Price"};
+all_items = Map();
+// params = crm_api_map.get("body");
+params = {"meta_attatchment_link_0":"https:\/\/files.mailparser.io\/f\/HdFgmzuBUBFUpqM3YqlMuQ","attachment_url_0":"https:\/\/files.mailparser.io\/f\/HdFgmzuBUBFUpqM3YqlMuQ","bill_no":"VFR20-09056","invoice_date":"2020 May 8 d.","po_no":"423994","cust_id":"C01954","line_items":"AHD 22X30-10*2Gen purp door\/Cyl lock\/Gasket\nPCS\n4\n4\n74,38\n297,51","transport_cost":"70,95","total_taxes":"","subtotal":"368,46","grand_total":"368,46","id":"7966aac1516f93967e38593a305e9685","received_at":"2020-05-22 18:16:09","received_at_timestamp":1590171369,"received_at_iso8601":"2020-05-22T18:16:09+00:00","processed_at":"2020-05-22 18:16:18","processed_at_timestamp":1590171378,"processed_at_iso8601":"2020-05-22T18:16:18+00:00"};
+/*
+	Preparing all Line Items from Mail Parser
+*/
+line_items_str = ifnull(params.get("line_items"),"");
+// info line_items_str;
+if(line_items_str != "")
+{
+	temp_line_items = line_items_str.toList("\n");
+}
+line_items = list();
+index_n = 0;
+for each  line_item in temp_line_items
+{
+	if(line_item.contains("X") && index_n == 0)
+	{
+		sku = line_item.getPrefix("X");
+		description = line_item.getSuffix("X");
+		sku_parts = sku.toList(" ");
+		sku_last_length = sku_parts.get(sku_parts.size() - 1).length();
+		sku = sku + "X" + description.subString(0,sku_last_length);
+		line_items.add(sku);
+		if(description.length() != sku_last_length)
+		{
+			description = description.subString(sku_last_length,description.length());
+			line_items.add(description);
+			index_n = index_n + 1;
+		}
+	}
+	else
+	{
+		line_items.add(line_item);
+	}
+	index_n = (index_n + 1) % 7;
+}
+temp_map = Map();
+for each index n in line_items
+{
+	info line_items.get(n);
+	mod_no = n % 7;
+	info mod_no;
+	temp_map.put(items_stracture.get(mod_no),line_items.get(n));
+	if(items_stracture.get(mod_no) == "Ordered_Quantity" || items_stracture.get(mod_no) == "Invoiced_Quantity" || items_stracture.get(mod_no) == "Net_Unit_Price" || items_stracture.get(mod_no) == "Total_Price")
+	{
+		temp_map.put(items_stracture.get(mod_no),temp_map.get(items_stracture.get(mod_no)).replaceAll(" ","").replaceAll(",","."));
+	}
+	if(mod_no == 6)
+	{
+		all_items.put(temp_map.get("Item"),temp_map.toString().toMap());
+		temp_map = Map();
+	}
+}
+info "All Items: " + all_items;
+po_no = ifnull(params.get("po_no"),"");
+bill_no = ifnull(params.get("bill_no"),"");
+cust_id = ifnull(params.get("cust_id"),"");
+invoice_date_str = ifnull(params.get("invoice_date"),"");
+if(invoice_date_str != "")
+{
+	invoice_date = invoice_date_str.removeLastOccurence(" d.").removeLastOccurence(" d").toDate("yyyy MMMMM dd").toString("yyyy-MM-dd");
+}
+transport_cost_str = ifnull(params.get("transport_cost"),"0.00");
+if(transport_cost_str == "")
+{
+	transport_cost_str = "0.00";
+}
+transport_cost = transport_cost_str.replaceAll(" ","").replaceAll(",",".");
+total_taxes_str = ifnull(params.get("total_taxes"),"0.00");
+if(total_taxes_str == "")
+{
+	total_taxes_str = "0.00";
+}
+total_taxes = total_taxes_str.replaceAll(" ","").replaceAll(",",".");
+subtotal_str = ifnull(params.get("subtotal"),"0.00");
+if(subtotal_str == "")
+{
+	subtotal_str = "0.00";
+}
+subtotal = subtotal_str.replaceAll(" ","").replaceAll(",",".");
+grand_total_str = ifnull(params.get("grand_total"),"0.00");
+if(grand_total_str == "")
+{
+	grand_total_str = "0.00";
+}
+grand_total = grand_total_str.replaceAll(" ","").replaceAll(",",".");
+attachment_link = ifnull(params.get("meta_attatchment_link_0"),"");
+attachment_link = attachment_link.replaceAll("\\","");
+if(attachment_link != "")
+{
+	attach_file = invokeurl
+	[
+		url :attachment_link
+	];
+	attach_file.setParamName("attachment");
+	info attach_file;
+}
+po_anamolies = list();
+/*
+	Process Purchase Order
+*/
+if(po_no != "")
+{
+	po_resps = invokeurl
+	[
+		url :"https://books.zoho.com/api/v3/purchaseorders?organization_id=" + orgId + "&purchaseorder_number=" + po_no
+		type :GET
+		connection:"new_zoho_books"
+	];
+	info po_resps;
+	if(!po_resps.get("purchaseorders").isEmpty())
+	{
+		po_order_resp = po_resps.get("purchaseorders").get(0);
+		po_full_details = invokeurl
+		[
+			url :"https://books.zoho.com/api/v3/purchaseorders/" + po_order_resp.get("purchaseorder_id") + "?organization_id=" + orgId
+			type :GET
+			connection:"new_zoho_books"
+		];
+		// Mark PO Open
+		po_open_resp = invokeurl
+		[
+			url :"https://books.zoho.com/api/v3/purchaseorders/" + po_order_resp.get("purchaseorder_id") + "/status/open?organization_id=" + orgId
+			type :POST
+			connection:"new_zoho_books"
+		];
+		info po_open_resp;
+		// Mark PO Billed
+		po_open_resp = invokeurl
+		[
+			url :"https://books.zoho.com/api/v3/purchaseorders/" + po_order_resp.get("purchaseorder_id") + "/status/billed?organization_id=" + orgId
+			type :POST
+			connection:"new_zoho_books"
+		];
+		info po_open_resp;
+		po_full_detail = po_full_details.get("purchaseorder");
+		info "Purchase Order Full Details " + po_full_detail;
+		// Create a Bill
+		bill_map = Map();
+		bill_line_items = list();
+		// Processing PO Items
+		tax_percentage = 0.0;
+		for each  po_line_item in po_full_detail.get("line_items")
+		{
+			tax_percentage = po_line_item.get("tax_percentage").toDecimal();
+			bill_line_item = Map();
+			item_id = po_line_item.get("item_id");
+			item_sku = ifnull(po_line_item.get("sku"),"");
+			item_sku = item_sku.getAlphaNumeric();
+			item_added_properly = 0;
+			temp_all_items = Map();
+			temp_all_items.putAll(all_items);
+			for each  item_name in all_items.keys()
+			{
+				item_details = all_items.get(item_name);
+				info item_sku + " -- " + item_details.get("Item").getAlphaNumeric();
+				if(item_sku.contains(item_details.get("Item").getAlphaNumeric()))
+				{
+					item_details.put("line_item_id",po_line_item.get("line_item_id"));
+					item_details.put("account_id",po_line_item.get("account_id"));
+					item_details.put("tax_id",po_line_item.get("tax_id"));
+					item_details.put("item_order",po_line_item.get("item_order"));
+					// Checking anamolies
+					// order_qnty = all_items.size();
+					if(item_details.get("Ordered_Quantity") != po_line_item.get("quantity").toLong())
+					{
+						po_anamolies.add(item_details.get("Item") + " *** Quantity Mismatch -- In PO: " + po_line_item.get("quantity").toLong() + " In PDF: " + item_details.get("Ordered_Quantity") + " *** ");
+					}
+					unit_price_diff = (item_details.get("Net_Unit_Price").toDecimal() - po_line_item.get("rate").toDecimal()).abs();
+					if(unit_price_diff > 1)
+					{
+						po_anamolies.add(item_details.get("Item") + " *** Item Price Mismatch -- In PO: " + po_line_item.get("rate") + " In PDF: " + item_details.get("Net_Unit_Price") + " *** ");
+					}
+					uint_total_diff = (item_details.get("Total_Price").toDecimal() - po_line_item.get("item_total").toDecimal()).abs();
+					if(uint_total_diff > 1)
+					{
+						po_anamolies.add(item_details.get("Item") + " *** Item Total Mismatch -- In PO: " + po_line_item.get("item_total") + " in PDF: " + item_details.get("Total_Price") + " *** ");
+					}
+					all_items.put(item_name,item_details.toString().toMap());
+					// bill_line_item.put("line_item_id", item_details.get("line_item_id"));
+					bill_line_item.put("item_id",po_line_item.get("item_id"));
+					bill_line_item.put("account_id",po_line_item.get("account_id"));
+					bill_line_item.put("rate",item_details.get("Net_Unit_Price"));
+					bill_line_item.put("quantity",item_details.get("Ordered_Quantity"));
+					bill_line_item.put("tax_id",po_line_item.get("tax_id"));
+					bill_line_item.put("item_order",po_line_item.get("item_order"));
+					bill_line_items.add(bill_line_item);
+					item_added_properly = 1;
+					temp_all_items.remove(item_name);
+					break;
+				}
+			}
+			if(item_added_properly == 0)
+			{
+				bill_line_item.put("item_id",po_line_item.get("item_id"));
+				bill_line_item.put("account_id",po_line_item.get("account_id"));
+				bill_line_item.put("rate",po_line_item.get("rate"));
+				bill_line_item.put("quantity",po_line_item.get("quantity"));
+				bill_line_item.put("tax_id",po_line_item.get("tax_id"));
+				bill_line_item.put("item_order",po_line_item.get("item_order"));
+				bill_line_items.add(bill_line_item);
+			}
+		}
+		for each  pdf_sku in temp_all_items.keys()
+		{
+			// 			1324986000006874368
+			temp_item = temp_all_items.get(pdf_sku);
+			custom_field = {"customfield_id":"1324986000023645492","index":4,"placeholder":"cf_item_name","value":temp_item.get("Item") + temp_item.get("Description")};
+			bill_line_item = Map();
+			bill_line_item.put("item_id",1324986000006874368);
+			bill_line_item.put("item_custom_fields",{custom_field});
+			bill_line_item.put("Item_Name",temp_item.get("Item") + temp_item.get("Description"));
+			bill_line_item.put("name",temp_item.get("Item") + temp_item.get("Description"));
+			bill_line_item.put("sku",temp_item.get("Item"));
+			bill_line_item.put("rate",temp_item.get("Net_Unit_Price"));
+			bill_line_item.put("quantity",temp_item.get("Ordered_Quantity"));
+			bill_line_items.add(bill_line_item);
+		}
+		info "Bill Line Items " + bill_line_items;
+		info tax_percentage;
+		bill_map.put("vendor_id",po_full_detail.get("vendor_id"));
+		bill_map.put("purchaseorder_ids",{po_full_detail.get("purchaseorder_id")});
+		bill_map.put("status","draft");
+		bill_map.put("current_sub_status","draft");
+		bill_map.put("bill_number",bill_no);
+		bill_map.put("date",invoice_date);
+		bill_map.put("due_date",invoice_date.toDate().addDay(30).toString("yyyy-MM-dd"));
+		bill_map.put("payment_terms_label","Net 30");
+		bill_map.put("reference_number",po_no);
+		bill_map.put("currency_id",po_full_detail.get("currency_id"));
+		bill_map.put("adjustment",(transport_cost.toDecimal() * (1.0 + tax_percentage / 100)).round(2));
+		bill_map.put("adjustment_description","Shipping");
+		info "Bill Map " + bill_map;
+		/**
+		 * Finding Anamolies
+		 */
+		// Total Amount
+		if(po_full_detail.get("line_items").size() != all_items.keys().size())
+		{
+			po_anamolies.add("*** Line Items Do Not Match, in PO: " + po_full_detail.get("line_items").size() + " in PDF: " + all_items.keys().size() + " ***");
+		}
+		// total_diff = (po_full_detail.get("total") - grand_total).abs();
+		// if(total_diff > (all_items.keys().size() + 1))
+		// {
+		// 	po_anamolies.add("*** Total Amount Do Not Match ***");
+		// }
+		sub_total_temp = po_full_detail.get("sub_total").toDecimal().round(2);
+		sub_total_diff = sub_total_temp.toDecimal() - (subtotal.toDecimal() - transport_cost.toDecimal()).round(2);
+		if(sub_total_diff > all_items.keys().size())
+		{
+			po_anamolies.add("*** Subtotal Amount Do Not Match in PO: " + sub_total_temp + " in PDF: " + (subtotal.toDecimal() - transport_cost.toDecimal()).round(2) + " ***");
+		}
+		// Transport Cost
+		transport_diff = (po_full_detail.get("adjustment").toDecimal() - (transport_cost.toDecimal() * (1.0 + tax_percentage / 100)).round(2)).abs();
+		if(transport_diff > 1)
+		{
+			po_anamolies.add("*** Shipping Cost Not Match in PO: " + po_full_detail.get("adjustment").toDecimal() + " in PDF: including Tax " + (transport_cost.toDecimal() * (1.0 + tax_percentage / 100)).round(2) + " ***");
+		}
+		//Total Cost
+		tax_total_diff = (po_full_detail.get("tax_total").toDecimal() - total_taxes.toDecimal()).abs();
+		if(tax_total_diff > 1)
+		{
+			po_anamolies.add("*** Total Tax Do Not Match in PO: " + po_full_detail.get("tax_total") + " in PDF: " + total_taxes + " ***");
+		}
+		//Grand Cost
+		info po_full_detail.get("total");
+		bill_total_diff = (po_full_detail.get("total").toDecimal() - grand_total.toDecimal()).abs();
+		if(bill_total_diff > all_items.keys().size() + 1)
+		{
+			po_anamolies.add("*** Bill Total Do Not Match in PO: " + po_full_detail.get("total") + " in PDF: " + grand_total + " ***");
+		}
+		// Subtotal M Shipping Cost
+		if(subtotal.toDecimal() < transport_cost.toDecimal())
+		{
+			po_anamolies.add("*** Shipping Cost is more than Items Sub Total. Sub Total: " + subtotal + " Transportation Cost: " + transport_cost + " ***");
+		}
+		if(po_anamolies.size() > 0)
+		{
+			po_anamolies.add("*** For any Item Price/Total Price change, check the Bill Total, PO Total and PDF Total may be same, but Bill Ttotal may be changed due to fractinal change in Item Price ***");
+		}
+		else
+		{
+			po_anamolies.add("*** All items verified without issue ***");
+		}
+		bill_map.put("line_items",bill_line_items);
+		//bill_map.put("notes",po_anamolies.toString());
+		info po_anamolies;
+		info bill_map;
+		info temp_all_items;
+		bill_params = {"JSONString":bill_map};
+	}
+}
+}

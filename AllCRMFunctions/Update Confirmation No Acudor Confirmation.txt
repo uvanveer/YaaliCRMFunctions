@@ -1,0 +1,73 @@
+string standalone.update_confirmation_no_acudor_confirmation(String crmAPIRequest)
+{
+crm_api_map = crmAPIRequest.toMap();
+params = crm_api_map.get("body");
+// info params;
+params = params.toMap();
+ds_no = ifnull(params.get("dropship_number"),"");
+confirmation_no = ifnull(params.get("confirmation_number"),"");
+sales_order_no = ifnull(params.get("sales_order_number"),"");
+shipping_location_for_Acudor = ifnull(params.get("shipping_location_for_acudor"),"");
+estimated_ship_date = ifnull(params.get("estimated_ship_date"),today.toString("yyyy-MM-dd"));
+if(ds_no != "" && confirmation_no != "")
+{
+	upd_map = Map();
+	upd_map.put("Confirmation_Number","C " + sales_order_no);
+	drop_ship_orders = zoho.crm.searchRecords("Purchase_Orders","(Dropship_Number:equals:" + ds_no + ")");
+	// 	drop_ship_orders = zoho.crm.searchRecords("Purchase_Orders","(Dropship_Number:equals:" + ds_no + ")",1,200,Map(),"mailparserzoho");
+	for each  drop_ship_order in drop_ship_orders
+	{
+		// 				info zoho.crm.updateRecord("Purchase_Orders",drop_ship_order.get("id"),{"Confirmation_Number":"C " + confirmation_no + " " + sales_order_no},{"trigger":{"workflow"}});
+		if(drop_ship_order.get("Estimated_Ship_Date") == null)
+		{
+			upd_map.put("Estimated_Ship_Date",estimated_ship_date);
+		}
+		else if(drop_ship_order.get("Estimated_Ship_Date_2") == null)
+		{
+			upd_map.put("Estimated_Ship_Date_2",estimated_ship_date);
+		}
+		else if(drop_ship_order.get("Estimated_Ship_Date_3") == null)
+		{
+			upd_map.put("Estimated_Ship_Date_3",estimated_ship_date);
+		}
+		else
+		{
+			upd_map.put("Estimated_Ship_Date_4",estimated_ship_date);
+		}
+		//upd_resp = zoho.crm.updateRecord("Purchase_Orders",drop_ship_order.get("id"),{"Confirmation_Number":"C " + sales_order_no,"Estimated_Ship_Date":estimated_ship_date},{"trigger":{"workflow"}},"mailparserzoho");
+		upd_map.put("Shipping_Location",shipping_location_for_Acudor);
+		upd_resp = zoho.crm.updateRecord("Purchase_Orders",drop_ship_order.get("id"),upd_map,{"trigger":{"workflow"}},"mailparserzoho");
+		if(upd_resp.get("code") != null)
+		{
+			sendmail
+			[
+				from :zoho.loginuserid
+				to :"hello@bestaccessdoors.com"
+				subject :"MailParser Automation Error"
+				message :"<p>Hi,&nbsp;</p><p>Received error for automation for order confirmations/tracking in MailParser:</p><p>Error Code: " + upd_resp.get("code") + " </p><p>Error Message: " + upd_resp.get("message") + " </p><p>Date and Time of error: " + now.toString("yyyy-MM-dd HH:mm:ss") + " </p><p>Dropship Order ID : " + drop_ship_order.get("id") + " </p><p>Please check this and re-test for all vendors.&nbsp;</p><p>Thank you!</p>"
+			]
+		}
+		else
+		{
+			// Code updated successfully
+			// Upload the file
+			attachment_urls = ifnull(params.get("attachment_url"),list());
+			for each  attachment_url_map in attachment_urls
+			{
+				if(attachment_url_map.get("att_mime").containsIgnoreCase("pdf"))
+				{
+					attachment_url = attachment_url_map.get("att_url");
+					attachment_url = attachment_url.replaceAll("\\","");
+					file_stream = invokeurl
+					[
+						url :attachment_url
+						type :GET
+					];
+					info zoho.crm.attachFile("Purchase_Orders",drop_ship_order.get("id"),file_stream,"mailparserzoho");
+				}
+			}
+		}
+	}
+}
+return "";
+}

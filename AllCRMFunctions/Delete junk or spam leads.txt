@@ -1,0 +1,76 @@
+void automation.Delete(Int leadId)
+{
+leadDetails = zoho.crm.getRecordById("Leads",leadId);
+firstName = leadDetails.get("First_Name");
+lastName = leadDetails.get("Last_Name");
+fullName = firstName + " " + lastName;
+info "fullname" + fullName;
+phone = leadDetails.get("Phone");
+company = leadDetails.get("Company");
+if(company == null)
+{
+	company = "";
+}
+//notifyList = {"zyarina@bestaccessdoors.com"};
+notifyList = {"barani@bizappln.com"};
+block = false;
+blockList = {"dating","sex","sexy","date","cheeks","nude","gorgeous","girls","horny","pussy","housewife","puss","oral","slut","69","sextoys","bedroom","18+","http","https","sexyphotos","sexy_body","henryinabs"};
+if(!isNull(fullName))
+{
+	fullNameParts = fullName.toList(" ");
+}
+morePartsList = List();
+finalPartsList = List();
+for each  part in fullNameParts
+{
+	moreParts = part.toList(":");
+	morePartsList.addAll(moreParts);
+}
+for each  part in morePartsList
+{
+	finalParts = part.toList("/");
+	finalPartsList.addAll(finalParts);
+}
+for each  x in blockList
+{
+	if(finalPartsList.size() > 0)
+	{
+		for each  part in finalPartsList
+		{
+			if(part.equalsIgnoreCase(x))
+			{
+				block = true;
+			}
+		}
+	}
+}
+if(firstName == lastName || block)
+{
+	sendmail
+	[
+		from :zoho.adminuserid
+		to :notifyList
+		subject :"Junk CRM lead deleted - Check Recycle Bin"
+		message :"<div>A new CRM lead was automatically deleted due to the following criteria. <br></div><ul><li>First name = Last name<br></li><li>OR</li><li>Lead name contains inappropriate words</li></ul><div>This lead is most likely junk and/or spam. If you think this might be a mistake, you can restore the record by checking under Setup > Data Administration > Recycle Bin.<div><br></div><div>First Name:&nbsp;" + firstName + "<br></div><div>Last Name:&nbsp;" + lastName + "<br></div><div>Company:&nbsp;" + company + "<br></div><div>Phone:&nbsp;" + phone + "<br></div></div><div><br></div>"
+	]
+	delResp = zoho.crm.invokeConnector("crm.delete",Map:String({"module":"Leads","id":leadId}));
+	info "Deleted!";
+	info delResp;
+}
+else if(!isNull(company))
+{
+	if(company.equalsIgnoreCase("google"))
+	{
+		sendmail
+		[
+			from :zoho.adminuserid
+			to :notifyList
+			subject :"Junk CRM lead deleted - Check Recycle Bin"
+			message :"<div>A new CRM lead was automatically deleted due to the following criteria. <br></div><ul><li>First name = Last name<br></li><li>OR</li><li>Lead name contains inappropriate words</li></ul><div>This lead is most likely junk and/or spam. If you think this might be a mistake, you can restore the record by checking under Setup > Data Administration > Recycle Bin.<div><br></div><div>First Name:&nbsp;" + firstName + "<br></div><div>Last Name:&nbsp;" + lastName + "<br></div><div>Company:&nbsp;" + company + "<br></div><div>Phone:&nbsp;" + phone + "<br></div></div><div><br></div>"
+		]
+		delResp = zoho.crm.invokeConnector("crm.delete",Map:String({"module":"Leads","id":leadId}));
+		info "Deleted!";
+		info delResp;
+	}
+}
+}

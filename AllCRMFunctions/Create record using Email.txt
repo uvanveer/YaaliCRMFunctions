@@ -1,0 +1,140 @@
+string standalone.create_recordusingemail_TEST()
+{
+get_domain = zoho.crm.getRecordById("Domain_Settings",3106252000056886136);
+base_url = get_domain.get("Domain_Name");
+id = 3106252000075581119;
+getd = zoho.crm.getRecordById("Purchase_Orders",id);
+updated = zoho.crm.updateRecord("Purchase_Orders",id,{"Status":"Shipped"});
+saleorderid = getd.get("Sales_Order").get("id");
+saleorderdata = zoho.crm.getRecordById("Sales_Orders",saleorderid);
+// info saleorderdata;
+Storename = saleorderdata.get("Store").get("name");
+bigmap = Map();
+bigmap.put("status_id","Partially Shipped");
+bigmap.put("order_id",getd.get("Subject"));
+bigmap.put("store_name",Storename);
+info "bigmap" + bigmap;
+header_map = Map();
+header_map.put("Content-Type","application/json");
+// senddata = postUrl("https://ymaconnect.com/api/zcrm/DropTracking",bigmap.toString(),header_map);
+// info "senddata" + senddata;
+// // // Update purchase order in books
+getPur = zoho.books.getRecords("Purchaseorders","666840843","purchaseorder_number=" + getd.get("Dropship_Number"));
+purid = getPur.get("purchaseorders").toString().get("purchaseorder_id");
+upPur = zoho.books.updateRecord("Purchaseorders","666840843",purid.toString(),{"status":"closed","reference_number":getd.get("Tracking_Number"),"ship_via":getd.get("Carrier")});
+getreldrop = zoho.crm.getRelatedRecords("Dropship_Orders","Sales_Orders",getd.get("Sales_Order").get("id"));
+statusSal = "true";
+for each  g in getreldrop
+{
+	// info "Status:" + g.get("Status") ;
+	if(g.get("Status") != "Shipped" && g.get("Status") != "Cancelled")
+	{
+		statusSal = "false";
+	}
+}
+if(statusSal == "true")
+{
+	updateS = zoho.crm.updateRecord("Sales_Orders",getd.get("Sales_Order").get("id").toLong(),{"Status":"Completed"});
+	bigmap1 = Map();
+	bigmap1.put("status_id","Shipped");
+	bigmap1.put("order_id",getd.get("Subject"));
+	bigmap1.put("store_name",Storename);
+	info "bigmap1" + bigmap1;
+	senddata1 = invokeurl
+	[
+		url :base_url + "/api/zcrm/DropTracking"
+		type :POST
+		parameters:bigmap1
+		headers:header_map
+		detailed:true
+	];
+	if(senddata1.get("responseCode") != 200)
+	{
+		senddata1 = postUrl(base_url + "/api/zcrm/DropTracking",bigmap1);
+		info "senddata1" + senddata1;
+		// update status in books
+		getsal = zoho.books.getRecords("Salesorders","666840843","cf_bigcommerce_unique_id:equals:" + saleorderdata.get("BigCommerce_Unique_ID"));
+		// 	info getsal;
+		getsal = zoho.books.getRecords("Salesorders","666840843","salesorder_number=" + getd.get("Subject"));
+		salid = getsal.get("salesorders").toString().get("salesorder_id");
+		saleupdate = zoho.books.updateRecord("Salesorders","666840843",salid.toString(),{"status":"closed"});
+	}
+	else
+	{
+		info "Mail Trigger";
+		sendmail
+		[
+			from :zoho.adminuserid
+			to :"tharmendheran@bizappln.com"
+			subject :"Dropshiorder to BC Status update failed"
+			message :"Dear Order Team, <br><br> The following dropship Order Status Updation was failed due to Zoho limit excced.Please check below link to click 'Retry Shipment Creation' button <br><br><a href=\"https://crm.zoho.com/crm/org663942562/tab/PurchaseOrders/" + id + "\" target=\"_blank\"><b>" + id + "</b></a>. <br><br> Thanks <br><b>Best Access Doors </b>"
+		]
+	}
+}
+getd = zoho.crm.getRecordById("Purchase_Orders",id);
+products = getd.get("Product_Details").toJSONList();
+saleorderdata = zoho.crm.getRecordById("Sales_Orders",getd.get("Sales_Order").get("id"));
+Storename = saleorderdata.get("Store").get("name");
+ship = Map();
+pro = Map();
+for each  prod in products
+{
+	pro.put(prod.get("product").get("Product_Code"),"sku");
+}
+orderid = getd.get("Subject").replaceAll("#","");
+ship.put("sku",pro);
+ship.put("store_name",Storename);
+ship.put("carrier",getd.get("Carrier"));
+ship.put("orderid",orderid);
+ship.put("tracking",getd.get("Tracking_Number"));
+ship.put("shipping_method","fedex");
+ship.put("Shipment_Id",getd.get("Shipment_Id"));
+if(getd.get("Comments") != null)
+{
+	ship.put("Comments",getd.get("Comments"));
+}
+header_map = Map();
+header_map.put("Content-Type","application/json");
+info "ship" + ship;
+Shipment_Response = invokeurl
+[
+	url :base_url + "/api/zcrm/DropShipment"
+	type :POST
+	parameters:ship.toString()
+	headers:header_map
+	detailed:true
+];
+info "Shipment_Response" + Shipment_Response;
+if(Shipment_Response.get("responseCode") != 200)
+{
+	shipment_update = Map();
+	shipment_update.put("Shipment_Id",Shipment_Response.getJSON("id"));
+	if(Shipment_Response.getJSON("id") != null)
+	{
+		updated = zoho.crm.updateRecord("Purchase_Orders",id,shipment_update);
+		info "updated" + updated;
+	}
+	else
+	{
+		shipment_update_response = Map();
+		shipment_update_response.put("Note_Title","Shipment Creation Error Response : " + zoho.currentdate);
+		shipment_update_response.put("Note_Content",Shipment_Response.toString());
+		shipment_update_response.put("Parent_Id",id);
+		shipment_update_response.put("$se_module","Purchase_Orders");
+		createres = zoho.crm.createRecord("Notes",shipment_update_response);
+		info "create" + createres;
+	}
+}
+else
+{
+	info "Mail triggred";
+	sendmail
+	[
+		from :zoho.adminuserid
+		to :"zoho_zoho1502-172@forms.zohocreator.com","tharmendheran@bizappln.com"
+		subject :"CRM_Shipment_creation_Scheduler_Report"
+		message :"<b>CRM RecID :" + id + "<br>Execution Time :" + zoho.currenttime.addMinutes(5) + "<br>Status :Created<br>Attempt Tried :0<br>Source :DropshipOrder<br>Error Code :" + Shipment_Response.get("responseCode") + "<br>Error Response :" + Shipment_Response + "<br></b>"
+	]
+}
+return "";
+}

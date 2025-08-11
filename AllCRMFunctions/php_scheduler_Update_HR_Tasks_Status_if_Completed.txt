@@ -1,0 +1,96 @@
+string standalone.php_scheduler_Update_HR_Tasks_Status_if_Completed()
+{
+highriseAuth = "Basic OWZiYjY1ODg2NWY5MTUyODlmN2U5ZDNiM2E3MWNkYmI6WA==";
+try 
+{
+	HRmaillist = zoho.crm.getRecords("Highrise_Data",14,100,{"cvid":3106252000072135003,"sort_by":"Created_Time"});
+	// info HRmaillist;
+	maillist = List();
+	completedCount = 0;
+	processCount = 0;
+	index = 0;
+	for each  hrcontact in HRmaillist
+	{
+		index = index + 1;
+		highriseID = hrcontact.get("Highrise_ID");
+		crmRecordID = hrcontact.get("Zoho_CRM_ID");
+		category = hrcontact.get("Task_Category_Name");
+		Task_Created_For = hrcontact.get("Task_Created_For");
+		info index + " crm id " + crmRecordID + " hr id " + highriseID + " category " + category;
+		if(category == "Follow-up")
+		{
+			processCount = processCount + 1;
+			// tasks
+			highriseTask = geturl("https://bestaccessdoors.highrisehq.com/tasks/" + highriseID + ".xml",{"Authorization":highriseAuth});
+			taskExists = highriseTask.containsIgnoreCase("task");
+			if(taskExists == true)
+			{
+				doneAt = ifnull(highriseTask.executeXPath("task/done-at/text()"),"");
+				if(doneAt != "")
+				{
+					completedCount = completedCount + 1;
+					info "to update: id " + highriseTask.executeXPath("task/id/text()") + " done at " + highriseTask.executeXPath("task/done-at/text()");
+					// 			if(completedCount < 2){
+					updateContact = zoho.crm.updateRecord("Tasks",crmRecordID.toLong(),{"Status":"Completed"});
+					info "update contact " + updateContact;
+					// 			}
+				}
+				else
+				{
+					// 					info "not completed";
+				}
+			}
+			else
+			{
+				info "----- " + crmRecordID + " hrid " + highriseID + "taskcreated for " + Task_Created_For;
+				updateContact = zoho.crm.updateRecord("Tasks",crmRecordID.toLong(),{"Status":"Completed"});
+				info "update task res " + updateContact;
+				// 	//check with HR for people api, email search in crm
+				highrisePeople = geturl("https://bestaccessdoors.highrisehq.com/people/" + Task_Created_For + ".xml",{"Authorization":highriseAuth});
+				primaryEmail = ifnull(highrisePeople.executeXPath("person/contact-data/email-addresses/email-address[1]/address/text()"),"");
+				if(primaryEmail != "")
+				{
+					info "email " + primaryEmail;
+					email = primaryEmail;
+					criteria = "(Email:equals:" + email + ")";
+					duplicateRecords = zoho.crm.searchRecords("Contacts",criteria,1,200,{"Created_Time":"sort_by with desc"});
+					info "duplicate " + duplicateRecords.size();
+					if(duplicateRecords.size() == 1)
+					{
+						crmContactID = duplicateRecords.get(0).get("id");
+						masterFound = true;
+						full_name = duplicateRecords.get(0).get("Full_Name");
+					}
+					else if(duplicateRecords.size() > 1)
+					{
+						for each  master in duplicateRecords
+						{
+							if(master.get("Master") == true)
+							{
+								crmContactID = master.get("id");
+								masterFound = true;
+								full_name = master.get("Full_Name");
+							}
+						}
+					}
+					if(masterFound == true)
+					{
+						note_content = "Task Deleted from Highrise - Marked as Completed in Zoho: https://crm.zoho.com/crm/org663942562/tab/Activities/" + crmRecordID + "?sub_module=Tasks";
+						notesMap = Map();
+						notesMap.put("Parent_Id",crmContactID);
+						notesMap.put("se_module","Contacts");
+						notesMap.put("Note_Title",full_name);
+						notesMap.put("Note_Content",note_content);
+						noteCreate = zoho.crm.createRecord("Notes",notesMap);
+						info "res  " + noteCreate;
+					}
+				}
+			}
+		}
+	}
+}
+ catch (e)
+{	info "err " + e;
+}
+return "completed " + completedCount;
+}

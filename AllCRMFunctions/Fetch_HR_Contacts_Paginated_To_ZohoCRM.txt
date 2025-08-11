@@ -1,0 +1,50 @@
+void automation.Fetch_HR_Contacts_Paginated(String date,String module,String paginate)
+{
+sendmail
+[
+	from :zoho.adminuserid
+	to :"prashanth@bizappln.com"
+	subject :"fetch hr pagination for contacts module"
+	message :"date " + date + " - module : " + module
+]
+highriseAuth = "Basic OWZiYjY1ODg2NWY5MTUyODlmN2U5ZDNiM2E3MWNkYmI6WA==";
+// getData = zoho.crm.getRecordById("Highrise_Connector",3106252000065101001);
+// date = getData.get("Date");
+fetchdate = date.subString(0,19);
+fetchdate = fetchdate.replaceAll("[-:T]","");
+highriseContacts = geturl("https://bestaccessdoors.highrisehq.com/people.xml?since=" + fetchdate,{"Authorization":highriseAuth});
+//info "highriseContacts "+highriseContacts;
+processCount = 0;
+highrisePeople = highriseContacts.executeXPath("people/person").toXmlList();
+info "highrisePeople " + highrisePeople.size();
+if(highrisePeople.size() > 0)
+{
+	for each  person in highrisePeople
+	{
+		processCount = processCount + 1;
+		if(person.executeXPath("person/id/text()") == "329626449")
+		{
+			createResp = zoho.crm.createRecord("Highrise_Data",{"Highrise_ID":person.executeXPath("person/id/text()"),"Module":"Contacts","Highrise_Created_Time":person.executeXPath("person/created-at/text()"),"Highrise_Created_Time":person.executeXPath("person/updated-at/text()"),"Input_Date_Provided":date},{"trigger":{"workflow"}});
+		}
+	}
+	// 	createResp = zoho.crm.createRecord("Highrise_Data",{"HIghrise_ID":person.executeXPath("person/id/text()"),"Module":"Contacts","New_Record":true});
+	if(processCount == 500)
+	{
+		getContactindex = zoho.crm.getRecordById("Highrise_Connector",3106252000065101001);
+		updatedCount = getContactindex.get("Contact_Start_Index").toNumber() + 500;
+		updateprocessCount = zoho.crm.updateRecord("Highrise_Connector",3106252000065101001,{"Contact_Start_Index":updatedCount,"Paginate_Accounts":false,"Paginate_Contacts":true,"Paginate_Deals":false});
+		sendmail
+		[
+			from :zoho.adminuserid
+			to :"prashanth@bizappln.com"
+			subject :"pagination function for contactrs"
+			message :"res data after pagination " + highrisePeople
+		]
+	}
+	else
+	{
+	}
+}
+// 	info "count " + processCount;
+// 	// return "";
+}

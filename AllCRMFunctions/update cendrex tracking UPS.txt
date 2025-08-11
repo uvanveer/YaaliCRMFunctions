@@ -1,0 +1,3 @@
+void automation.update_cendrex_tracking_ups()
+{
+}

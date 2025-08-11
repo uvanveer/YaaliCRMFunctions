@@ -1,0 +1,8 @@
+string standalone.testingggg()
+{
+//info zoho.crm.updateRecord("Purchase_Orders",3106252000124053565,{"Description":""});
+info zoho.crm.getRecordById("Purchase_Orders",3106252000129173222);
+// Get_books = zoho.books.getRecords("Items","666840843","purchase_rate=0.0");
+// info Get_books;
+return "";
+}

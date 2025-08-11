@@ -1,0 +1,57 @@
+void automation.Salesorder_Sync_to_Books(Int id)
+{
+start_time = now.toLong();
+orderid = Map();
+orderid.put("crmOrderId",id);
+saleOrderInfo = zoho.crm.getRecordById("Sales_Orders",id);
+info saleOrderInfo;
+if(saleOrderInfo != null)
+{
+	orderid.put('status',saleOrderInfo.get("Status"));
+}
+info orderid;
+//Get OAuthHashCode from Zoho crm variable
+//BADAuthorization = zoho.crm.getOrgVariable("OAuthHashCode");
+/*header_map = Map();
+header_map.put("Content-Type","application/json");
+header_map.put("BADAuthorization",BADAuthorization);
+headers:header_map
+*/
+//https://1.door-pay.com/api/zohocrm/updateOrder
+response = invokeurl
+[
+	url :"https://1.door-pay.com/api/zohocrm/updateOrder"
+	type :POST
+	parameters:orderid
+	detailed:true
+];
+info response;
+//additional log - rpr
+/*logMap = Map();
+logMap.put("Name","Sales Orders");
+logMap.put("Created_Edited_By",zoho.loginuser);
+logMap.put("SalesOrder_Record_ID",id.toString());
+logMap.put("SalesOrder_Request",orderid);
+logMap.put("SO_Workflow_Name","Create Update Order to Books / Bigcommerce_Status_Update_checker / rpr");
+logMap.put("SalesOrder_Response",response);
+end_time = now.toLong();
+logMap.put("Start_Time",start_time.toString());
+logMap.put("End_Time",end_time.toString());
+Create_log = zoho.crm.createRecord("Sales_Order_PO_Log",logMap);
+info Create_log;*/
+// -rpr 
+////////
+// For direct call using this endpoint with same body-  by T https://www.1.door-pay.com/api/zcrm/saleOrdercreateToBooks
+//////
+/*if(response.get("responseCode") != 200)
+{
+	sendmail
+	[
+		from :zoho.adminuserid
+		to :"zoho_zoho1502-172@forms.zohocreator.com"
+		subject :"CRM to Books Salesorder Update"
+		message :"CRM RecID :" + id.toString() + "<br>Execution Time :" + zoho.currenttime.addMinutes(5) + "<br>Status :Pending<br>Attempt Tried :0<br>Source :CRMSalesOrderStatus<br>Is Active :true<br>Error Code :" + response.get('responseCode') + "<br>Error Response :" + response + "<br>"
+	]
+	info "mail has send";
+}*/
+}

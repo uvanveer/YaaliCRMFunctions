@@ -1,0 +1,76 @@
+string standalone.Delete_Duplicate_contacts_In_Books()
+{
+testing = zoho.books.getRecords("contacts","666840843","contact_type=customer&cf_duplicate_is_processed=false&page=1&cf_is_processed=true");
+// info testing.get("contacts");
+if(testing.get("message") == "message")
+{
+	counter = 0;
+	index_count = 0;
+	for each  customer in testing.get("contacts")
+	{
+		index_count = index_count + 1;
+		Relatedlist_count = 0;
+		// 	info vendor.get("contact_type") + " -- "+ vendor.get("contact_id") + " -- " + vendor.get("cf_is_master_vendor") + " -- "+ vendor.get("cf_is_processed");
+		if(customer.get("contact_type") == "customer" && customer.get("cf_is_processed") == true && customer.get("cf_duplicate_is_processed") == false)
+		{
+			counter = counter + 1;
+			info counter + " - " + customer.get("contact_type") + " -- " + customer.get("contact_id") + " -- books master " + customer.get("cf_master_contactid") + " -- is master " + customer.get("cf_duplicate_is_processed") + " -- name " + customer.get("contact_name");
+			contact_id = customer.get("contact_id");
+			masterContact_id = customer.get("cf_master_contactid");
+			//sales order
+			Get_SO_data = zoho.books.getRecords("salesorders","666840843","customer_id=" + customer.get("contact_id").toString());
+			if(Get_SO_data.get("message") == "success")
+			{
+				Get_So = Get_SO_data.get("salesorders");
+				info Get_So.size();
+				Relatedlist_count = Relatedlist_count + Get_So.size();
+				// 					for each  S_rec in Get_So
+				// 					{	
+				// 						flag1 = flag1 + 1;
+				// // 						if(mergeContactCount == 1 && flag1 == 1){				
+				// 							info " sale order id " + S_rec.get("salesorder_id");
+				// 							Update_SO_data = zoho.books.updateRecord("salesorders","666840843",S_rec.get("salesorder_id"),{"customer_id": masterRecId});
+				// 							info Update_SO_data.get("message");				
+				// // 						}
+				// 					}
+			}
+			//invoice
+			Get_Invoice_data = zoho.books.getRecords("invoices","666840843","customer_id=" + customer.get("contact_id").toString());
+			// // 				info Get_Invoice_data;
+			if(Get_Invoice_data.get("message") == "success")
+			{
+				Get_Inv = Get_Invoice_data.get("invoices");
+				info Get_Inv.size();
+				Relatedlist_count = Relatedlist_count + Get_So.size();
+				// 					for each  Inv_rec in Get_Inv
+				// 					{
+				// 						info " invoice id " + Inv_rec.get("invoice_id");
+				// 						Update_Inv_data = zoho.books.updateRecord("invoices","666840843",Inv_rec.get("invoice_id"),{"customer_id": masterRecId});
+				// 						info Update_Inv_data.get("message");
+				// 					}	
+			}
+			info Relatedlist_count;
+			if(Relatedlist_count > 0)
+			{
+				info customer.get("contact_name") + "This contact Can't' be deleted";
+			}
+			else if(index_count == 0)
+			{
+				endingtime = now.toLong();
+				logs = zoho.crm.createRecord("Log_ContactQuoteDeals",{"Which_Module":"Books-Contacts","Action":"duplicate delete","Contact_Data":customer,"What_Time":now.toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'"),"Name":"custom function - Delete_Duplicate_contacts_In_Books_Using_CRM-deleted-contact-mod","Start_Time":"","End_Time":now.toLong(),"Created_Edited_By":zoho.loginuserid,"Contact":customer.get("contact_id"),"Contact_Record_ID":customer.get("cf_master_contactid"),"Email":customer.get("email")});
+				info logs;
+				info customer.get("contact_name") + "This contact Can be deleted";
+				// 			delete_duplicate_customer = invokeurl
+				// 			[
+				// 				url :"https://books.zoho.com/api/v3/contacts/" + customer.get("contact_id") + "?organization_id=666840843"
+				// 				type :DELETE
+				// 				headers:header_data
+				// 			];
+				// 			info delete_duplicate_customer;
+			}
+		}
+		info "Counter " + counter + " -- " + index_count;
+	}
+}
+return "completed ";
+}

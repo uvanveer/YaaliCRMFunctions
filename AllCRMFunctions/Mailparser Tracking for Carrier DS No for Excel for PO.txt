@@ -1,0 +1,245 @@
+string standalone.mail_parser_tracking_carrier_ds_no_for_excel_for_po(String crmAPIRequest)
+{
+crm_api_map = crmAPIRequest.toMap();
+params = crm_api_map.get("body");
+tracking_datas = params.get("tracking_nos");
+tracking_datas.remove(0);
+// allowed_carrier_list = {"FedEX","UPS","UPS Online","USPS","DHL","BlueDart"};
+for each  tracking_data_str in tracking_datas
+{
+	tracking_data = tracking_data_str.toMap();
+	info tracking_data.size();
+	if(tracking_data.size() > 1)
+	{
+		tracking_no = tracking_data.get("1");
+	}
+	else
+	{
+		tracking_no = null;
+	}
+	if(tracking_data.size() > 2)
+	{
+		dropship_no = tracking_data.get("2");
+	}
+	else
+	{
+		dropship_no = null;
+	}
+	if(tracking_data.size() > 3)
+	{
+		carrier = tracking_data.get("3");
+		carrier_nm = tracking_data.get("3");
+	}
+	else
+	{
+		carrier = null;
+		carrier_nm = null;
+	}
+	if(tracking_data.size() > 0)
+	{
+		ship_date_str = tracking_data.get("0");
+		info "Ship Date " + ship_date_str;
+		if(ship_date_str != null && ship_date_str != "" && ship_date_str.containsIgnoreCase("/"))
+		{
+			ship_date_str = ship_date_str.replaceAll("\\","");
+			ship_date = ship_date_str.toDate().toString("yyyy-MM-dd");
+		}
+		else
+		{
+			ship_date = null;
+		}
+	}
+	else
+	{
+		ship_date = null;
+	}
+	info dropship_no;
+	if(dropship_no != null && dropship_no != "")
+	{
+		purchase_orders = zoho.crm.searchRecords("Purchase_Orders","(Dropship_Number:equals:" + dropship_no + ")");
+		// 		purchase_orders = zoho.crm.searchRecords("Purchase_Orders","(Dropship_Number:equals:" + zoho.encryption.urlEncode(dropship_no) + ")",1,200,Map(),"mailparserzoho");
+		// 		info purchase_orders;
+		po_store_name = "anything";
+		if(purchase_orders.size() > 0 && purchase_orders.get(0).get("Source") != null)
+		{
+			po_store_name = purchase_orders.get(0).get("Source");
+		}
+		if(purchase_orders.size() > 0)
+		{
+			po_status = ifnull(purchase_orders.get(0).get("Status"),"Created");
+		}
+		if(purchase_orders.size() > 0 && !po_status.containsIgnoreCase("Shipped"))
+		{
+			upd_map = Map();
+			if(ship_date != null)
+			{
+				upd_map.put("Ship_Date",ship_date);
+			}
+			else
+			{
+				upd_map.put("Ship_Date",today.toString("yyyy-MM-dd"));
+			}
+			purchase_order_id = purchase_orders.get(0).get("id");
+			// 			upd_map.put("Carrier","UPS");
+			if(po_store_name.containsIgnoreCase("Amazon Store"))
+			{
+				upd_map.put("Amazon_Carrier_Code","UPS");
+				//added by vijay to update carrier lookup
+				if(carrier_nm == Null || carrier_nm == "")
+				{
+					c_name = "Other Carrier";
+				}
+				else
+				{
+					c_name = carrier_nm;
+				}
+				resp = zoho.crm.searchRecords("Amazon_Carrier_List","(Amazon_Carrier_Name:equals:" + carrier_nm + ")");
+				if(isempty(resp) == true)
+				{
+					upd_map.put("Amazon_Carrier_Code_Info",3106252000765624640);
+					upd_map.put("Other_Carrier_Name",c_name);
+				}
+				else
+				{
+					amzcr_id = resp.getJSON("id");
+					upd_map.put("Amazon_Carrier_Code_Info",amzcr_id);
+					upd_map.put("Other_Carrier_Name","");
+				}
+				//added by vijay to update carrier lookup
+			}
+			//Ragul Code Started for updating carrier to lookup field 21-06-2023
+			else if(po_store_name.contains("BigCommerce"))
+			{
+				carrier1 = carrier_nm;
+				if(carrier1 == "UPS TD" || carrier1 == "UPS;" || carrier1 == "UPS STANDARD" || carrier1 == "UPS Ground" || carrier1 == "UPS® Ground")
+				{
+					carrier1 = "UPS";
+				}
+				else if(carrier1 == "FEF-ECO" || carrier1 == "FedEx Ground" || carrier1 == "FedEx" || carrier1 == "FEDEX" || carrier1 == "FED EX GROUND" || carrier1 == "FedEx Freight" || carrier1 == "FED EX" || carrier1 == "Fedex" || carrier1 == "fedex")
+				{
+					carrier1 = "FedExÂ®";
+				}
+				else if(carrier1 == "ESTES" || carrier1 == "EXLA.U" || carrier1 == "Estes Express")
+				{
+					carrier1 = "Estes";
+				}
+				else if(carrier1 == "XPO" || carrier1 == "CNWY XPO.U" || carrier1 == "XPO Logistics-LTL-ECONOMY" || carrier1 == "XPO Logistics")
+				{
+					carrier1 = "XPO logistics";
+				}
+				else if(carrier1 == "WILL CALL" || carrier1 == "PICK UP")
+				{
+					carrier1 = "PICK UP";
+				}
+				else if(carrier1 == "AD PYLE" || carrier1 == "A. DUIE PYLE")
+				{
+					carrier1 = "A Duie Pyle";
+				}
+				else if(carrier1 == "Daylight" || carrier1 == "DYLT.U" || carrier1 == "Daylight Transportation")
+				{
+					carrier1 = "Daylight Transport";
+				}
+				else if(carrier1 == "YRC NATIONAL-LTL-ECONOMY")
+				{
+					carrier1 = "YRC";
+				}
+				else if(carrier1.startsWith("MILLION"))
+				{
+					carrier1 = "MILLION - LOCAL TRUCK";
+				}
+				else if(carrier1.startsWith("SPEEDY"))
+				{
+					carrier1 = "SPEEDY TRS";
+				}
+				else if(carrier1.startsWith("CENTRAL"))
+				{
+					carrier1 = "CENTRAL TR";
+				}
+				else if(carrier1.startsWith("Concept"))
+				{
+					carrier1 = "Concept Freight-LTL-ECONOMY";
+				}
+				else if(carrier1 == "SOUTHEASTERN FRT" || carrier1 == "Southeastern")
+				{
+					carrier1 = "Southeastern Freight Lines";
+				}
+				else if(carrier1 == "USF Red.U" || carrier1 == "USF Holland-LTL-ECONOMY")
+				{
+					carrier1 = "USF Reddaway";
+				}
+				else if(carrier1 == "Old Dominion" || carrier1 == "OLD DOMINION FREIGHT" || carrier1 == "ODFL.U" || carrier1 == "Old Dominion Freight")
+				{
+					carrier1 = "Old Dominion Freight Line";
+				}
+				else if(carrier1 == "Averitt Express Inc.-LTL-ECONOMY")
+				{
+					carrier1 = "Averitt Express";
+				}
+				else if(carrier1 == "SAIA" || carrier1 == "SAIA-LTL-ECONOMY")
+				{
+					carrier1 = "Saia LTL Freight";
+				}
+				else if(carrier1 == "GLS/MT VALLEY")
+				{
+					carrier1 = "GLS";
+				}
+				else if(carrier1 == "RLCA.U" || carrier1 == "R&L Carriers" || carrier1 == "RL CARRIERS" || carrier1 == "R & L Carriers")
+				{
+					carrier1 = "RL Carriers";
+				}
+				else if(carrier1 == "RR" || carrier1 == "Roadrunner Transportation Services")
+				{
+					carrier1 = "Roadrunner Transport Service";
+				}
+				else if(carrier1 == "T Force.U" || carrier1 == "TFORCE" || carrier1 == "TForce Freight")
+				{
+					carrier1 = "TForce Final Mile";
+				}
+				else if(carrier1 == "DAYTON FREIGHT LINES INC")
+				{
+					carrier1 = "Dayton Freight";
+				}
+				else if(carrier1 == "N&M Transfer")
+				{
+					carrier1 = "N&M Transfer Co.";
+				}
+				else if(carrier1 == "CH ROBINSON")
+				{
+					carrier1 = "C.H. Robinson Worldwide";
+				}
+				else if(carrier1 == "ABF LTL")
+				{
+					carrier1 = "ABF Freight";
+				}
+				else if(carrier1 == "AAA")
+				{
+					carrier1 = "AAA Cooper";
+				}
+				carrier12 = carrier1.toString().replaceAll("\(","\\(").replaceAll("\)","\\)");
+				info "carrier12" + carrier12;
+				response = zoho.crm.searchRecords("BC_Carrier_List","(BC_Carrier_Name:equals:" + carrier12 + ")");
+				// 								info "response" + response;
+				if(isempty(response) == true)
+				{
+					upd_map.put("BC_Carrier_Name_Info",3106252000768290717);
+					upd_map.put("Other_Carrier_Name",carrier12);
+				}
+				else
+				{
+					get_id = response.getJson("id");
+					upd_map.put("BC_Carrier_Name_Info",get_id);
+				}
+			}
+			// 			Ragul Code Ended
+			if(tracking_no != null && tracking_no != "")
+			{
+				upd_map.put("Tracking_Number",tracking_no);
+				info purchase_order_id + " -- " + upd_map;
+				// 				info zoho.crm.updateRecord("Purchase_Orders",purchase_order_id,upd_map,{"trigger":{"workflow"}} mailparserzoho);
+				info zoho.crm.updateRecord("Purchase_Orders",purchase_order_id,upd_map,{"trigger":{"workflow"}},"crm");
+			}
+		}
+	}
+}
+return params;
+}

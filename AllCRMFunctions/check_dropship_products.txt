@@ -1,0 +1,44 @@
+void automation.check_Dropship_productslist(Int dropship_ID)
+{
+crmDropshipData = zoho.crm.getRecordById("Purchase_Orders",dropship_ID);
+ProductDetails = crmDropshipData.getJSON("Product_Details");
+counter = 0;
+for each  getprodid in ProductDetails
+{
+	proid = getprodid.getJSON("product").getJSON("id");
+	info proid;
+	getsinglepro = zoho.crm.getRecordById("Products",proid.toLong());
+	info getsinglepro.getJSON("Product_type");
+	if(getsinglepro.getJSON("Product_type") != "physical")
+	{
+		counter = counter + 1;
+	}
+}
+getcontroller = zoho.crm.getRecords("On_Off_Controller");
+if(counter <= 0)
+{
+	info "Custom produt not there";
+	controller = getcontroller.getJSON("Auto_Send_Email_without_Custom_Product_Order");
+	if(controller == "true")
+	{
+		info "Controller True";
+		getres = getURL("https://www.zohoapis.com/crm/v2/functions/rk_sendpdftovendor/actions/execute?auth_type=apikey&zapikey=1003.84f6b88f042b49549074d50113dae2b6.276cb261a9b7531fe717d6f7d26c7d09&id=" + dropship_ID);
+		info getres;
+	}
+}
+else
+{
+	info "pro notthere";
+	controller = getcontroller.getJSON("Auto_Send_Email_with_Custom_Product_Order");
+	if(controller == "true")
+	{
+		info "Controller True";
+		getres = getURL("https://www.zohoapis.com/crm/v2/functions/rk_sendpdftovendor/actions/execute?auth_type=apikey&zapikey=1003.84f6b88f042b49549074d50113dae2b6.276cb261a9b7531fe717d6f7d26c7d09&id=" + dropship_ID);
+		info getres;
+	}
+	updatemap = Map();
+	updatemap.put("Dropship_Have_Custom_Itmes",true);
+	updatecrm = zoho.crm.updateRecord("Purchase_Orders",dropship_ID,updatemap);
+	info updatecrm;
+}
+}

@@ -1,0 +1,26 @@
+void automation.importTest()
+{
+/* var="Test Note 1[%%]3106252000083482069";
+fixed_title = var.getPrefix("[%%]");
+parent_id = var.getSuffix("[%%]");
+info fixed_title;
+info parent_id; */
+//contactList = {"3106252000083489310","3106252000083489309","3106252000083489308"};
+//contactList = {"3106252000083489310"};*/
+/*contactList = zoho.crm.getRecords("Contacts",1,2,{"cvid":3106252000084731074});*/
+mergerData = zoho.crm.getRecordById("Merger_Schedule","3106252000061961343");
+note_id = mergerData.get("Note_ID");
+parent_id = mergerData.get("Parent_ID");
+dummy_Contact_id = mergerData.get("Dummy_Contact_ID");
+if(note_id != null && note_id != "" && parent_id != null && parent_id != "")
+{
+	mp = Map();
+	mp.put("Parent_Id",parent_id);
+	mp.put("$se_module","Contacts");
+	info "Map " + mp;
+	update = zoho.crm.updateRecord("Notes",note_id,mp);
+	info update;
+	updateOriginal = zoho.crm.updateRecord("Contacts",parent_id,{"Sep_2013_2020_Missing_Notes_Added":true},{"trigger":{}});
+	updateDummy = zoho.crm.updateRecord("Contacts",dummy_Contact_id,{"Notes_Sync_to_Actual_Started":true},{"trigger":{}});
+}
+}

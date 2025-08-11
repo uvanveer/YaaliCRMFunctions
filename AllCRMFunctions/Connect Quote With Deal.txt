@@ -1,0 +1,23 @@
+void automation.Connect_Quote_With_Deal(Int quoteid)
+{
+/* Developed by T -- to Associated Deal with Quote bor records are created from Creator quote form*/
+getquote = zoho.crm.getRecordById("Quotes",quoteid);
+quoteno = getquote.get("Sales_Quote_Number");
+deal = getquote.get("Deal_Name");
+if(deal == null)
+{
+	getdeals = zoho.crm.searchRecords("Deals","Deal_Name:equals:" + quoteno);
+	if(getdeals.size() > 0)
+	{
+		dealid = getdeals.getJSON("id");
+		updatequote = Map();
+		updatequote.put("Deal_Name",dealid.toLong());
+		updatequoteresponse = zoho.crm.updateRecord("Quotes",quoteid,updatequote);
+		info updatequoteresponse;
+	}
+}
+else
+{
+	info "Deal already asssociated";
+}
+}

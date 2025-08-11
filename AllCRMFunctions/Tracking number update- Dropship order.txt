@@ -1,0 +1,9 @@
+string standalone.dropship_tracking_number_update(String id,String carrier,String shipdate,String tracking_number)
+{
+update_map = Map();
+update_map.put("Carrier",carrier);
+update_map.put("Ship_Date",shipdate);
+update_map.put("Tracking_Number",tracking_number);
+update_rec = zoho.crm.updateRecord("Purchase_Orders",id.toLong(),update_map);
+return "Details Updated Successfully!";
+}

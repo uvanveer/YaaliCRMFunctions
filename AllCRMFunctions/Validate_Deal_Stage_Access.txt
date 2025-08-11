@@ -1,0 +1,102 @@
+map validation_rule.Validate_Deal_Stage_Access1(String crmAPIRequest)
+{
+/* The snippet below shows you how to get a list of fields, their values from a MAP object. The fields’ values can be obtained from the same MAP object.                                                  */
+entityMap = crmAPIRequest.toMap().get("record");
+/* The example below demonstrates how a field’s value (email) can be obtained from a MAP object. Here, entityMap - Map Object, Email - Field's API name
+Sample entityMap= {'Email': 'xxx@xxx.com', 'Last_Name': 'xxx'};                                   */
+stage = entityMap.get("Stage");
+Quote_Number = entityMap.get("Deal_Name");
+//get Quote Records 
+crmquotelist = zoho.crm.searchRecords("Quotes","(Sales_Quote_Number:equals:" + Quote_Number + ")");
+QuoteStatus = crmquotelist.toMap().get("Quote_Stage");
+Valid_Till = crmquotelist.toMap().get("Valid_Till");
+Quote_Type = crmquotelist.toMap().get("Quote_Type");
+response = Map();
+salesperson = zoho.loginuserid;
+// info salesperson;
+userTypeMap = Map();
+userTypeMap.put("type","ActiveUsers");
+responseUser = zoho.crm.invokeConnector("crm.getusers",userTypeMap);
+// info responseUser.get("response").get("users").size();
+userlist = responseUser.get("response").get("users");
+enableValidation = false;
+for each  user in userlist
+{
+	// 	if(user.get("email") == salesperson && user.get("profile").get("name") == "Sales with Chat - Fern")
+	if(user.get("email") == salesperson && user.get("profile").get("name") == "Sales with Chat" || user.get("email") == salesperson && user.get("profile").get("name") == "Order Management" || user.get("email") == salesperson && user.get("profile").get("name") == "Customer Service")
+	{
+		enableValidation = true;
+		profile = user.get("profile").get("name");
+	}
+}
+if(salesperson != "zyarina@bestaccessdoors.com" && salesperson != "lei@bestaccessdoors.com")
+{
+	if(stage == "LOST")
+	{
+		if(QuoteStatus != "Won" || QuoteStatus != "Paid" || QuoteStatus != "Checked Received" || QuoteStatus != "Checked Deliverd")
+		{
+			response.put('status','error');
+			response.put('message'," Stage can't be changed manually. Please contact admin!");
+		}
+		else
+		{
+			response.put('status','success');
+		}
+	}
+	else if(stage == "WON")
+	{
+		if(toDate(Valid_Till,"yyyy-MM-dd") < toDate(now,"yyyy-MM-dd"))
+		{
+			response.put('status','error');
+			response.put('message'," Stage can't be changed manually quote is expired " + Valid_Till + " already. Please contact admin!");
+		}
+		else if(Quote_Type != null && Quote_Type != "" && Quote_Type == "Prepaid")
+		{
+			response.put('status','error');
+			response.put('message'," Stage can't be changed manually payment is associated with the Invoice. Please contact admin!");
+		}
+		else
+		{
+			response.put('status','success');
+		}
+	}
+	else if(stage == "Pending" || stage == "Draft" || stage == "Signed")
+	{
+		if(QuoteStatus != "Won" || QuoteStatus != "Paid" || QuoteStatus != "Checked Received" || QuoteStatus != "Checked Deliverd")
+		{
+			response.put('status','error');
+			response.put('message'," Stage can't be changed manually. Please contact admin!");
+		}
+		else
+		{
+			response.put('status','success');
+		}
+	}
+}
+/* if(enableValidation == true)
+{
+	response.put('status','error');
+	response.put('message'," Stage can't be changed manually. Please contact admin!");
+}
+else
+{
+	response.put('status','success');
+} */
+// sendmail
+// [
+// 	from :zoho.loginuserid
+// 	to :"prashanth@bizappln.com"
+// 	subject :"Standard: login user details " + zoho.loginuserid + " profile " + profile
+// 	message :"entity response " + entityMap + " || user response " + response + " || validation " + enableValidation
+// ]
+/* ---------------------------------------------------------------------------------------------- */
+/* Start writing your code here to perform the necessary field validation                         */
+/* ---------------------------------------------------------------------------------------------- */
+/* If the code identifies a validation error, set the status and alert message as shown below:    */
+//response.put('status','error');
+//response.put('message', '<your message(100 characters)>');
+/* If there are no errors found during validation, set the status as shown below:                 */
+// response.put('status','success');
+/* ---------------------------------------------------------------------------------------------- */
+return response;
+}

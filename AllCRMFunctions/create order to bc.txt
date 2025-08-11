@@ -1,0 +1,188 @@
+string button.CreateOrderInBC(String quote_id)
+{
+// Quote = zoho.crm.getRecordById("Quotes",quote_id);
+// if(Quote.containKey("Sales_Quote_Number"))
+// {
+// 	QuoteNumber = ifnull(Quote.get("Sales_Quote_Number"),"");
+// 	response = zoho.creator.v1.getRecords("zoho_zoho1502","quotes","All_Quotes","Quote_Number == \"" + QuoteNumber + "\"");
+// 	response = response.get(0);
+// 	creator_rec_id = response.get("ID");
+// 	TrackingNumber = ifnull(response.get("Tracking_Number"),"");
+// 	QuoteStatus = ifnull(response.get("Quote_Status"),"");
+// 	BC_ID = ifnull(response.get("BigCommerce_Order_ID"),"");
+// 	storename = ifnull(response.get("Quote_Store_Prams"),"");
+// 	getrecord = zoho.creator.v1.getRecords("zoho_zoho1502","quotes","Quote_Sales_Order_Schedule_Report","Quoteno == \"" + QuoteNumber + "\"");
+// 	info "getrecord" + getrecord;
+// 	if(BC_ID != "")
+// 	{
+// 		resp = "Order already created for the Quote. Bigcommerce Order id: " + BC_ID;
+// 	}
+// 	else if(TrackingNumber != "" && QuoteStatus == "Cheque Payment" || QuoteStatus == "Cheque Delivered")
+// 	{
+// 		option_map = Map();
+// 		option_map.put("Create_Order_From_CRM",true);
+// 		option_map.put("Quote_Status","Cheque Received");
+// 		update_rec = zoho.creator.v1.updateRecord("zoho_zoho1502","quotes","Create_Quote",creator_rec_id.toLong(),option_map);
+// 		info "update_rec:" + update_rec;
+// 		scheduleradd = Map();
+// 		shedrec = getrecord.toMap().keys();
+// 		if(shedrec.contains("message"))
+// 		{
+// 			scheduleradd.put("Execution_Time",now.addSeconds(50).toString());
+// 			scheduleradd.put("Store_Name",storename);
+// 			scheduleradd.put("Quote_Rec_Id",creator_rec_id.toLong());
+// 			scheduleradd.put("Quoteno",QuoteNumber);
+// 			scheduleradd.put("Salesperson_Email",zoho.loginuserid);
+// 			scheduleradd.put("Source","CRMQuote");
+// 			scheduleradd.put("Status","Pending");
+// 			scheduleupdate = zoho.creator.v1.createRecord("zoho_zoho1502","quotes","Quote_Sales_Order_Schedule",scheduleradd);
+// 			info "schedulecreate:" + scheduleupdate;
+// 		}
+// 		else
+// 		{
+// 			schedid = getrecord.getJSON("ID");
+// 			scheduleradd.put("Execution_Time",now.addSeconds(50).toString());
+// 			scheduleradd.put("Source","CRMQuote");
+// 			scheduleradd.put("Salesperson_Email",zoho.loginuserid);
+// 			info "scheduleradd" + scheduleradd + schedid;
+// 			scheduleupdate = zoho.creator.v1.updateRecord("zoho_zoho1502","quotes","Quote_Sales_Order_Schedule",schedid.toLong(),scheduleradd);
+// 			info "scheduleupdate" + scheduleupdate;
+// 		}
+// 		serchcrm_deal = zoho.crm.searchRecords("Potentials","(Deal_Name:equals:" + QuoteNumber + ")");
+// 		if(!serchcrm_deal.isEmpty())
+// 		{
+// 			Quotedatacrm_deal = Map();
+// 			Quotedatacrm_deal.put("Stage","WON");
+// 			crmid_deal = serchcrm_deal.getJSON("id");
+// 			quoteupdated_deal = zoho.crm.updateRecord("Potentials",crmid_deal.tolong(),Quotedatacrm_deal);
+// 			info "CRM Deal has updated";
+// 		}
+// 		serchcrm = zoho.crm.searchRecords("Quotes","(Sales_Quote_Number:equals:" + QuoteNumber + ")");
+// 		if(!serchcrm.isEmpty())
+// 		{
+// 			Quotedatacrm = Map();
+// 			Quotedatacrm.put("Quote_Stage","Paid");
+// 			crmid = serchcrm.getJSON("id");
+// 			quoteupdated = zoho.crm.updateRecord("Quotes",crmid.tolong(),Quotedatacrm);
+// 			info "CRM Quote Status Update";
+// 		}
+// 		resp = "Order creation was Initiated. We will email to " + zoho.loginuserid + " once the saleorder creation proccessed...";
+// 	}
+// 	else if(QuoteStatus == "Cheque Received")
+// 	{
+// 		resp = "This Quote Order creation Process was already initiated " + ifnull(getrecord.getJSON("Added_Time"),"") + ". If the salesorder was not created, Please inform to administrator...";
+// 	}
+// 	else
+// 	{
+// 		resp = "Somthing went wrong, Please contact to administrator...";
+// 	}
+// }
+// else
+// {
+// 	resp = "There is no Quote in ZOHO Creator";
+// }
+// return resp;
+//-------- v2 migrations - prashanth on 12/2021 at 10.25am ist--------
+Quote = zoho.crm.getRecordById("Quotes",quote_id);
+if(Quote.containKey("Sales_Quote_Number"))
+{
+	QuoteNumber = ifnull(Quote.get("Sales_Quote_Number"),"");
+	QuoterResponse = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Quotes","Quote_Number==\"" + QuoteNumber + "\"",1,200,"zcreator_connecction");
+	info "Quote Response: " + QuoterResponse;
+	if(QuoterResponse.get("code") == 3000)
+	{
+		QuoteList = QuoterResponse.get("data");
+		if(QuoteList.size() > 0)
+		{
+			response = QuoteList.get(0);
+			info "--inside quote fetch using quick view api--";
+			quote_id = response.getJSON("ID");
+			creator_rec_id = response.get("ID");
+			TrackingNumber = ifnull(response.get("Tracking_Number"),"");
+			QuoteStatus = ifnull(response.get("Quote_Status"),"");
+			BC_ID = ifnull(response.get("BigCommerce_Order_ID"),"");
+			storename = ifnull(response.get("Quote_Store_Prams"),"");
+			info "--> " + creator_rec_id + " " + TrackingNumber + " " + QuoteStatus + " " + BC_ID + " " + storename;
+			getQuoteRecord = zoho.creator.getRecords("zoho_zoho1502","quotes","Quote_Sales_Order_Schedule_Report","Quoteno==\"" + QuoteNumber + "\"",1,200,"zcreator_connecction");
+			if(BC_ID != "")
+			{
+				resp = "Order already created for the Quote. Bigcommerce Order id: " + BC_ID;
+			}
+			else if(TrackingNumber != "" && QuoteStatus == "Cheque Payment" || QuoteStatus == "Cheque Delivered")
+			{
+				tempMap = Map();
+				option_map = Map();
+				option_map.put("Create_Order_From_CRM",true);
+				option_map.put("Quote_Status","Cheque Received");
+				update_rec = zoho.creator.updateRecord("zoho_zoho1502","quotes","All_Quotes",creator_rec_id.toLong(),option_map,tempMap,"zcreator_connecction");
+				info "update_rec:" + update_rec;
+				scheduleradd = Map();
+				shedrec = getQuoteRecord.toMap().keys();
+				if(shedrec.contains("message"))
+				{
+					scheduleradd.put("Execution_Time",now.addSeconds(50).toString());
+					scheduleradd.put("Store_Name",storename);
+					scheduleradd.put("Quote_Rec_Id",creator_rec_id.toLong());
+					scheduleradd.put("Quoteno",QuoteNumber);
+					scheduleradd.put("Salesperson_Email",zoho.loginuserid);
+					scheduleradd.put("Source","CRMQuote");
+					scheduleradd.put("Status","Pending");
+					// 							scheduleupdate = zoho.creator.v1.createRecord("zoho_zoho1502","quotes","Quote_Sales_Order_Schedule",scheduleradd);
+					scheduleupdate = zoho.creator.createRecord("zoho_zoho1502","quotes","Quote_Sales_Order_Schedule",scheduleradd,tempMap,"zcreator_connecction");
+					info "scheduler record not exists:  schedulecreate: " + scheduleupdate;
+				}
+				else
+				{
+					FetchedQuotescheduleList = getQuoteRecord.get("data");
+					QuoteScheduleResponse = FetchedQuotescheduleList.get(0);
+					schedid = QuoteScheduleResponse.getJSON("ID");
+					scheduleradd.put("Execution_Time",now.addSeconds(50).toString());
+					scheduleradd.put("Source","CRMQuote");
+					scheduleradd.put("Salesperson_Email",zoho.loginuserid);
+					info "scheduleradd" + scheduleradd + schedid;
+					scheduleupdate = zoho.creator.updateRecord("zoho_zoho1502","quotes","Quote_Sales_Order_Schedule_Report",schedid.toLong(),scheduleradd,tempMap,"zcreator_connecction");
+					info "scheduler record exists: scheduleupdate: " + scheduleupdate;
+				}
+				serchcrm_deal = zoho.crm.searchRecords("Potentials","(Deal_Name:equals:" + QuoteNumber + ")");
+				if(!serchcrm_deal.isEmpty())
+				{
+					Quotedatacrm_deal = Map();
+					Quotedatacrm_deal.put("Stage","WON");
+					crmid_deal = serchcrm_deal.getJSON("id");
+					quoteupdated_deal = zoho.crm.updateRecord("Potentials",crmid_deal.tolong(),Quotedatacrm_deal);
+					info "CRM Deal has updated";
+				}
+				serchcrm = zoho.crm.searchRecords("Quotes","(Sales_Quote_Number:equals:" + QuoteNumber + ")");
+				if(!serchcrm.isEmpty())
+				{
+					Quotedatacrm = Map();
+					Quotedatacrm.put("Quote_Stage","Won");
+					//Paid
+					crmid = serchcrm.getJSON("id");
+					quoteupdated = zoho.crm.updateRecord("Quotes",crmid.tolong(),Quotedatacrm);
+					info "CRM Quote Status Update";
+				}
+				resp = "Order creation was Initiated. We will email to " + zoho.loginuserid + " once the saleorder creation proccessed...";
+			}
+			else if(QuoteStatus == "Cheque Received" || QuoteStatus == "Cheque Delivered")
+			{
+				resp = "This Quote order creation process was already initiated " + ifnull(getQuoteRecord.getJSON("Added_Time"),"") + ". If the salesorder was not created, Please inform to administrator...";
+			}
+			else
+			{
+				info "QuoteStatus: " + QuoteStatus;
+				resp = "Something went wrong, Please contact to administrator...";
+			}
+		}
+	}
+	else if(QuoterResponse.get("code") == 3100)
+	{
+		resp = "No records found for the given criteria.";
+	}
+}
+else
+{
+	resp = "There is no Quote in ZOHO Creator";
+}
+return resp;
+}

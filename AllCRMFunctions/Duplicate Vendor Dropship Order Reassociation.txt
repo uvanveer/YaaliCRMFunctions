@@ -1,0 +1,94 @@
+string standalone.Vendor_Duplicates_Merger()
+{
+duplicateRecords = zoho.crm.getRecords("Vendors",1,1,{"cvid":3106252000086787636,"sort_by":"Created_Time","sort_order":"asc"});
+// info duplicateRecords;
+duplicateIndex = 0;
+processPO = false;
+for each  duplicate_vendor in duplicateRecords
+{
+	info "************************************\n";
+	duplicateIndex = duplicateIndex + 1;
+	if(duplicate_vendor.get("Master_Vendor") == false && !isNull(duplicate_vendor.get("Master_Vendor_ID")))
+	{
+		info duplicateIndex + " - | id | " + duplicate_vendor.get("id") + " | name | " + duplicate_vendor.get("Vendor_Name") + " | master V id | " + duplicate_vendor.get("Master_Vendor_ID") + " | is master | " + duplicate_vendor.get("Master_Vendor") + " | is processed | " + duplicate_vendor.get("Is_Vendor_DSO_processed") + " | store | " + duplicate_vendor.get("Store") + "\n";
+		VendorID = duplicate_vendor.get("id");
+		Store = ifnull(duplicate_vendor.get("Store"),"");
+		masterVendorID = duplicate_vendor.get("Master_Vendor_ID");
+		//Get Product list
+		coql_POmap = Map();
+		coql_POmap.put("select_query","select Dropship_Number from Purchase_Orders where Vendor_Name = '" + VendorID + "'");
+		poList = invokeurl
+		[
+			url :"https://www.zohoapis.com/crm/v2/coql"
+			type :POST
+			parameters:coql_POmap.tostring()
+			connection:"crm_connection"
+		];
+		info poList;
+		// info "po list for duplicate vendor "+ poList;
+		POCount = 0;
+		for each  po in poList.get("data")
+		{
+			POCount = POCount + 1;
+			info POCount + ".id | " + po.get("id") + " | vendor name | " + po.get("Dropship_Number") + "\n";
+			poID = po.get("id");
+			POupdatemap = Map();
+			POupdatemap.put("Vendor_Name",masterVendorID);
+			info POupdatemap + "\n";
+			PO_Data = zoho.crm.updateRecord("Purchase_Orders",poID,POupdatemap);
+			info "----update purchaseorder/ dropshiporder--------" + PO_Data + "\n";
+		}
+		// processing for purchase orders of 201 to 400 
+		processPO = false;
+		if(!isNull(poList))
+		{
+			if(poList.get("info").get("more_records") == true)
+			{
+				processPO = true;
+				info "!!!!Starting Second for!!!\n";
+				coql_POmap = Map();
+				coql_POmap.put("select_query","select Dropship_Number from Purchase_Orders where Vendor_Name = '" + VendorID + "'");
+				poList = invokeurl
+				[
+					url :"https://www.zohoapis.com/crm/v2/coql"
+					type :POST
+					parameters:coql_POmap.tostring()
+					connection:"crm_connection"
+				];
+				// info "po list for duplicate vendor "+ poList;
+				POCount = 0;
+				for each  po in poList.get("data")
+				{
+					POCount = POCount + 1;
+					info POCount + ".id | " + po.get("id") + " | vendor name | " + po.get("Product_Code") + "\n";
+					poID = po.get("id");
+					POupdatemap = Map();
+					POupdatemap.put("Vendor_Name",masterVendorID);
+					info POupdatemap + "\n";
+					PO_Data = zoho.crm.updateRecord("Purchase_Orders",poID,POupdatemap);
+					info "----update purchaseorder/ dropshiporder--------" + PO_Data + "\n";
+				}
+				if(poList.get("info").get("more_records") == false)
+				{
+					processPO = false;
+				}
+			}
+		}
+		if(processPO == true)
+		{
+			info "PO is available to process\n";
+			updateVendor = zoho.crm.updateRecord("Vendors",VendorID,{"Is_Vendor_DSO_processed":false});
+		}
+		else
+		{
+			info "no more PO\n";
+			updateVendor = zoho.crm.updateRecord("Vendors",VendorID,{"Is_Vendor_DSO_processed":true});
+		}
+	}
+	else
+	{
+		info "!!!!!!!" + duplicateIndex + " - | id | " + duplicate_vendor.get("id") + " | name | " + duplicate_vendor.get("Vendor_Name") + " | master V id | " + duplicate_vendor.get("Master_Vendor_ID") + " | is master | " + duplicate_vendor.get("Master_Vendor") + " | is processed | " + duplicate_vendor.get("Is_Vendor_DSO_processed") + " | store | " + duplicate_vendor.get("Store");
+	}
+}
+return "Completed";
+}

@@ -1,0 +1,18 @@
+void automation.Untitled_Function391(Int contactid)
+{
+// info zoho.books.getRecordsByID("Purchaseorders","666840843","1324986000013147147");
+info zoho.currenttime;
+// thisMonthStartTime = zoho.currenttime.toString("yyyy-MM-dd HH:mm:ss");
+// info thisMonthStartTime;
+// getconatc = zoho.crm.searchRecords("Contacts","Created_Time:equals:"+thisMonthStartTime);
+// info getconatc;
+// resp = invokeurl
+// [
+// 	url :"https://www.crm.zoho.com/crm/org663942562/specific/ViewAttachment?fileId=l06x27a531e98afc24428802ff2fa3cd157bd&module=CustomModule38&parentId=3106252000296587635&creatorId=3106252000014929001&id=3106252000296587636&name=sample.pdf&downLoadMode=default"
+// 	type :GET
+// ];
+// info getUrl("https://www.crm.zoho.com/crm/org663942562/specific/ViewAttachment?fileId=l06x27a531e98afc24428802ff2fa3cd157bd&module=CustomModule38&parentId=3106252000296587635&creatorId=3106252000014929001&id=3106252000296587636&name=sample.pdf&downLoadMode=default");
+Purchase_Id = 3106252002216012625;
+getEDI = zoho.crm.searchRecords("EDI_log","((Purchase_Order:equals:" + Purchase_Id + "))");
+info "getEDI" + getEDI;
+}

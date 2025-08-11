@@ -1,0 +1,57 @@
+void schedule.sumTimeEntriesAndCreatePayrolls()
+{
+param = Map();
+param.put("delay","false");
+userTypeMap = Map();
+userTypeMap.put("type","ActiveUsers");
+from = zoho.currentdate.subDay(15);
+to = zoho.currentdate.subDay(1);
+period = zoho.currentdate.subDay(15) + " - " + zoho.currentdate.subDay(1);
+response = zoho.crm.invokeConnector("crm.getusers",userTypeMap);
+users = response.get("response").get("users");
+for each  user in users
+{
+	search_in_times = zoho.crm.searchRecords("Time_Entries_for_Employe","((Employee:equals:" + user.get("id") + ") and (Added_to_payroll:equals:" + false + "))",1,200,param);
+	if(search_in_times.size() != 0)
+	{
+		work = 0;
+		break = 0;
+		idList = List();
+		//info user;
+		for each  entry in search_in_times
+		{
+			idList.add(entry.get("id"));
+			work = work + entry.get("Working_Time_in_minutes");
+			break = break + entry.get("Break_Time_in_minutes");
+		}
+		crMap = Map();
+		crMap.put("Employee",{"id":user.get("id").toLong()});
+		crMap.put("Name","Payroll - " + user.get("full_name") + " - " + period);
+		crMap.put("Breaks_Time",work);
+		crMap.put("Working_Time",break);
+		crMap.put("From",from);
+		crMap.put("To",to);
+		crMap.put("Period",period);
+		//crMap.put("",);
+		cr = zoho.crm.createRecord("Payrolls",crMap);
+		updMap = Map();
+		updMap.put("Added_to_payroll",true);
+		updMap.put("Payroll",{"id":cr.get("id")});
+		for each  id in idList
+		{
+			updTime = zoho.crm.updateRecord("Time_Entries_for_Employe",id.toLong(),updMap);
+		}
+		info cr.get("id");
+		// 		info break;
+		// 		info work;
+		//info user.get("id");
+		//info user.get("email");
+		//info search_in_times.size();
+	}
+	else
+	{
+		info "nothing to add for : " + user.get("email");
+	}
+}
+//3106252000045209059
+}

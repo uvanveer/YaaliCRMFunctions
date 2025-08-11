@@ -1,0 +1,83 @@
+string standalone.php_scheduler_fetch_HR_contacts_to_Zcrm_HRData_module()
+{
+/* Created By prashanth on feb-2020 */
+/* Data Sync from highrise to zoho  */
+// currently not in use
+//---------------------------------------------
+highriseAuth = "Basic OWZiYjY1ODg2NWY5MTUyODlmN2U5ZDNiM2E3MWNkYmI6WA==";
+getData = zoho.crm.getRecordById("Highrise_Connector",3106252000065101001);
+// date = getData.get("Date");
+// Rdate = date.subString(0,19);
+// fetchdate = Rdate.replaceAll("[-:T]","");
+//---------------------------------------------------------
+date = zoho.currenttime.subHour(2).subMinutes(10).toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'");
+Rdate = date.subString(0,19);
+fetchdate = Rdate.replaceAll("[-:T]","");
+info "HR module date " + date + " Rdate " + Rdate + " fetchdate " + fetchdate + " test " + zoho.currenttime.subHour(2);
+// info "zoho current time "+ zoho.currenttime + " formatted date "+ zoho.currenttime.toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'");
+highriseContacts = geturl("https://bestaccessdoors.highrisehq.com/people.xml?since=" + fetchdate,{"Authorization":highriseAuth});
+// info "highriseContacts "+highriseContacts;
+processCount = 0;
+newlyCreated = 0;
+updatedhrCount = 0;
+highrisePeople = highriseContacts.executeXPath("people/person").toXmlList();
+info "highrise fetched size is " + highrisePeople.size();
+// flag = 0;
+// sendmail
+// [
+// 	from :zoho.loginuserid
+// 	to :"prashanth@bizappln.com"
+// 	subject :"1.php_cron_scheduler:  contact - called from date update: count- " + highrisePeople.size() + " - " + date
+// 	message :"date updated " + fetchdate
+// ]
+if(highrisePeople.size() > 0)
+{
+	for each  person in highrisePeople
+	{
+		processCount = processCount + 1;
+		getContact = zoho.crm.searchRecords("Highrise_Data","((Highrise_ID:equals:" + person.executeXPath("person/id/text()") + "))");
+		if(getContact.size() == 0)
+		{
+			// 	info "calling test ";
+			newlyCreated = newlyCreated + 1;
+			createResp = zoho.crm.createRecord("Highrise_Data",{"Highrise_ID":person.executeXPath("person/id/text()"),"Module":"Contacts","Highrise_Created_Time":person.executeXPath("person/created-at/text()"),"Highrise_Modified_Time":person.executeXPath("person/updated-at/text()"),"Input_Date_Provided":date},{"trigger":{"workflow"}});
+			info processCount + " .contact hr id: " + person.executeXPath("person/id/text()") + " hr res: " + createResp.get("id");
+		}
+		// 		else if(getContact.size() > 0)
+		// 		{
+		// 			updatedhrCount = updatedhrCount + 1;
+		// 			crmid = getContact.get(0).get("id");
+		// 			updateResp = zoho.crm.updateRecord("Highrise_Data",crmid,{"Highrise_ID":person.executeXPath("person/id/text()"),"Highrise_Modified_Time":person.executeXPath("person/updated-at/text()"),"New_Record":true},{"trigger":{"workflow"}});
+		// 			info "updated hrid " + updateResp.get("id");
+		// 		}
+	}
+	if(processCount == 500)
+	{
+		info "reached 500 so creating pagination" + processCount;
+		getContactindex = zoho.crm.getRecordById("Highrise_Connector",3106252000065101001);
+		// 		updatedCount = getContactindex.get("Contact_Start_Index").toNumber() + 500;
+		updatedCount = 0 + 500;
+		updateprocessCount = zoho.crm.updateRecord("Highrise_Connector",3106252000065101001,{"Contact_Start_Index":updatedCount,"Paginate_Contacts":true});
+		createPagination = zoho.crm.createRecord("Highrise_Pagination",{"Index":updatedCount.toString(),"Module":"Contacts","Date":fetchdate,"Pagination_DateTime":date},{"trigger":{"workflow"}});
+		// 		sendmail
+		// 		[
+		// 			from :zoho.loginuserid
+		// 			to :"prashanth@bizappln.com"
+		// 			subject :"2.php_cron_scheduler: contact - called from date update: count is " + processCount + " updated ciount is " + updatedCount + " - " + date
+		// 			message :"php_cron_scheduler: first trigger - processed count reached " + updateprocessCount + " -\n --------- <br>" + createPagination
+		// 		]
+	}
+	else
+	{
+		info "below 500 so not creating pagination" + processCount;
+		// 		sendmail
+		// 		[
+		// 			from :zoho.loginuserid
+		// 			to :"prashanth@bizappln.com"
+		// 			subject :"**php_cron_scheduler: contact - called from date update: processed count is " + processCount + "updated count is " + updatedCount + " - " + date
+		// 			message :"php_cron_scheduler: date updated " + updateprocessCount + " -\n --------- <br>" + createPagination
+		// 		]
+	}
+}
+return "--completed-- " + processCount + " --created newly-- " + newlyCreated + " --updated HR count-- " + updatedhrCount;
+}

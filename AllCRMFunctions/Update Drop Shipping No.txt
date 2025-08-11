@@ -1,0 +1,72 @@
+void automation.update_drop_shipping_no(Int record_id)
+{
+// record_id = 3106252000052610389;
+orgId = 666840843;
+resp = zoho.crm.getRecordById("Vendor_Parsings",record_id);
+sales_order_no = ifnull(resp.get("Sales_Order_Number"),"");
+drop_ship_no = resp.get("Name");
+vendor_name = ifnull(resp.get("Vendor_Name"),"");
+alt_vendor_name = vendor_name.getAlpha();
+info alt_vendor_name;
+vendor_emails = ifnull(resp.get("Vendor_Emails"),"");
+vendor_name = vendor_name.toList("-").get(0).trim();
+info vendor_name;
+vendors_list = {"Acudor - USA","Acudor-USA","AcudorUSA","Acudor-Canada-USD","AcudorCanada-USD","Acudor-CanadaUSD","AcudorCanadaUSD","Acudor-Canada","AcudorCanada","Acudor","Babcock Davis","BabcockDavis","Babcock","Cendrex Inc.","Cendrex Inc","CendrexInc.","CendrexInc","Cendrex","Elmdor - Canada","ElmdorCanada","Elmdor-Canada","Elmdor - UAE","Elmdor-UAE","ElmdorUAE","Elmdor Access Doors","ElmdorAccess Doors","Elmdor AccessDoors","ElmdorAccessDoors","Elmdor Access","ElmdorAccess","Elmdor","FF Systems Inc. -Canada","FF Systems Inc.-Canada","FF Systems Inc.Canada","FF Systems IncCanada","FFSystemsIncCanada","FF Systems Inc. -USA","FF Systems IncUSA","FFSystemsIncUSA","FF Systems Inc.","FF Systems Inc","FF SystemsInc","FFSystems Inc","FFSystemsInc","FF Systems","FFSystems","JL Industries","JLIndustries","JL","Karp Associates, Inc","Karp AssociatesInc","KarpAssociates, Inc","KarpAssociates Inc","KarpAssociatesInc","Karp Associates","KarpAssociates","Karp","Mifab-Canada-USD","Mifab-CanadaUSD","MifabCanada-USD","Mifab-CanadaUSD","MifabCanada-USD","MifabCanadaUSD","MifabCanada","MIFAB, Inc.","MIFAB Inc.","MIFABInc.","Mifab-Canada","MifabCanada","Mifab","Milcor Access Doors","Milcor AccessDoors","MilcorAccess Doors","MilcorAccessDoors","Milcor Access","MilcorAccess","Milcor","StrikeFirst","Williams Brothers - Canada","Williams BrothersCanada","Williams Brothers","WilliamsBrothers","Williams","Wind-lock-Canada-USD","Wind-lockCanada-USD","Wind-lock-CanadaUSD","Wind-lock-Canada","Windlock-Canada-USD","WindlockCanadaUSD","Wind-lock-Canada","WindlockCanada","Wind-lock","Windlock","Castle - USA","Castle","Omni Containment","OmniContainment","Omni","The Bilco Company","The BilcoCompany","The Bilco","TheBilco","Bilco","Williams Brothers - Canada","Williams BrothersCanada","Williams Brothers-Canada","Williams Brothers","WilliamsBrothers","Williams"};
+vendor_found = 0;
+if(sales_order_no != "")
+{
+	drop_ship_orders = zoho.crm.searchRecords("Purchase_Orders","(Subject:equals:#" + sales_order_no + ")");
+	for each  drop_ship_order in drop_ship_orders
+	{
+		// vendor_found == 0 deleted
+		vendor_found = 0;
+		if(drop_ship_order.get("Vendor_Name") != null)
+		{
+			ds_vendor_name = drop_ship_order.get("Vendor_Name").get("name");
+			for each  vendor_list_name in vendors_list
+			{
+				info "List Obj : " + vendor_list_name;
+				info "condition 1.1 : " + ds_vendor_name.containsIgnoreCase(vendor_list_name);
+				info "condition 1.2 : " + vendor_name.containsIgnoreCase(vendor_list_name);
+				info "Condition 2.1 : " + ds_vendor_name.containsIgnoreCase(vendor_list_name);
+				info "Condition 2.2 : " + alt_vendor_name.containsIgnoreCase(vendor_list_name);
+				if((ds_vendor_name.containsIgnoreCase(vendor_list_name) && vendor_name.containsIgnoreCase(vendor_list_name) || ds_vendor_name.containsIgnoreCase(vendor_list_name) && alt_vendor_name.containsIgnoreCase(vendor_list_name)) && vendor_found == 0)
+				{
+					info "vendor_name : " + vendor_name;
+					info "po_vendor_name  : " + ds_vendor_name;
+					info "alt_vendor_name  : " + alt_vendor_name;
+					po_id = drop_ship_order.get("id");
+					info "PO ID: " + po_id;
+					// Update CRM Drop Ship Oorder (Purchase Order) DS No
+					zoho.crm.updateRecord("Purchase_Orders",drop_ship_order.get("id"),{"DS_Number":drop_ship_no});
+					// searching for Books Purchase Order to update DS No
+					po_resp = invokeurl
+					[
+						url :"https://www.zohoapis.com/books/v3/purchaseorders?organization_id=" + orgId + "&cf_crm_rec_id=" + po_id
+						type :GET
+						connection:"zoho_books_oauth2"
+					];
+					// info "PO Resp " + po_resp;
+					if(po_resp.get("purchaseorders").size() > 0)
+					{
+						target_po = po_resp.get("purchaseorders").get(0);
+						// custom_fields = target_po.get("custom_fields"); 
+						info target_po;
+						//"1324986000013131753"
+						zoho.books.updateRecord("Purchaseorders",orgId,target_po.get("purchaseorder_id"),{"custom_fields":{{"customfield_id":"1324986000013131753","value":drop_ship_no}}});
+					}
+					else
+					{
+						// Create a Task in Purchase Orders
+						po_task_map = {"Description":"No Matching PO found in Books with CRM PO ID #" + po_id,"Send_Notification_Email":false,"Who_Id":null,"Status":"Not Started","Due_Date":today,"Priority":"High","Subject":"No Matching PO Found in Books","$se_module":"Purchase_Orders","What_Id":{"id":po_id}};
+						// Creating Task if NO Match PO Found in CRM using cf_crm_rec_id
+						// info zoho.crm.createRecord("Tasks",po_task_map);
+					}
+					vendor_found = vendor_found + 1;
+					// info vendor_found;
+				}
+			}
+		}
+	}
+}
+}

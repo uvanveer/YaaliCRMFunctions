@@ -1,0 +1,131 @@
+void automation.Duplicate_Merge_Saleorder_Dropshiporder_To_Master(Int index)
+{
+// maillist = zoho.crm.getRecords("Contacts",index,200,{"cvid":3106252000064969083});
+maillist = zoho.crm.getRecords("Contacts",1,10,{"cvid":3106252000067722003});
+processCount = 0;
+// sendmail
+// [
+// 	from :zoho.adminuserid
+// 	to :"prashanth@bizappln.com"
+// 	subject :"1mail. page index reached 200) " + index + " - " + maillist.size()
+// 	message :"workflow called for duplicate merger "
+// ]
+for each  rec in maillist
+{
+	processCount = processCount + 1;
+	email = rec.get("Email");
+	if(email != "")
+	{
+		duplicateid = rec.get("id").toLong();
+		getconatc = zoho.crm.searchRecords("Contacts","Email:equals:" + email);
+		masterFound = false;
+		info "--------" + processCount + "-------starts for " + rec.get("id") + "--" + email + "--search contact res---" + getconatc.size() + "---------";
+		if(getconatc.size() > 1)
+		{
+			for each  masterD in getconatc
+			{
+				if(masterD.get("Master") == true)
+				{
+					masterFound = true;
+					masterID = masterD.get("id");
+				}
+			}
+			if(masterFound == true)
+			{
+				info "Master Found " + masterID;
+				getsalorders = zoho.crm.searchRecords("Sales_Orders","(Contact_Name:equals:" + duplicateid + ")");
+				getPOreletedrecords = zoho.crm.getRelatedRecords("PurchaseOrders","Contacts",duplicateid);
+				if(getPOreletedrecords.size() > 0 || getsalorders.size() > 0)
+				{
+					salorderidslist = List();
+					info "SO list " + getsalorders.size();
+					if(getsalorders.size() > 0)
+					{
+						for each  saleorderid in getsalorders
+						{
+							salorderids = Map();
+							if(saleorderid.get("id") != null)
+							{
+								salorderids.put("saleordid",saleorderid.get("id"));
+							}
+							salorderidslist.add(salorderids);
+						}
+						if(salorderidslist.size() > 0)
+						{
+							info "formed saleorder list " + salorderidslist;
+							for each  saleorderids in salorderidslist
+							{
+								saleorder_id = saleorderids.get('saleordid').toLong();
+								salorderupdate = Map();
+								salorderupdate.put("Contact_Name",masterID);
+								updatesalorder = zoho.crm.updateRecord("Sales_Orders",saleorder_id,salorderupdate);
+								info "----updatesalorder--------" + updatesalorder;
+							}
+						}
+					}
+					info "po " + getPOreletedrecords.size();
+					if(getPOreletedrecords.size() > 0)
+					{
+						for each  getporeltrcd in getPOreletedrecords
+						{
+							datamap = Map();
+							datamap.put("Contact_Name",masterID);
+							updatepo = zoho.crm.updateRecord("Purchase_Orders",getporeltrcd.get("id"),datamap);
+							info "------update PO------" + updatepo;
+						}
+					}
+					//deals
+					getDealsreletedrecords = zoho.crm.getRelatedRecords("Deals","Contacts",duplicateid);
+					info "getDealsreletedrecords" + getDealsreletedrecords;
+					if(getDealsreletedrecords.size() > 0)
+					{
+						for each  getDealsreltrcd in getDealsreletedrecords
+						{
+							info "deal id " + getDealsreltrcd.get("id") + " mas " + masterID;
+							updateDeals = zoho.crm.updateRecord("Deals",getDealsreltrcd.get("id"),{"Contact_Name":masterID});
+							info "Deals" + updateDeals + " -------- ";
+						}
+					}
+					updateDuplicate = zoho.crm.updateRecord("Contacts",duplicateid.toLong(),{"Merged_Relatedlist":true,"RelatedList_Merged_To":masterID.toString(),"RelatedList_Notes":"saleorder :" + getsalorders.size() + " & dropship order :" + getPOreletedrecords.size() + " merged to :" + masterID});
+					updateMaster = zoho.crm.updateRecord("Contacts",masterID.toLong(),{"Merged_Relatedlist":true,"RelatedList_Merged_From":duplicateid.toString(),"RelatedList_Notes":"saleorder :" + getsalorders.size() + " & dropship order :" + getPOreletedrecords.size() + " merged from :" + duplicateid});
+					info "---- update dup " + updateDuplicate;
+					info "---- update mas " + updateMaster;
+				}
+				else
+				{
+					info "no saleorder or dropship order found";
+					updateDuplicate = zoho.crm.updateRecord("Contacts",duplicateid.toLong(),{"Merged_Relatedlist":true,"RelatedList_Notes":"No saleorder & dropship order found"});
+				}
+			}
+			else
+			{
+				// 			updateDuplicate = zoho.crm.updateRecord("Contacts",duplicateid.toLong(),{"Merged_Relatedlist":false,"RelatedList_Merged_To":masterID.toString(),"RelatedList_Notes":"Master not found"});
+				info "master not found " + email;
+			}
+		}
+		else
+		{
+			info "only one record is found for email";
+			updateDuplicate = zoho.crm.updateRecord("Contacts",duplicateid.toLong(),{"Merged_Relatedlist":true,"Is_Duplicate_Merge":"No"});
+		}
+	}
+	else
+	{
+		info "email is empty / null";
+	}
+}
+if(processCount == 200)
+{
+	//Dup_Relatedlist Page
+	updatedIndexCount = index + 1;
+	updateprocessCount = zoho.crm.updateRecord("Highrise_Connector",3106252000065101001,{"Dup_Relatedlist_Page_Index":updatedIndexCount});
+	createPagination = zoho.crm.createRecord("Highrise_Pagination",{"Index":updatedIndexCount.toString(),"Module":"Duplicate Contacts"},{"trigger":{"workflow"}});
+	sendmail
+	[
+		from :zoho.adminuserid
+		to :"prashanth@bizappln.com"
+		subject :"2mail. page index reached 200 " + index + " - " + updatedIndexCount
+		message :"mailer response " + createPagination + " --------- update index -------- " + updateprocessCount
+	]
+}
+}

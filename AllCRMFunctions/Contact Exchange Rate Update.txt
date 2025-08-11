@@ -1,0 +1,19 @@
+void automation.contactExchangeRateUpdate()
+{
+// getBooksPage = zoho.crm.getRecordById("Merger_Schedule",3106252000061961343);
+// last_page = getBooksPage.get("Books_UnProcessed_S03").toLong();
+// leads = zoho.crm.getRecords("Contacts",1,200,{"cvid":3106252000088884003});
+// if(!leads.isEmpty())
+// {
+// 	for each  lead in leads
+// 	{
+// 		updatedummyCurrency = zoho.crm.updateRecord("Contacts",lead.get("id"),{"Actual_Currency":lead.get("Currency"),"Currency":"CAD","Previous_Exchange_Rate":lead.get("Exchange_Rate").toString()});
+// 		info "----Contact ID-----" + lead.get("id");
+// 		info "updatedummyCurrency " + updatedummyCurrency;
+// 		updateOriginalCurrency = zoho.crm.updateRecord("Contacts",lead.get("id"),{"Currency":"USD"});
+// 		info "updateOriginalCurrency " + updateOriginalCurrency;
+// 	}
+// 	last_page = last_page + 1;
+// }
+// update = zoho.crm.updateRecord("Merger_Schedule","3106252000061961343",{"Books_UnProcessed_S03":last_page.tostring()});
+}

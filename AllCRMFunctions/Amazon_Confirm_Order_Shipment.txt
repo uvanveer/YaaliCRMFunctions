@@ -1,0 +1,32 @@
+void automation.Amazon_Confirm_Order_Shipment(Int recordId)
+{
+/* Created by Ezhilarasu on 05/05/2020 */
+/* Confirm Amazon Order Shipment */
+body = Map();
+postURL = "http://13.58.56.188:8080/createShipment/confirmshipment?crmRecordId=" + recordId;
+createShipmentResponse = postUrl(postURL,body,true);
+info createShipmentResponse;
+// logger
+logMap = Map();
+logMap.put("Workflow_Name","Confirm_Amazon_Shipment");
+logMap.put("Name","Dropship Orders");
+logMap.put("Dropship_Order_Number","");
+logMap.put("Dropship_Order_Record_ID",recordId.toString());
+logMap.put("PO_response",createShipmentResponse);
+info zoho.crm.createRecord("Sales_Order_PO_Log",logMap);
+Checkstatus = createShipmentResponse.containsKey("status");
+Getstatus = createShipmentResponse.get("status");
+if(Checkstatus == True && Getstatus != NULL)
+{
+	if(Getstatus.equals("success"))
+	{
+		// Put into Queue
+	}
+	else
+	{
+		feedData = Map();
+		feedData.put("Confirm_Shipment_Feed_ID","ERROR");
+		zoho.crm.updateRecord("Purchase_Orders",recordId,feedData);
+	}
+}
+}

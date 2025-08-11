@@ -1,0 +1,20 @@
+void automation.Untitled_Function15()
+{
+smap = {"Owner":"3106252000000147711","Subject":"#2723","Account_Name":"3106252000015939056","Vendor_Name":"3106252000015275376","Order_Date":"2019-02-11","Status":"Created","Sales_Commission":null,"Sales_Order":"3106252000015940042","Due_Date":null,"Contact_Name":"3106252000015939064","Billing_Street":"dinesh yaali 1","Billing_City":"chennai","Billing_Code":"909090","Billing_State":"Alberta","Billing_Country":"Canada","Shipping_Street":null,"Shipping_City":null,"Shipping_Code":null,"Shipping_Country":null,"Shipping_State":null,"Product_Details":{{"product":{"Product_Code":"Test SKU 98","Currency":"CAD","name":"Test Product 98","id":"3106252000015935001"},"quantity":1,"Discount":0,"total_after_discount":1,"net_total":1.05,"book":null,"Tax":0.05,"list_price":1,"unit_price":0.1,"quantity_in_stock":0,"total":1,"id":"3106252000015940046","product_description":null,"line_tax":{}}},"Terms_and_Conditions":null,"Description":null};
+// mapp = zoho.crm.createRecord("Purchase_Orders",smap);
+Offset_val = 0;
+// Contact_Name.Priority_Customer, // and Contact_Name.Priority_Customer = true
+data = "select Order_Date,Owner.Group_A,Contact_Name.Priority_Customer from Sales_Orders where (((((Grand_Total >= 10 and  Ship_Method like '%EXP%') and Status not in ('Completed','Shipped','Cancelled','canceled')) and Sent_to_Vender_Mail = true ) and Contact_Name.Priority_Customer = true )  and (Owner.Group_A = true and Grand_Total >= 10 ) )  ";
+// "  OFFSET " + Offset_val + " LIMIT 200";
+coql_map = Map();
+coql_map.put("select_query",data);
+info coql_map;
+maillist = invokeurl
+[
+	url :"https://www.zohoapis.com/crm/v2/coql"
+	type :POST
+	parameters:coql_map.tostring()
+	connection:"crm_connection"
+];
+info maillist;
+}

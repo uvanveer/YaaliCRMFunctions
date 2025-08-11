@@ -1,0 +1,12 @@
+string standalone.Get_all_active_users()
+{
+// firstday_of_this_week = zoho.currentdate.toStartOfWeek().toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'");
+// firstday_of_last_week = firstday_of_this_week.subDay(7).toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'");
+// info firstday_of_last_week;
+// info firstday_of_this_week;
+firstday_of_this_month = zoho.currentdate.toStartOfMonth().toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'");
+firstday_of_last_month = zoho.currentdate.subMonth(1).toStartOfMonth().toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'");
+info firstday_of_last_month;
+info firstday_of_this_month;
+return "";
+}

@@ -1,0 +1,14 @@
+void automation.searchForWidget(String date,Int id)
+{
+param = Map();
+param.put("delay","false");
+//search = zoho.crm.searchRecords("Time_Entries_for_Employe","((Date:equals:" + date + ")and(Employee:equals:" + id + "))",1,200,param);
+search = zoho.crm.searchRecords("Time_Entries_for_Employe","((Date:equals:" + date + ")and(Employee:equals:" + id + "))");
+//search2 = zoho.crm.searchRecords("Time_Entries_for_Employe","((Date:equals:" + "2019-12-15" + "))");
+//info "search2:      " + search2;
+//3106252000045209059
+//2019-12-15
+//search3 = zoho.crm.searchRecords("Time_Entries_for_Employe","(Date:equals:" + "2019-12-15" + ") and (Employee:equals:" + "3106252000045209059" + ")");
+//info "sear .    " + search3;
+info search;
+}

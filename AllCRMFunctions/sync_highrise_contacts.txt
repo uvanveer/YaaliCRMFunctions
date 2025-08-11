@@ -1,0 +1,60 @@
+string standalone.sync_highrise_contacts()
+{
+/* Created By prashanth on feb-2020 */
+/* Data Sync from highrise to zoho  */
+// currently not in use
+// Each Contact
+highriseContactUrl = "https://bestaccessdoors.highrisehq.com/people/329626449.xml";
+headers = Map();
+headers.put("Authorization","Basic OWZiYjY1ODg2NWY5MTUyODlmN2U5ZDNiM2E3MWNkYmI6WA==");
+highRiseContactsInfo = getUrl(highriseContactUrl,headers);
+highRiseContactID = ifnull(highRiseContactsInfo.executeXPath("person/id/text()"),"");
+firstName = ifnull(highRiseContactsInfo.executeXPath("person/first-name/text()"),"");
+primaryEmail = ifnull(highRiseContactsInfo.executeXPath("person/contact-data/email-addresses/email-address[1]/address/text()"),"");
+criteria = "(Email:equals:" + primaryEmail + ")";
+crmContactInfo = zoho.crm.searchRecords("Contacts",criteria);
+info crmContactInfo.size();
+if(crmContactInfo.size() > 0)
+{
+	for each  crmContactRec in crmContactInfo
+	{
+		info crmContactRec.get("id");
+		zohoCrmContactId = crmContactRec.get("id");
+		tagsExist = highRiseContactsInfo.containsIgnoreCase("tags");
+		if(tagsExist == true)
+		{
+			tagsData = highRiseContactsInfo.executexpath("person/tags/tag").toXmlList();
+			tags = list();
+			for each  index_item in tagsData
+			{
+				tagId = index_item.executexpath("tag/id/text()");
+				tagText = index_item.executexpath("tag/name/text()");
+				insertTag = Map();
+				insertTag.put("Contact",zohoCrmContactId);
+				insertTag.put("Name",tagText);
+				insertTag.put("Highrise_Tag_Id",tagId);
+				insertTag.put("Highrise_Module_Name","Contacts");
+				logInfo = zoho.crm.createRecord("Highrise_Tags",insertTag);
+				info logInfo;
+				tags.add(logInfo.get("id"));
+				// Updated contact 
+			}
+			// update Zoho CRM contact
+			info tags;
+			updateContact = Map();
+			updateContact.put("Highrise_Tags1",tags);
+			updatedInfo = zoho.crm.updateRecord("Contacts",zohoCrmContactId,updateContact);
+			info updatedInfo;
+		}
+	}
+}
+else
+{
+	/*
+	insertLog = map();
+	insertLog.put("Error_Log", "Highrise Contact Not exist");
+	logInfo = zoho.crm.createRecord("Duplicate_Moderation_Log", <KEY-VALUE>);
+	*/
+}
+return "";
+}

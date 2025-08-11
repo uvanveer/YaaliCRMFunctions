@@ -1,0 +1,65 @@
+string standalone.php_scheduler_fetch_HR_deals_to_Zcrm_HRData_module()
+{
+/* Created By prashanth on feb-2020 */
+/* Data Sync from highrise to zoho  */
+// currently not in use
+//---------------------------------------------
+highriseAuth = "Basic OWZiYjY1ODg2NWY5MTUyODlmN2U5ZDNiM2E3MWNkYmI6WA==";
+getData = zoho.crm.getRecordById("Highrise_Connector",3106252000065101001);
+// date = getData.get("Date");
+// fetchdate = date.subString(0,19);
+// fetchdate = fetchdate.replaceAll("[-:T]","");
+// fetchdate = 20200304120000;
+//--------------------
+date = zoho.currenttime.subHour(2).subMinutes(20).toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'");
+Rdate = date.subString(0,19);
+fetchdate = Rdate.replaceAll("[-:T]","");
+info "HR module date " + zoho.currenttime + " Rdate " + Rdate + " fetchdate " + fetchdate + " test " + zoho.currenttime.subHour(2);
+//--------------------
+highriseDeals = geturl("https://bestaccessdoors.highrisehq.com/deals.xml?since=" + fetchdate,{"Authorization":highriseAuth});
+// info highriseDeals;
+highriseDeals = highriseDeals.executeXPath("deals/deal").toXmlList();
+info "highriseDeals " + highriseDeals.size();
+createdCount = 0;
+info "----" + highriseDeals.containsIgnoreCase("deal") + "----";
+processCount = 0;
+if(highriseDeals.size() > 0 && highriseDeals.containsIgnoreCase("deal"))
+{
+	for each  deal in highriseDeals
+	{
+		processCount = processCount + 1;
+		criteria = "(Highrise_ID:equals:" + deal.executeXPath("deal/id/text()") + ")";
+		searchRes_highrise = zoho.crm.searchRecords("Highrise_Data",criteria);
+		if(searchRes_highrise.size() == 0)
+		{
+			createdCount = createdCount + 1;
+			createResp = zoho.crm.createRecord("Highrise_Data",{"Highrise_ID":deal.executeXPath("deal/id/text()"),"Module":"Deals","Highrise_Created_Time":deal.executeXPath("deal/created-at/text()"),"Highrise_Created_Time":deal.executeXPath("deal/updated-at/text()"),"Input_Date_Provided":date},{"trigger":{"workflow"}});
+			info "created for " + deal.executeXPath("deal/id/text()") + ", res: " + createResp.get("id");
+		}
+		else
+		{
+			info "--- already exists " + deal.executeXPath("deal/id/text()") + " <br>";
+		}
+	}
+	if(processCount == highriseDeals.size())
+	{
+		getDealindex = zoho.crm.getRecordById("Highrise_Connector",3106252000065101001);
+		// 		updatedCount = getDealindex.get("Deal_Start_Index").toNumber() + 500;
+		updatedCount = 0 + 500;
+		updateprocessCount = zoho.crm.updateRecord("Highrise_Connector",3106252000065101001,{"Deal_Start_Index":updatedCount});
+		createPagination = zoho.crm.createRecord("Highrise_Pagination",{"Index":updatedCount.toString(),"Module":"Deals","Date":fetchdate},{"trigger":{"workflow"}});
+		// 		sendmail
+		// 		[
+		// 			from :zoho.loginuserid
+		// 			to :"prashanth@bizappln.com"
+		// 			subject :"2.Deals called from date update: count is 500 " + date + " - index - " + processCount + " - processed count - " + updatedCount
+		// 			message :"Deals date updated " + updateprocessCount + " paginiation " + createPagination
+		// 		]
+	}
+}
+else
+{
+	info "no data to process";
+}
+return "completed " + processCount + " created " + createdCount;
+}

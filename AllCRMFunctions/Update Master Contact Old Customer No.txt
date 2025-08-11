@@ -1,0 +1,36 @@
+void automation.updateMasterOldCustomerNo()
+{
+batchList = zoho.crm.getRecords("Contacts",0,200,{"cvid":3106252000070979093,"sort_by":"Created_Time","sort_order":"asc"});
+getMergerDetails = zoho.crm.getRecordById("Merger_Schedule",3106252000061961343);
+lastNo = getMergerDetails.get("Last_Used_No").toLong();
+batchNo = getMergerDetails.get("Batch_No").toLong();
+count = 1;
+if(batchList.size() > 0)
+{
+	for each  aa in batchList
+	{
+		//zon=aa.get("Created_Time").toString("YYYY-dd-MM HH:MM:SS","UTC");
+		//info zon;
+		startIndex = lastNo + count;
+		info "Index " + startIndex;
+		info "crm id " + aa.get("id");
+		info "created time " + aa.get("Created_Time").replaceAll("T"," ").toTime();
+		updateOldCustomerNo = zoho.crm.updateRecord("Contacts",aa.get("id"),{"Old_Customer_No":startIndex});
+		info "updateOldCustomerNo " + updateOldCustomerNo;
+		count = count + 1;
+	}
+	updateMergerSchedule = zoho.crm.updateRecord("Merger_Schedule",3106252000061961343,{"Batch_No":batchNo + 1,"Last_Used_No":startIndex});
+	info "updateMergerSchedule " + updateMergerSchedule;
+	info "last used index" + startIndex;
+}
+else
+{
+	sendmail
+	[
+		from :zoho.adminuserid
+		to :"pooja@bizappln.com"
+		subject :"Process completed for old customer number"
+		message :"Process completed for old customer number"
+	]
+}
+}

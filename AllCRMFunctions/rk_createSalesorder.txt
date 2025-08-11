@@ -1,0 +1,171 @@
+string button.rk_createSalesorder(String qid)
+{
+//below commented on 18/09/2020 12:13 AM IST by Pooja after getting confirmation from Dinesh
+/*gets = zoho.crm.getRecordById("Quotes",qid.toLong());
+if(gets.get("Sales_Order_Conversion") == "Not-Converted")
+{
+	salec = zoho.crm.createRecord("Sales_Orders",gets);
+	salid = salec.get("id").toLong();
+	gets = zoho.crm.getRecordById("Sales_Orders",salid.toLong());
+	if(gets.get("Subject").contains("Order Number"))
+	{
+		order = gets.get("Subject").getPrefix("for").getSuffix("Order Number").trim();
+	}
+	else
+	{
+		order = gets.get("Subject");
+	}
+	if(gets.get("Order_Date") == null)
+	{
+		orderDate = zoho.currentdate;
+	}
+	else
+	{
+		orderDate = gets.get("Order_Date");
+	}
+	updateSales = zoho.crm.updateRecord("Sales_Orders",salid,{"Subject":order,"Order_Date":orderDate});
+	// Fetch contact from books
+	getcon = zoho.crm.getRecordById("Contacts",gets.get("Contact_Name").get("id"));
+	cons = zoho.books.getRecords("Contacts","666840843","email=" + getcon.get("Email"));
+	sales = Map();
+	// Set Map for salesOrder
+	sales.put("customer_id",cons.get("contacts").toString().get("contact_id"));
+	sales.put("salesorder_number",order);
+	sales.put("reference_number","REF-" + order);
+	sales.put("date",orderDate);
+	sales.put("shipment_date",gets.get("Due_Date"));
+	sales.put("salesperson_name",gets.get("Owner").get("name"));
+	products = gets.get("Product_Details").toJSONList();
+	vidM = Map();
+	vendorKey = Map();
+	salePro1 = Map();
+	tax = 0.0;
+	for each  prod in products
+	{
+		salePro = Map();
+		pid = prod.get("product").get("id");
+		crmresp = zoho.crm.getRecordById("Products",pid);
+		vid = crmresp.get("Vendor_Name").get("id");
+		vidM.put(vid + "_" + pid,prod);
+		vendorKey.put(vid,"Keys");
+		// Salesorder code
+		getPro = zoho.books.getRecords("Items","666840843","sku=" + prod.get("product").get("Product_Code"));
+		item_id = getPro.get("items").toString().get("item_id");
+		salePro.put("item_id",getPro.get("items").toString().get("item_id"));
+		salePro.put("rate",prod.get("unit_price"));
+		salePro.put("name",prod.get("product").get("name"));
+		salePro.put("quantity",prod.get("quantity"));
+		salePro1.put(item_id,salePro);
+		tax = tax + prod.get("Tax");
+	}
+	finalProduct = List();
+	salekey = salePro1.keys();
+	for each  s in salekey
+	{
+		finalProduct.add(salePro1.get(s));
+	}
+	sales.put("tax_id","1324986000000072587");
+	sales.put("line_items",finalProduct.toJSONList());
+	sales.put("adjustment",gets.get("Adjustment"));
+	sales.put("adjustment_description","Adjustment");
+	sales.put("status","open");
+	createSales = zoho.books.createRecord("Salesorders","666840843",sales);
+	dropsalid = createSales.get("salesorder").toString().get("salesorder_id");
+	// Create Sales Order in Books
+	vKey = vidM.keys();
+	vendors = vendorKey.keys();
+	for each  m in vendors
+	{
+		total = 0.0;
+		drop = Map();
+		product = List();
+		prodm = "";
+		purchase = Map();
+		for each  v in vKey
+		{
+			if(v.contains(m))
+			{
+				product.add(vidM.get(v));
+			}
+		}
+		drop.put("Owner",gets.get("Owner").get("id"));
+		drop.put("Subject",order);
+		drop.put("Account_Name",gets.get("Account_Name").get("id"));
+		drop.put("Vendor_Name",m);
+		drop.put("Order_Date",orderDate);
+		drop.put("Status","Created");
+		drop.put("Sales_Commission",gets.get("Sales_Commission"));
+		drop.put("Sales_Order",gets.get("id"));
+		drop.put("Due_Date",gets.get("Due_Date"));
+		drop.put("Contact_Name",gets.get("Contact_Name").get("id"));
+		drop.put("Billing_Street",gets.get("Billing_Street"));
+		drop.put("Billing_City",gets.get("Billing_City"));
+		drop.put("Billing_Code",gets.get("Billing_Code"));
+		drop.put("Billing_State",gets.get("Billing_State"));
+		drop.put("Billing_Country",gets.get("Billing_Country"));
+		drop.put("Shipping_Street",gets.get("Shipping_Street"));
+		drop.put("Shipping_City",gets.get("Shipping_City"));
+		drop.put("Shipping_Code",gets.get("Shipping_Code"));
+		drop.put("Shipping_Country",gets.get("Shipping_Country"));
+		drop.put("Shipping_State",gets.get("Shipping_State"));
+		drop.put("Product_Details",product.toJSONList());
+		drop.put("Terms_and_Conditions",gets.get("Terms_and_Conditions"));
+		drop.put("Description",gets.get("Description"));
+		createDrop = zoho.crm.createRecord("Purchase_Orders",drop);
+		getrecentDrop = zoho.crm.getRecordById("Purchase_Orders",createDrop.get("id"));
+		Dropship_Number = getrecentDrop.get("Dropship_Number");
+		// Create Purchase order in zoho books
+		crmven = zoho.crm.getRecordById("Vendors",m);
+		venName = crmven.get("Vendor_Name");
+		if(venName.contains(" "))
+		{
+			vendorName = venName.replaceAll(" ","%20");
+		}
+		else
+		{
+			vendorName = venName;
+		}
+		bookven = zoho.books.getRecords("Contacts","666840843","contact_name=" + vendorName);
+		for each  b in bookven.toJSONList()
+		{
+			if(b.get("contacts").toString().get("contact_type") == "vendor")
+			{
+				purchase.put("vendor_id",b.get("contacts").toString().get("contact_id"));
+			}
+		}
+		purchase.put("purchaseorder_number",Dropship_Number);
+		purchase.put("date",orderDate);
+		purchase.put("delivery_date",gets.get("Due_Date"));
+		dopmap1 = Map();
+		for each  p in product
+		{
+			dopmap = Map();
+			dropPro = zoho.books.getRecords("Items","666840843","sku=" + p.get("product").get("Product_Code"));
+			dopmap.put("item_id",dropPro.get("items").toString().get("item_id"));
+			dopmap.put("rate",p.get("unit_price"));
+			dopmap.put("name",p.get("product").get("name"));
+			dopmap.put("quantity",p.get("quantity"));
+			dopmap1.put(dropPro.get("items").toString().get("item_id"),dopmap);
+		}
+		dropProduct = List();
+		dropkey = dopmap1.keys();
+		for each  d in dropkey
+		{
+			dropProduct.add(dopmap1.get(d));
+		}
+		purchase.put("delivery_customer_id",cons.get("contacts").toString().get("contact_id"));
+		purchase.put("tax_id","1324986000000072587");
+		purchase.put("line_items",dropProduct.toJSONList());
+		purchase.put("status","open");
+		purchase.put("salesorder_id",dropsalid);
+		createPurchase = zoho.books.createRecord("Purchaseorders","666840843",purchase);
+	}
+	upquote = zoho.crm.updateRecord("Quotes",qid.toLong(),{"Sales_Order_Conversion":"Converted"});
+	return "Quote converted.";
+}
+else
+{
+	return "Quote already converted.";
+} */
+return "This functionality doesn't not exist. Code is commented by developer. Please contact Yaali team";
+}

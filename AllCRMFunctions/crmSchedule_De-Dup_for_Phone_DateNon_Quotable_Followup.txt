@@ -1,0 +1,35 @@
+void automation.Non_Quotable_Followup(Int Sales_Order_Id)
+{
+// Get_sales_order = zoho.crm.getRecordById("Sales_Orders",Sales_Order_Id);
+// info Get_sales_order;
+// Get_contact_ID = Get_sales_order.get("Contact_Name").get("id");
+// mp = Map();
+// mp.put("Subject","Shipped Website Order Over $2000 Phone Follow Up");
+// Get_call_date = zoho.currentdate.addDay(14);
+// if(Get_call_date.getDayOfWeek() == 1)
+// {
+// 	Get_call_start_date = zoho.currentdate.addDay(14);
+// }
+// else if(Get_call_date.getDayOfWeek() == 7)
+// {
+// 	Get_call_start_date = zoho.currentdate.addDay(16);
+// }
+// else
+// {
+// 	Get_call_start_date = zoho.currentdate.addDay(14);
+// }
+// Get_reminder_time = Get_call_start_date.toString("yyyy-MM-dd HH:mm:ss");
+// Get_date = Get_reminder_time.getprefix(" ");
+// Get_time = Get_reminder_time.getsuffix(" ");
+// Get_call_starttime = Get_date + "T" + "09:00:00" + "-04:00";
+// mp.put("What_Id",Sales_Order_Id);
+// mp.put("Who_Id",Get_contact_ID);
+// mp.put("Owner",3106252000016826001);
+// mp.put("$se_module","Sales_Orders");
+// mp.put("Call_Type","Outbound");
+// mp.put("Call_Purpose","Prospecting");
+// mp.put("Due_Date1",Get_date);
+// mp.put("Call_Start_Time",Get_call_starttime);
+// create_call = zoho.crm.createRecord("Calls",mp);
+// info create_call;
+}

@@ -1,0 +1,76 @@
+string standalone.Latest_Tag_sync()
+{
+// highrisetagUrl = "https://bestaccessdoors.highrisehq.com/tags.xml";
+// headers = Map();
+// headers.put("Authorization","Basic OWZiYjY1ODg2NWY5MTUyODlmN2U5ZDNiM2E3MWNkYmI6WA==");
+// highRisetags = getUrl(highrisetagUrl,headers);
+// highrisetagslist = highRisetags.executeXPath("tags/tag").toXmlList();
+// count = 0;
+// for each  rec in highrisetagslist
+// {
+// 	Get_tag_id = rec.executeXPath("tag/id/text()");
+// 	Get_tag_name = rec.executeXPath("tag/name/text()");
+// 	// 	info Get_tag_name;
+// 	Tag_map = Map();
+// 	Tag_map.put("Highrise_Tag_Id",Get_tag_id);
+// 	Tag_map.put("Name",Get_tag_name);
+// 	Tag_id_search = zoho.crm.searchRecords("Highrise_Tags","(Highrise_Tag_Id:equals:" + Get_tag_id + ")");
+// 	// info Tag_id_search;
+// 	if(Tag_id_search.isEmpty())
+// 	{
+// 		// 		info Tag_map;
+// 		Create_tag_crm = zoho.crm.createRecord("Highrise_Tags",Tag_map);
+// 		info Create_tag_crm;
+// 		count = count + 1;
+// 	}
+// 	if(count == 15)
+// 	{
+// 		break;
+// 	}
+// }
+Get_contacts_email = "siva.v@bizappln.com";
+get_crm_contact = zoho.crm.searchRecords("Contacts","(Email:equals:" + Get_contacts_email + ")");
+crm_contact_map = get_crm_contact.tomap();
+info crm_contact_map.get("Highrise_Update");
+// highrisecontactsUrl = "https://bestaccessdoors.highrisehq.com/people.xml?n=500";
+// headers = Map();
+// headers.put("Authorization","Basic OWZiYjY1ODg2NWY5MTUyODlmN2U5ZDNiM2E3MWNkYmI6WA==");
+// Get_contacts = getUrl(highrisecontactsUrl,headers);
+// info Get_contacts;
+// Get_highrise_contact_id = "290920225";
+// userlist = List();
+// 		userlist.add({"name":"Fern Citrigno","crm_id":3106252000000152052,"hr_id":"1082383"});
+// 		userlist.add({"name":"Rheanne Trottier","crm_id":3106252000024509019,"hr_id":"1382762"});
+// 		userlist.add({"name":"Kristopher Clark","crm_id":3106252000058241283,"hr_id":"1414362"});
+// 		userlist.add({"name":"Marko Savic","crm_id":3106252000037668001,"hr_id":"1406845"});
+// 		userlist.add({"name":"Deborah Warner","crm_id":3106252000045664001,"hr_id":"1411870"});
+// 		userlist.add({"name":"Christie Best","crm_id":3106252000025726001,"hr_id":"1395960"});
+// 		userlist.add({"name":"Emma Burns","crm_id":3106252000025727001,"hr_id":"1382543"});
+// 		userlist.add({"name":"Carlo  Citrigno","crm_id":3106252000000147013,"hr_id":"937881"});
+// 		userlist.add({"name":"Franz Perez","crm_id":3106252000000147013,"hr_id":"1039649"});
+// 		// no user found so using carlo as suggested by anthony
+// 		userlist.add({"name":"Anthony La Rocca","crm_id":3106252000000147711,"hr_id":"1254582"});
+// 		userlist.add({"name":"Chesia Melisa","crm_id":3106252000000152046,"hr_id":"1262788"});
+// highrisenotesUrl = "https://bestaccessdoors.highrisehq.com/people/" + Get_highrise_contact_id + "/notes.xml";
+// 				headers = Map();
+// 				headers.put("Authorization","Basic OWZiYjY1ODg2NWY5MTUyODlmN2U5ZDNiM2E3MWNkYmI6WA==");
+// 				highRisenotes = getUrl(highrisenotesUrl,headers);
+// 				highrisenoteslist = highRisenotes.executeXPath("notes/note").toXmlList();
+// // info highrisenoteslist;
+// 				Get_notes_list_count = highrisenoteslist.size();
+// // info ifnull(highRisenotes.executeXPath("notes/note[1]/author-id/text()"),"");
+// 				Get_latest_note = ifnull(highRisenotes.executeXPath("notes/note[1]/author-id/text()"),"");
+// 				if(Get_latest_note != "")
+// 				{
+// 					for each  rec_id in userlist
+// 					{
+// 						if(rec_id.containvalue(Get_latest_note))
+// 						{
+// 							Get_crm_owner_id = rec_id.get("crm_id");
+// 							info Get_crm_owner_id;
+// 							info "notes";
+// 						}
+// 					}
+// 				}
+return "";
+}

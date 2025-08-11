@@ -1,0 +1,47 @@
+string standalone.Update_Purchase_Information(Int Item_Id)
+{
+OrganizationID = "666840843";
+Dropship_OrderId = "3106252000095437806";
+Flag = 0;
+getdropshiporder = zoho.crm.getRecordById("Purchase_Orders",Dropship_OrderId);
+// info getdropshiporder;
+items = getdropshiporder.get("Product_Details");
+for each  singleitem in items
+{
+	crm_itemid = singleitem.get("product").get("id");
+	book_item = zoho.books.getRecords("Items",OrganizationID,"cf_crmrecorid=" + crm_itemid.toText());
+	if(book_item.get("items").size() > 0)
+	{
+		Get_items = book_item.get("items");
+		for each  rec_item in Get_items
+		{
+			info rec_item;
+			Get_purchase_rate = rec_item.get("purchase_rate");
+			Get_purchase_account_name = rec_item.get("purchase_account_name");
+			Get_purchase_account_id = rec_item.get("purchase_account_id");
+			Get_Books_itemid = rec_item.get("item_id");
+			if(isNull(Get_purchase_account_name) && isNull(Get_purchase_account_id))
+			{
+				Get_crm_product = zoho.crm.getRecordById("Products",crm_itemid);
+				Get_crm_price = Get_crm_product.get("Cost_Price");
+				Product_map = Map();
+				// 				Product_map.put("purchase_rate",Get_crm_price);
+				// 				Product_map.put("item_type","sales_and_purchases");
+				// 				Update_Product = zoho.books.updateRecord("Items",OrganizationID,Get_Books_itemid,Product_map);
+				// 				if(Update_Product.get("code") == 0)
+				// 				{
+				// 					Flag = 1;
+				// 				}
+			}
+		}
+	}
+}
+if(Flag = 1)
+{
+	return "Item_Updated";
+}
+else
+{
+	return "Item_NotUpdated";
+}
+}

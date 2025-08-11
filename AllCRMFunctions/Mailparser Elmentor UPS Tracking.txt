@@ -1,0 +1,46 @@
+string standalone.elentor_ups_tracking(String crmAPIRequest)
+{
+return_list = list();
+crm_api_map = crmAPIRequest.toMap();
+params = crm_api_map.get("body");
+// params = {"id":"b03ab3b6e95430b950989d32f2ea0124","received_at":"2020-05-05 22:00:23","processed_at":"2020-05-05 22:01:08","elmdor_ups_ds_tracking":["424102 - 1Z3371010345425472","424125 - 1Z3371010343555282"]};
+elmdor_trackings = params.get("elmdor_ups_ds_tracking");
+for each  elmdor_tracking in elmdor_trackings
+{
+	parts = elmdor_tracking.toList("-");
+	dropship_no = parts.get(0).trim();
+	if(parts.size() > 1)
+	{
+		tracking_no = parts.get(1).trim();
+	}
+	purchase_orders = zoho.crm.searchRecords("Purchase_Orders","(Dropship_Number:equals:" + dropship_no + ")");
+	po_store_name = "anything";
+	if(purchase_orders.size() > 0 && purchase_orders.get(0).get("Store") != null)
+	{
+		po_store_name = purchase_orders.get(0).get("Store").get("name");
+	}
+	if(purchase_orders.size() > 0)
+	{
+		po_status = ifnull(purchase_orders.get(0).get("Status"),"Created");
+	}
+	if(purchase_orders.size() > 0 && !po_status.containsIgnoreCase("Shipped"))
+	{
+		upd_map = Map();
+		upd_map.put("Ship_Date",today.toString("yyyy-MM-dd"));
+		purchase_order_id = purchase_orders.get(0).get("id");
+		upd_map.put("Carrier","UPS");
+		if(po_store_name.containsIgnoreCase("Amazon Store"))
+		{
+			upd_map.put("Amazon_Carrier_Code","UPS");
+		}
+		if(tracking_no != null && tracking_no != "")
+		{
+			upd_map.put("Tracking_Number",tracking_no);
+			info purchase_order_id + " -- " + upd_map;
+			resp = zoho.crm.updateRecord("Purchase_Orders",purchase_order_id,upd_map,{"trigger":{"workflow"}});
+			return_list.add(resp);
+		}
+	}
+}
+return return_list;
+}

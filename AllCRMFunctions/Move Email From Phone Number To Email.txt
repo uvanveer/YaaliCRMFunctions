@@ -1,0 +1,39 @@
+string standalone.moveEmailFromPhoneNo()
+{
+/* loop = {1};
+for each  ele in loop
+{
+	resp = zoho.crm.getRecords("Contacts",1,100,{"cvid":3106252000061959191});
+	//info "resp "+resp;
+	if(resp.size() == 0)
+	{
+		break;
+	}
+	else
+	{
+		for each  rec in resp
+		{
+			info "rec Id " + rec.get("id");
+			info "Phone no " + rec.get("Phone");
+			if(rec.get("Phone") != null && rec.get("Phone") != "")
+			{
+				phNo = rec.get("Phone").toString();
+				if(phNo.contains("@") && (rec.get("Email") == "" || rec.get("Email") == null))
+				{
+					updateRec = zoho.crm.updateRecord("Contacts",rec.get("id"),{"Phone_Number_Merge":"","Email":phNo});
+					info "updateRec " + updateRec;
+				}
+			}
+		}
+	}
+
+} */
+email = "stevens@stevensmechanical.com";
+criteria = "(Email:equals:" + email + ")";
+duplicateRecords = zoho.crm.searchRecords("Contacts",criteria,1,200,{"Created_Time":"sort_by with desc"});
+for each  rec in duplicateRecords
+{
+	info "duplicateRecords" + rec.get("Created_Time");
+}
+return "";
+}

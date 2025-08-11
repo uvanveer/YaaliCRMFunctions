@@ -1,0 +1,51 @@
+void automation.rk_createShipment_ZohoBooks(Int id)
+{
+getd = zoho.crm.getRecordById("Purchase_Orders",id);
+storename = getd.get("Store").get("name");
+info storename;
+if(storename != "Amazon Store")
+{
+	if(getd.get("Shipment_Id") == null)
+	{
+		if(getd.get("Carrier") != null && getd.get("Tracking_Number") != null)
+		{
+			header_map = Map();
+			header_map.put("Content-Type","application/json");
+			getPur = zoho.books.getRecords("Purchaseorders","666840843","purchaseorder_number=" + getd.get("Dropship_Number"));
+			// 			info getPur;
+			Get_searched_purchaseorders = getPur.get("purchaseorders");
+			if(Get_searched_purchaseorders.size() > 0)
+			{
+				purid = getPur.get("purchaseorders").toString().get("purchaseorder_id");
+				Customfield_list = List();
+				customFieldMap1 = Map();
+				customFieldMap1.put("label","Tracking Number");
+				customFieldMap1.put("value",getd.get("Tracking_Number"));
+				Customfield_list.add(customFieldMap1);
+				Update_purchase_OrderMap = Map();
+				Update_purchase_OrderMap.put("status","closed");
+				Update_purchase_OrderMap.put("custom_fields",Customfield_list);
+				Update_purchase_OrderMap.put("ship_via",getd.get("Carrier"));
+				// 			customFieldMap4 = Map();
+				// 			customFieldMap4.put("label","Tracking Number");
+				// 			customFieldMap4.put("value",ifnull(getd.get("Tracking_Number"),""));
+				// 			purid.add(customFieldMap4);
+				upPur = zoho.books.updateRecord("Purchaseorders","666840843",purid.toString(),Update_purchase_OrderMap);
+				info "updated:" + upPur;
+			}
+		}
+		else
+		{
+			info "No Carrier and Tracking number available for this order";
+		}
+	}
+	else
+	{
+		info "This Order have already shipment created... ";
+	}
+}
+else
+{
+	info "We are unable to process this order becuase this Order from Amazon Store... ";
+}
+}

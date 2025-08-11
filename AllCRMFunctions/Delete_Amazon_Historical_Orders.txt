@@ -1,0 +1,37 @@
+void automation.Delete_Amazon_Historical_Orders(Int saleOrderId)
+{
+// Delete Sale Order And Respective Drop Ship Order
+/* Ezhilarasu 05/05/2020 */
+/* Delete sales order & respective dropship order */
+saleorderDetail = zoho.crm.getRecordById("Sales_Orders",saleOrderId);
+// Logger
+logMap = Map();
+logMap.put("SO_Workflow_Name","Delete_Amazon_Historical_Orders");
+logMap.put("Name","Sales Orders");
+logMap.put("Sales_Order_Number",saleorderDetail.get("Subject"));
+logMap.put("SalesOrder_Record_ID",saleOrderId.toString());
+logMap.put("SalesOrder_Request",saleorderDetail);
+zoho.crm.createRecord("Sales_Order_PO_Log",logMap);
+serchdropship = zoho.crm.searchRecords("Purchase_Orders","Sales_Order:equals:" + saleOrderId);
+dropshiporderdeltionid = List();
+if(serchdropship.size() > 0)
+{
+	for each  dropshipid in serchdropship.toList()
+	{
+		dropshiporder = Map();
+		dropshiporder.put("id",dropshipid.getJSON("id"));
+		dropshiporderdeltionid.add(dropshiporder);
+	}
+}
+info dropshiporderdeltionid;
+/*
+for each  deletedropshi in dropshiporderdeltionid
+{	
+	deleteRecordMap = Map();
+	deleteRecordMap.put("module","Purchase_Orders");
+	deleteRecordMap.put("id",deletedropshi.getJSON("id"));
+	deleteResp = zoho.crm.invokeConnector("crm.delete",deleteRecordMap);
+	info "\ndeleteResp" + deleteResp;
+}
+*/
+}

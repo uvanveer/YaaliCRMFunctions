@@ -1,0 +1,8 @@
+string standalone.php_scheduler_HRcontacts_for_attachments_sync()
+{
+/* Created By prashanth on feb-2020 */
+/* Data Sync from highrise to zoho  */
+// currently not in use
+//---------------------------------------------
+return "";
+}

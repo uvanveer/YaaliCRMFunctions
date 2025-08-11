@@ -1,0 +1,58 @@
+string standalone.Contact_Account_Ontime_Migration()
+{
+// url = "https://www.zohoapis.com/crm/v2/coql";
+// header_Map = Map();
+// header_Map.put("Authorization","9c7fd036ad0da092633c0a31e8824418");
+// header_Map.put("Content-Type","application/json");
+// body_Map = Map();
+// body_Map.put("select_query","select Full_Name,Company_Name,Account_Name,Phone,Other_Street,Other_City,Other_State,Other_Country,Other_Zip,Mailing_Street,Mailing_City,Mailing_State,Mailing_Country,Mailing_Zip from Contacts where Account_Name is null");
+// response = posturl(url, body_Map.toString(), header_Map);
+// // info response;
+// // fetaccount = zoho.crm.searchRecords("Contacts","(Lead_Source:equals:Chat)and(Is_Processed:equals:false)");
+// // info fetaccount.size();
+// updatecontact = "";
+// for each  getcontact in response.get("data")
+// {
+// 	CrmContactId = getcontact.get("id");
+// 	getconatact = zoho.crm.getRecordById("Contacts",CrmContactId);
+// 	FullName = getconatact.get("Full_Name");
+// 	if(getconatact.get("Company_Name") != null && getconatact.get("Company_Name") != "")
+// 	{
+// 		FullName = getconatact.get("Company_Name");
+// 	}
+// 	Account = getconatact.get("Account_Name"); 
+// 	if(Account == null)
+// 	{
+// 		createaccount = Map();
+// 		createaccount.put("Account_Name",getconatact.get("Full_Name"));
+// 		createaccount.put("Phone",getconatact.get("Phone"));
+// 		createaccount.put("Billing_Street",getconatact.get("Other_Street"));
+// 		createaccount.put("Billing_City",getconatact.get("Other_City"));
+// 		createaccount.put("Billing_State",getconatact.get("Other_State"));
+// 		createaccount.put("Billing_Country",getconatact.get("Other_Country"));
+// 		createaccount.put("Billing_Code",getconatact.get("Other_Zip"));
+// 		createaccount.put("Shipping_Street",getconatact.get("Mailing_Street"));
+// 		createaccount.put("Shipping_City",getconatact.get("Mailing_City"));
+// 		createaccount.put("Shipping_State",getconatact.get("Mailing_State"));
+// 		createaccount.put("Shipping_Country",getconatact.get("Mailing_Country"));
+// 		createaccount.put("Shipping_Code",getconatact.get("Mailing_Zip"));
+// 		creataccountres = zoho.crm.createRecord("Accounts",createaccount);
+// 		info "creataccountres response:" + creataccountres;
+// 		accid = creataccountres.get("id");
+// 		info accid; 
+// 		updatemap = Map();
+// 		updatemap.put("Account_Name",accid);
+// 		updatemap.put("Is_Processed",true);
+// 		updatecontact = zoho.crm.updateRecord("Contacts",CrmContactId,updatemap);
+// 		info "------Update Contact" + updatecontact;
+// 	}else{
+// info "else" ;
+// 		updatemap = Map(); 
+// 		updatemap.put("Is_Processed",true);
+// 		updatecontact = zoho.crm.updateRecord("Contacts",CrmContactId,updatemap);
+// 			info "------Update Contact1" + updatecontact;
+// 	}
+// }
+// return updatecontact;
+return 1;
+}

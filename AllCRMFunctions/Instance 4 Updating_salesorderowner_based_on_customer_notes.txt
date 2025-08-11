@@ -1,0 +1,56 @@
+void automation.Updating_customer_notes_based_on_customer_notes111()
+{
+getting_Merger_Schedule = zoho.crm.getRecordById("Merger_Schedule",3106252000061961343);
+page_index = getting_Merger_Schedule.get("SalesOrder_Instacne_4");
+if(page_index <= 400)
+{
+	Header_map = Map();
+	response = invokeurl
+	[
+		url :"https://www.zohoapis.com/crm/v2/users?type=ActiveUsers"
+		type :GET
+		headers:Header_map
+		connection:"crm_connection"
+	];
+	if(!response.isempty())
+	{
+		sales_user = Map();
+		for each  each_user in response.get("users")
+		{
+			if(each_user.get("profile").get("name").contains("Sales"))
+			{
+				sales_user.put(each_user.get("first_name"),each_user.get("id"));
+			}
+		}
+		User_keys_list = sales_user.keys();
+		sales_orders = zoho.crm.getRecords("Sales_Orders",page_index,200,{"sort_by":"Created_Time","sort_order":"asc"});
+		if(!sales_orders.isEmpty())
+		{
+			for each  each_sales_order in sales_orders
+			{
+				for each  each_user in User_keys_list
+				{
+					if(each_sales_order.get("Customer_Notes") != null)
+					{
+						if(each_sales_order.get("Customer_Notes").contains(each_user))
+						{
+							zoho.crm.updateRecord("Sales_Orders",each_sales_order.get("id"),{"Owner":sales_user.get(each_user)});
+							log = Map();
+							log.put("Name",each_sales_order.get("id"));
+							log.put("Old_User",each_sales_order.get("Owner").get("id"));
+							log.put("New_User",sales_user.get(each_user));
+							zoho.crm.createRecord("SalesOrder_Updating_Log",log);
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			page_index = 400;
+		}
+		page_index = page_index.toLong() + 1;
+		zoho.crm.updateRecord("Merger_Schedule",3106252000061961343,{"SalesOrder_Instacne_4":page_index});
+	}
+}
+}

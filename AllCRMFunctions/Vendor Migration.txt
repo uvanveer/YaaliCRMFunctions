@@ -1,0 +1,104 @@
+void automation.Migration_Vendor_Copy(Int Start)
+{
+//Product Vendor Name mapping using salwrape data codeed by T
+searchproductvendor = zoho.crm.searchRecords("Product_Vendor_Update","((Is_Processed:equals:false)and (Is_SKU_NOT_THERE:equals:false))",Start,200);
+// info searchproductvendor ;
+for each  vendorname in searchproductvendor
+{
+	provenid = vendorname;
+	// 	vendorname = zoho.crm.getRecordById("Product_Vendor_Update",provenid.get("id"));
+	ID = vendorname.get("id");
+	SKU = vendorname.get("SKU");
+	vendor = vendorname.get("Vendor");
+	vendorsku = vendorname.get("Order_SKU");
+	costprice = vendorname.get("Cost_Price");
+	// if (vendorname.get("Unit_Price") != ""){
+	// unitprice = vendorname.get("Unit_Price").toDecimal();
+	// }else{
+	// unitprice = null;
+	// }
+	if(vendor != null)
+	{
+		// saleprice = vendorname.get("Sales_Price"); 
+		dropship = vendorname.get("Dropship_Print");
+		// 	if(SKU == "BA-AHD-SS-36-36- 140(30X8)"){
+		SKU = SKU.replaceAll("\(","\(");
+		SKU = SKU.replaceAll("\)","\)");
+		SKU = SKU.replaceAll("\"","\"");
+		SKU = SKU.replaceAll("\"","\"");
+		SKU = SKU.replaceAll("&rdquo;","\"");
+		// 	}
+		info "SKU " + SKU;
+		// 			response = zoho.crm.searchRecords("Products","(Product_Code:equals:ACC-BAR-10PA CAMLOCK 3/8 \(KA544\)+UCLIP)");
+		response = zoho.crm.searchRecords("Products","(Product_Code:equals:" + SKU + ")");
+		info "rees" + response;
+		productdata = response;
+		updatmap = Map();
+		vendormap = Map();
+		statusupdate = Map();
+		statusupdate.put("Status","");
+		if(productdata.size() > 0)
+		{
+			for each  prosku in productdata
+			{
+				product_id = prosku.getJSON("id");
+				store = "";
+				if(!isnull(prosku.getJSON("Store")))
+				{
+					store = "@" + prosku.get("Store").get("name");
+				}
+				else
+				{
+					store = "";
+				}
+				Product_Currency = prosku.getJSON("Product_Currency");
+				vendorname = vendor + store;
+				updatmap.put("Vendor_SKU",vendorsku);
+				updatmap.put("Manufacturer",vendor);
+				updatmap.put("Dropship_Print",dropship);
+				// 			if(costprice != "")
+				// 			{
+				// 				updatmap.put("Cost_Price",costprice);
+				// 			}
+				// 		updatmap.put("Cost_Price",costprice);
+				// 		updatmap.put("Unit_Price",unitprice);
+				// 		updatmap.put("Sale_Price",saleprice);
+				vendormap.put("Currency",Product_Currency);
+				vendormap.put("Vendor_Name",vendorname);
+				vendorsearch = zoho.crm.searchRecords("Vendors","(Vendor_Name:equals:" + vendorname + ")");
+				vendorsearch = "[" + vendorsearch + "]";
+				if(vendorsearch.size() > 0)
+				{
+					vendorid = vendorsearch.get(0).getJSON("id");
+					updatmap.put("Vendor_Name",vendorid);
+				}
+				else
+				{
+					createvendor = zoho.crm.createRecord("Vendors",vendormap);
+					createvendorid = createvendor.get("id");
+					updatmap.put("Vendor_Name",createvendorid);
+				}
+				info "updatmap" + updatmap;
+				updateproductvendor = zoho.crm.updateRecord("Products",product_id,updatmap);
+				info "updatevendor" + updateproductvendor;
+				if(!isnull(updateproductvendor.get("id") == product_id))
+				{
+					statusupdate.put("Status","Updated");
+					statusupdate.put("Is_Processed",true);
+					updateproductvendor = zoho.crm.updateRecord("Product_Vendor_Update",ID,statusupdate);
+					info "updateproductvendor";
+					info updateproductvendor;
+				}
+			}
+		}
+		else
+		{
+			info "product not there";
+			statusupdate.put("Is_SKU_NOT_THERE",true);
+			statusupdate.put("Is_Processed",true);
+			updateproductvendor = zoho.crm.updateRecord("Product_Vendor_Update",ID,statusupdate);
+			info "updateproductvendor" + updateproductvendor;
+		}
+	}
+}
+}

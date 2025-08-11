@@ -1,0 +1,5 @@
+void automation.rk_emailInsight()
+{
+gets = zoho.crm.getRelatedRecords("Emails","Quotes",3106252000010299012);
+info gets;
+}

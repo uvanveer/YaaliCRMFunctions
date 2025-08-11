@@ -1,0 +1,13 @@
+void automation.Default_Currency_Contacts(Int record_id)
+{
+record_details = zoho.crm.getRecordById("Contacts",record_id);
+country = "";
+country = record_details.get("Mailing_Country");
+if(country != "" && !isNull(country))
+{
+	if(country.startsWithIgnoreCase("u"))
+	{
+		update = zoho.crm.updateRecord("Contacts",record_id,{"Currency":"USD","Update_Source":"ZCRM-Contact-3106252000069805250-" + now.toLong()});
+	}
+}
+}

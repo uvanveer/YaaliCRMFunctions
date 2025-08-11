@@ -1,0 +1,22 @@
+void automation.Deal_Associate_Updatation(Int id)
+{
+get_salorder = zoho.crm.getRecordById("Sales_Orders",id);
+// info get_salorder;
+Sale_ID = get_salorder.getJSON("id");
+//info Sale_ID;
+Sale_Staff_Notes = get_salorder.getJSON("Staff_Notes");
+if(!isnull(Sale_Staff_Notes))
+{
+	get_quoteno1 = Sale_Staff_Notes.getsuffix("Quote #");
+	get_quoteno = get_quoteno1.getPrefix("\n").toList();
+	info get_quoteno;
+	getdeals = zoho.crm.searchRecords("Deals","Deal_Name:equals:" + get_quoteno.toString());
+	info getdeals;
+	Status = get_salorder.getJSON("Status");
+	dealmap = Map();
+	dealmap.put("Stage",Status);
+	info dealmap;
+	updatedeal = zoho.crm.updateRecord("Deals",getdeals.getJSON("id"),dealmap);
+	info updatedeal;
+}
+}

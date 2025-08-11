@@ -1,0 +1,717 @@
+string button.rk_sendPdftoVendor(String id)
+{
+getd = zoho.crm.getRecordById("Purchase_Orders",id.toLong());
+shippingInstructions = getd.get("Shipping_Instructions");
+pickupDetails = getd.get("Pickup_Details");
+Staff_Notes = getd.get("Staff_Notes");
+test_Dropship_orders = getd.get("Test_dropship_order");
+//code added by cva 28-May-2021
+// purpose of restrict pdf send to elmdor USA vendor
+vendorName = "";
+isElmdorUSAvendor = false;
+BADAuthorization = zoho.crm.getOrgVariable("OAuthHashCode");
+header_map = Map();
+header_map.put("Content-Type","application/json");
+header_map.put("BADAuthorization",BADAuthorization);
+if(getd.size() > 0)
+{
+	getVendorName = getd.get("Vendor_Name");
+	if(getVendorName != null)
+	{
+		vendorName = getVendorName.get("name");
+		if(vendorName == "Siva Test Do Not Process")
+		{
+			isElmdorUSAvendor = true;
+		}
+	}
+}
+isElmdorUSAvendor = false;
+// cva code end
+logMap = Map();
+logMap.put("Workflow_Name","Send Dropship Order");
+logMap.put("SalesOrder_Record_ID",id);
+logMap.put("Name","Dropship Orders");
+logMap.put("PO_Request","send mail start" + zoho.loginuserid);
+// 	logMap.put("PO_response",createDrop.toString());
+logMap.put("Function_Name","Sendpdfvendor");
+end_time = now.toLong();
+// 	logMap.put("Start_Time",start_time.toString());
+logMap.put("End_Time",end_time.toString());
+Create_log = zoho.crm.createRecord("Sales_Order_PO_Log",logMap);
+// info Create_log;
+Get_order_date = getd.get("Order_Date");
+Get_created_time = getd.get("Created_Time");
+Get_order_date = Get_order_date.toDate();
+Get_created_time = Get_created_time.toDate();
+//getuser = zoho.crm.getRecords("users",0,200);
+currentuser = zoho.crm.searchRecords("users","(email:equals:" + zoho.loginuserid + ")");
+getuser = currentuser.get("users").get(0);
+getrole = getuser.get("role");
+getname = getrole.get("name");
+//  zoho.loginuserid ="dev@bestaccessdoors.com"
+// if(zoho.loginuserid == "saher@bestaccessdoors.com")
+// {
+// 	sendmail
+// 	[
+// 		from :zoho.adminuserid
+// 		to :"ganesh@bizappln.com"
+// 		subject :"1 .find the dso order for  send to vendor"
+// 		message :"for checking process saher profile button is working or not" + zoho.loginuserid + " , url :https://crm.zoho.com/crm/org663942562/tab/PurchaseOrders/" + id
+// 	]
+// }
+if(getd.get("Status") != "Ready for MCF")
+{
+	if(zoho.loginuserid == "zyarina@bestaccessdoors.com" || zoho.loginuserid == "saher@bestaccessdoors.com" || zoho.loginuserid == "matheus@bestaccessdoors.com" || getname == "Order Management" || Get_order_date.daysBetween(zoho.currenttime) < 11 && Get_created_time.daysBetween(zoho.currenttime) < 11)
+	{
+		// if(Get_order_date.daysBetween(zoho.currenttime) < 11 && Get_created_time.daysBetween(zoho.currenttime) < 11 && zoho.loginuser != "zyarina")
+		getv = zoho.crm.getRecordById("Vendors",getd.get("Vendor_Name").get("id"));
+		// getvendor_contacts = zoho.crm.getRelatedRecords("Vendor_Contacts","Vendors",getv.get("id"));
+		get_name = getd.get("Vendor_Name").get("name");
+		if(get_name.contains("@"))
+		{
+			get_name = get_name.getPrefix("@");
+		}
+		Vcontact_email = List();
+		salespersonemail = List();
+		//Checking order from Creator Quote
+		Staff_Notes = getd.get(Staff_Notes);
+		if(getd.get("Sales_Order") != Null)
+		{
+			getsalesorder = zoho.crm.getRecordById("Sales_Orders",getd.get("Sales_Order").get("id").toLong());
+			Staff_Notes = getsalesorder.get("Staff_Notes");
+		}
+		if(Staff_Notes != null)
+		{
+			if(Staff_Notes.contains("Quote #"))
+			{
+				quoteno = Staff_Notes.getSuffix("#");
+				quoteno = quoteno.getPrefix(" ");
+				quoteno = getsalesorder.get("Quote_Number");
+				// 		getquote = zoho.creator.v1.getRecords("zoho_zoho1502","quotes","All_Quotes","Quote_Number ==" + "\"" + quoteno + "\"");Script to fetch quote data based on quote store version
+				// 				str = getd.get("Store").get("id");
+				// 				//info str;
+				// 				stor_det = zoho.crm.getRecordById("Stores", str.tolong());
+				// 				//info stor_det;
+				// 				ver = stor_det.get("Creator_Version");
+				// 				info ver;
+				// 				if ( ver == null ) 
+				// 				{
+				// 					info "not fse store^^^^^^";
+				// 					getquote = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Quotes","Quote_Number ==" + "\"" + quoteno + "\"",1,1,"zcreator_connecction");
+				// 					info "getquote = " +getquote;
+				// 				}
+				// 				else
+				// 				{
+				// 					info "FSE Store!!!!!!!!!!!!!!!!!!!!!!!!!";
+				// 					getquote = zoho.creator.getRecords("zoho_zoho1502","quotesv3","All_Quotes","Quote_Number ==" + "\"" + quoteno + "\"",1,1,"zcreator_connecction");
+				// 					info "getquote = " +getquote;
+				// 				}
+				getquote = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Quotes","Quote_Number ==" + "\"" + quoteno + "\"",1,1,"zcreator_connecction");
+				if(getquote.get("code") == 3000)
+				{
+					if(getquote.get("data").size() > 0)
+					{
+						quote_data = getquote.get("data").get(0);
+						saleemail = quote_data.getJSON("Sales_Person.Email");
+					}
+				}
+				info Staff_Notes + getquote + quoteno;
+				info "saleemail" + saleemail;
+				// 		saleemail = getquote.getJSON("Sales_Person.Email");
+				if(saleemail != null)
+				{
+					salespersonemail.add(saleemail);
+				}
+			}
+		}
+		// 	info getsalesorder;
+		if(getd.get("Status") != "Cancelled")
+		{
+			if(getsalesorder.get("Sent_to_Vender_Mail") != true)
+			{
+				// 				if(getd.get("EDI_Status") != "Mismatched")
+				// 				{
+				if(getd.get("Status") != "Shipped" && getd.get("Status") != "Completed")
+				{
+					// if(getv.get("Order_Pdf") == true && getv.get("Email") != null)
+					// {
+					// 	Vcontact_email.add(getv.get("Email"));
+					// }
+					// for each  get_email in getvendor_contacts
+					// {
+					// 	if(get_email.get("Order_Pdf") == true)
+					// 	{
+					// 		Vcontact_email.add(get_email.get("Email"));
+					// 	}
+					// }
+					// if(Vcontact_email.size() > 0)
+					// {
+					// 	email = Vcontact_email.get(0);
+					products = getd.get("Product_Details").toJSONList();
+					dropro = Map();
+					for each  prod in products
+					{
+						crmProductId = prod.get("product").get("id");
+						//dropship_Print check
+						getp = zoho.crm.getRecordById("Products",crmProductId);
+						Dropship_print = getp.get("Dropship_Print");
+						if(Dropship_print != "No")
+						{
+							dropro.put(crmProductId,prod.get("product").get("Product_Code"));
+						}
+					}
+					//check dropship print 
+					droprolist = List();
+					droprolist.add(dropro);
+					// 	info "droprolist" + droprolist;
+					if(dropro.size() > 0)
+					{
+						// info getd.get("Vendor_Name").get("id");
+						po_mail = list();
+						getven = zoho.crm.getRecordById("Vendors",getd.get("Vendor_Name").get("id").toLong());
+						getcon = zoho.crm.getRecordById("Contacts",getd.get("Contact_Name").get("id").toLong());
+						// info getven;
+						vendorId = getven.get("id");
+						vendorFooterText = getven.get("Footer_Text");
+						mailP = Map();
+						mailP.put("id",id);
+						mailP.put("vendorId",vendorId);
+						mailP.put("Footer_Text",vendorFooterText);
+						if(get_name == "default")
+						{
+							mailP.put("Phone","0000000000");
+							mailP.put("Address","default Vendor Dropship");
+							Vcontact_email.add('tharmendheran@bizappln.com');
+						}
+						/*else if(get_name == "Acudor - USA" || get_name == "Acudor" || get_name == "Acudor-USA" || get_name == "Bauco" || get_name == "Acudor USA")
+							{
+								mailP.put("Phone","9735755120");
+								mailP.put("Address","80 Little Falls Road Fairfield, NJ 07004");
+								Vcontact_email.add("orders@acudor.com");
+								Vcontact_email.add("po@bestaccessdoors.com");
+							}*/
+						else if(get_name == "Nystrom")
+						{
+							mailP.put("Phone","800-547-2635");
+							mailP.put("Address","9300 73rd Avenue North Brooklyn Park, MN 55428");
+							Vcontact_email.add("info@babcockdavis.com");
+						}
+						/*else if(get_name == "Acudor-Canada-USD" || get_name == "Acudor Canada")
+							{
+								mailP.put("Phone","9054279957");
+								mailP.put("Address","1125 Squires Beach RoadC2 Pickering, ON, L1W 3T9");
+								Vcontact_email.add("orderentry@acudor.ca");
+								Vcontact_email.add("po@bestaccessdoors.com");
+							}*/
+						else if(get_name == "Siva Test Do Not Process")
+						{
+							mailP.put("Phone","0000000000");
+							mailP.put("Address","test siva  Vendor Dropship");
+							Vcontact_email.add('');
+						}
+						/*else if(get_name == "FF Systems Inc. -Canada")
+							{
+								mailP.put("Phone","8004888999");
+								mailP.put("Address","2840 Hunter St. Fort Myers, FL. 33916");
+								Vcontact_email.add("orders@ffsystems.com");
+								Vcontact_email.add("po@bestaccessdoors.com");
+							}
+							else if(get_name == "FF Systems Inc. -USA" || get_name == "FFSystemsInc.-USA" || get_name == "FFSystems" || get_name == "FF Systems Inc USA")
+							{
+								mailP.put("Phone"," ");
+								mailP.put("Address","2840 Hunter St. Fort Myers, FL. 33916");
+								Vcontact_email.add("orders@ffsystemsinc.com");
+								Vcontact_email.add("po@bestaccessdoors.com");
+							}*/
+						else if(get_name == "StrikeFirst")
+						{
+							mailP.put("Phone","8002555515 ");
+							mailP.put("Address","1330 Progress Dr, Front Royal, VA 22630, United States");
+							Vcontact_email.add("orders@williams-brothers.com ");
+							Vcontact_email.add("po@bestaccessdoors.com");
+						}
+						else if(get_name == "Williams Brothers")
+						{
+							mailP.put("Phone","8002555515 ");
+							mailP.put("Address","777 Tapscott Road Scarborough, Ontario M1X 1A2");
+							Vcontact_email.add("citrigno@bestaccessdoors.com");
+							Vcontact_email.add("anthony@bestaccessdoors.com");
+							Vcontact_email.add("po@bestaccessdoors.com");
+						}
+						/*else if(get_name == "Williams Brothers - Canada" || get_name == "Williams Brothers Canada")
+							{
+								mailP.put("Phone","4162997767 ");
+								mailP.put("Address","777 Tapscott Road Scarborough, Ontario M1X 1A2");
+								Vcontact_email.add("orders@williams-brothers.com");
+								Vcontact_email.add("best@williams-brothers.com");
+								Vcontact_email.add("po@bestaccessdoors.com");
+							}*/
+						else if(get_name == "Wind-lock-Canada-USD")
+						{
+							mailP.put("Phone"," ");
+							mailP.put("Address","3895 Corsair St, Reno, NV 89502");
+							Vcontact_email.add("Tara.Loftus@wind-lock.com");
+							Vcontact_email.add("po@bestaccessdoors.com");
+						}
+						else if(get_name == "Castle - USA" || get_name == "Castle")
+						{
+							mailP.put("Phone","9057388089 ");
+							mailP.put("Address","173 Adesso Dr Unit 2, Concord, ON L4K 3C3 ");
+							Vcontact_email.add("orders@castleaccesspanels.com");
+							Vcontact_email.add("po@bestaccessdoors.com");
+							Vcontact_email.add("castleaccesspanels@gmail.com");
+						}
+						else if(get_name == "Omni Containment")
+						{
+							mailP.put("Phone","1 847-468-1772");
+							mailP.put("Address","1501 Commerce Dr, Elgin, IL 60123, United States");
+							Vcontact_email.add("gary@omnicontainment.com");
+							Vcontact_email.add("sales@omnicontainment.com");
+							Vcontact_email.add("po@bestaccessdoors.com");
+						}
+						/*else if(get_name == "DGMEnterprises" || get_name == "DGM Enterprises")
+							{
+								mailP.put("Phone","905-847-2424");
+								mailP.put("Address","1173 North Service Road West, Unit 8, Oakville, Ontario L6M 2V9");
+								Vcontact_email.add("info@made2match.ca");
+								Vcontact_email.add("po@bestaccessdoors.com");
+							}*/
+						else
+						{
+							if(getven.get("Street") != null)
+							{
+								postaddress = getven.get("Street");
+							}
+							if(getven.get("City") != null)
+							{
+								postaddress = postaddress + "," + getven.get("City");
+							}
+							if(getven.get("State") != null)
+							{
+								postaddress = postaddress + "," + getven.get("State");
+							}
+							if(getven.get("Zip_Code") != null)
+							{
+								postaddress = postaddress + " " + getven.get("Zip_Code");
+							}
+							if(getven.get("Country") != null)
+							{
+								postaddress = postaddress + "," + getven.get("Country");
+							}
+							if(getven.get("Phone") != null)
+							{
+								mailP.put("Phone",getven.get("Phone"));
+							}
+							else
+							{
+								mailP.put("Phone"," ");
+							}
+							mailP.put("Address",postaddress);
+							if(getven.get("DSO_Email") != null)
+							{
+								Vcontact_email = getven.get("DSO_Email").toList(",");
+							}
+						}
+						BCClist = List();
+						// 	BCClist.add('po@bestaccessdoors.com');
+						empty = List();
+						mailP.put("email",Vcontact_email);
+						// 			mailP.put("email",{"balaji@bizappln.com"});
+						mailP.put("cc",empty);
+						mailP.put("bcc",salespersonemail);
+						mailP.put("replyto","po@bestaccessdoors.com");
+						mailP.put("sku",dropro);
+						mailP.put("contact_phone",getcon.get("Phone"));
+						mailP.put("vendor_notes",ifnull(getd.get("Description"),""));
+						// Added By Ezhil on 18 Feb 2021
+						mailP.put("customer_notes","");
+						if(!isnull(getd.get("Order_Notes")))
+						{
+							if(getd.get("Order_Notes").contains("Additional Delivery Instructions:"))
+							{
+								new_description = getd.get("Order_Notes");
+								final_str = new_description.getsuffix("--");
+								mid_str = new_description.getsuffix("Additional Delivery Instructions:");
+								mid_str = mid_str.replaceAll("\n",",");
+								additionalShipping = "Customer notes: Additional Delivery Instructions:" + mid_str;
+								mailP.put("customer_notes",additionalShipping);
+							}
+							else
+							{
+								mailP.put("customer_notes",ifnull(getd.get("Order_Notes"),""));
+							}
+						}
+						// End
+						mailP.put("sendmaill","Approved");
+						/* Updated By Ezhil on 04/06/2021 */
+						/* To Use SendGrid Email Mechanism to Send Vendor Email */
+						// Start //
+						mailP.put("sendGridMail",true);
+						mailP.put("scope","sendPdfToVendor");
+						// End //
+						info "mal:" + mailP;
+						if(Vcontact_email.size() > 0)
+						{
+							vendorName = getd.get("Vendor_Name").get("name");
+							storeNameStr = if(!isNull(getd.get("Store").get("name")),getd.get("Store").get("name"),"");
+							taxId = if(!isNull(getd.get("Tax_ID")),getd.get("Tax_ID"),"");
+							// Flag For DSO PDF send to vendor
+							sendPdfToVendor = false;
+							// On Development Phase
+							if(vendorName == "Cendrex" && getd.get("Grand_Total") >= 2500 && (storeNameStr == "Best_Access_Doors" || storeNameStr == "Access_Doors_And_Panels" || storeNameStr == "California_Access_Doors" || storeNameStr == "Best_Roof_Hatches"))
+							{
+								if(isNull(taxId))
+								{
+									// Need To Add Tax ID - Dont Process dropship order
+									sendPdfToVendor = false;
+									return "Hi, " + zoho.loginuser + ". Please update customer Tax ID to proceed...";
+								}
+								else
+								{
+									// Tax ID exist - Process dropship order
+									sendPdfToVendor = true;
+								}
+							}
+							else
+							{
+								sendPdfToVendor = true;
+							}
+							// 					if(id == "3106252000210397776")
+							// 					{
+							// 						sendPdfToVendor = true;
+							// 					}
+							if(getd.get("Sales_Order") != Null)
+							{
+								if(getsalesorder.get("Additional_Transactions_Order_Type") == "Additional_Shipping_Services")
+								{
+									sendPdfToVendor = false;
+									return "Additional shipping service DSO can't be sent to Vendor";
+								}
+							}
+							/* Check test contact or not - validation Start*/
+							test_flag = false;
+							contact_name = getd.get("Contact_Name").get("name");
+							contact_id = getd.get("Contact_Name").get("id");
+							pre = contact_name.getPrefix(" ");
+							suf = contact_name.getSuffix(" ");
+							if(isnull(pre) && isnull(suf))
+							{
+								pre = contact_name;
+								suf = contact_name;
+							}
+							info "pre" + pre;
+							info "suf" + suf;
+							/** Get contact response for fetch email id **/
+							contactres = zoho.crm.getRecordById("contacts",contact_id);
+							contactEmail = contactres.get("Email");
+							emailpre = contactEmail.getPrefix("@");
+							/* Test email list */
+							testnamelist = {"test","yaali","bizappln","tharma","dinesh","balaji","jegan","bharathi","vijay","yopmail","prashanth","sankar","suresh","ezhil","surya","prabhu","ragul","ganesh","barani","uvan"};
+							mailnameistest = list();
+							for each  eachmailname in testnamelist
+							{
+								checkPre = equalsIgnoreCase(pre,eachmailname);
+								info "checkPre" + checkPre;
+								// contact first half name
+								checkSuf = equalsIgnoreCase(suf,eachmailname);
+								// contact second half name
+								checkEmail = equalsIgnoreCase(emailpre,eachmailname);
+								// email name
+								info "checksuf" + checkSuf;
+								info "checkEmail" + checkEmail;
+								if(checkPre == true || checkSuf == true || checkEmail == true)
+								{
+									mailnameistest.add(checkPre);
+									mailnameistest.add(checkSuf);
+									mailnameistest.add(checkEmail);
+								}
+							}
+							info "mailnameistest" + mailnameistest.size();
+							if(mailnameistest.size() > 0)
+							{
+								test_flag = true;
+							}
+							/* Email Condition added by Surya for Best Team requested  28-08-2023 */
+							if(contactEmail == "cataldotestani@bancare.net" || contactEmail == "dante@d2bdesign.com" || contactEmail == "mt@livingsystems.com" || contactEmail == "office@testorffconstruction.com" || contactEmail == "gayathri@acecon.email" || contactEmail == "vsrajan8@telus.net" || contactEmail == "kunchest@outlook.com")
+							{
+								test_flag = false;
+							}
+							/* Check test contact or not - validation End*/
+							info "test flag" + test_flag + "test_Dropship_orders" + test_Dropship_orders;
+							if(test_Dropship_orders != true && test_flag != true)
+							{
+								if(sendPdfToVendor)
+								{
+									if(isElmdorUSAvendor)
+									{
+										//x="no";
+										// cva code start
+										OrganizationID = "666840843";
+										getPO = zoho.books.getRecords("Purchaseorders",OrganizationID,"cf_crm_rec_id=" + id.toText());
+										if(getPO.getJSON("purchaseorders").size() > 0)
+										{
+											Books_po_id = getPO.getJSON("purchaseorders").getJSON("purchaseorder_id");
+											response = invokeurl
+											[
+												url :"https://www.zohoapis.com/books/v3/purchaseorders/" + Books_po_id + "/status/open?organization_id=666840843"
+												type :POST
+												connection:"zohobooks_crmaccounts"
+											];
+											info response;
+										}
+										//set status as Ready for EDI
+										statusMap = Map();
+										statusMap.put("Status","Ready for EDI");
+										updateResponse = zoho.crm.updateRecord("Purchase_Orders",id.tolong(),statusMap);
+										info updateResponse;
+										return "The vendor email will be sent.";
+										//cva code end
+									}
+									else
+									{
+										/** Code added by Yogesh on Nov22,2022 - start **/
+										/** DSO sent to vendor set as true while initial button click **/
+										getd1 = zoho.crm.getRecordById("Purchase_Orders",id.toLong());
+										DSO_sent_to_Vendor = getd1.get("DSO_sent_to_Vendor");
+										DSO_number = getd1.get("Dropship_Number");
+										if(DSO_sent_to_Vendor == false)
+										{
+											DSO_sent_to_update = {"DSO_sent_to_Vendor":true};
+											DSO_sent_to_update_response = zoho.crm.updateRecord("Purchase_Orders",id.toLong(),DSO_sent_to_update);
+											/** code y - end **/
+											//x="yes";
+											mailP.put("shippingInstructions",ifnull(shippingInstructions,""));
+											mailP.put("pickupDetails",pickupDetails);
+											mailP.put("Staff_Notes",ifnull(Staff_Notes,""));
+											mailP.put("vendorName",vendorName);
+											//info mailP + "   mail map";
+											//apiUrl = "https://www.1.door-pay.com/api/zohocrm/send/vendorPdf";
+											apiUrl = "https://1.door-pay.com/api/zohocrm/send/vendorPdf";
+											senddata = postUrl(apiUrl,mailP,header_map);
+											// 										 										senddata = "test";
+											info "mailres:" + senddata;
+											logMap = Map();
+											logMap.put("Workflow_Name","Send Dropship Order");
+											logMap.put("SalesOrder_Record_ID",id);
+											logMap.put("Name","Dropship Orders");
+											logMap.put("PO_Request","send mail end" + zoho.loginuserid);
+											logMap.put("PO_response",senddata.toString());
+											logMap.put("Function_Name","Sendpdfvendor");
+											end_time = now.toLong();
+											//logMap.put("Start_Time",start_time.toString());
+											logMap.put("End_Time",end_time.toString());
+											Create_log = zoho.crm.createRecord("Sales_Order_PO_Log",logMap);
+											// 										if(zoho.loginuserid = "saher@bestaccessdoors.com")
+											// 										{
+											// 											sendmail
+											// 											[
+											// 												from :zoho.adminuserid
+											// 												to :"ganesh@bizappln.com"
+											// 												subject :"2. .find the dso order for  send to vendor response"
+											// 												message :"for checking process saher profile button is working or not" + zoho.loginuserid + " , url :https://crm.zoho.com/crm/org663942562/tab/PurchaseOrders/" + id + "response" + senddata
+											// 											]
+											// 										}
+											info Create_log;
+											return "The vendor email will be sent.";
+										}
+										else
+										{
+											getDSOlink = "https://crm.zoho.com/crm/org663942562/tab/PurchaseOrders/" + getd1.get("id");
+											getSolink = "https://crm.zoho.com/crm/org663942562/tab/SalesOrders/" + getd1.get("Sales_Order").get("id");
+											logMap = Map();
+											TaskMap = Map();
+											whichUser = Map();
+											currentDate = now;
+											/** Task creation - Duplicate DSO sent to the vendor **/
+											TaskMap.put("Subject","Duplicate DSO sent to the vendor");
+											TaskMap.put("Owner",3106252001418902001);
+											//3106252000053002001 - Yaali, 3106252000328931027 - Saher
+											TaskMap.put("Due_Date",zoho.currentdate);
+											TaskMap.put("$se_module","Purchase_Orders");
+											TaskMap.put("What_Id",getd1.get("id"));
+											TaskMap.put("Who_Id",getd1.get("Contact_Name").get("id").toLong());
+											TaskData = zoho.crm.createRecord("Tasks",TaskMap);
+											// 										info "TaskData: " + TaskData.get("id");
+											taskLink = "https://crm.zoho.com/crm/org663942562/tab/Tasks/" + TaskData.get("id");
+											poMail = "mailto:Po@bestaccessdoors.com";
+											submissionBoardForm = "https://forms.zohopublic.com/bestaccessdoors/form/BESTCorp/formperma/8_eLXvYPrpqKgpUhtmbwHtx81HeobKZR7yDWN3z8sWo";
+											/** Mail sent to Saher - Duplicate DSO sent to Vendor **/
+											Email_body = "<br> Hello Saher Tariq, <br><br> You have been assigned ownership of the Task <span style=color:red;>Duplicate DSO <b>#" + DSO_number + "</b></span> sent to the vendor. Please confirm & verify the details. <br><br><b> Task link: </b><a href=" + taskLink + ">" + taskLink + "</a><br><br><b> DSO Link : </b><a href=" + getDSOlink + ">" + getDSOlink + "</a><br><br><b> SO Link : </b><a href=" + getSolink + ">" + getSolink + "</a><br><br><b>Kindly follow the below steps to verify if a duplicate DSO has been sent to the vendor.</b><br><br><b>Step 1: </b>Search a DSO in the PO mailbox <a href=" + poMail + ">(Po@bestaccessdoors.com)</a><br><br><b>Step 2: </b>If only one email is sent.. no action is required. Mark the task as completed and closed.<br><br> <b>Step 3: </b>If no email is found, go to the <b>DSO link</b>, search for the field name <b>DSO sent to Vendor</b>, and remove the check mark. As shown in the screenshot<br><br><b>Step 4: </b>Try sending a DSO again by clicking the send to vendor button.<br><br><b>Step 5: </b>verify from the PO mailbox if the email is sent to the vendor and mark the task as completed and closed.<br><br><b>Step 5: </b>For any unusual circumstances, submit a ticket on the submission board using the form link<br><br><b>Form Link: </b><a href=" + submissionBoardForm + ">" + submissionBoardForm + "</a><br><br> <i> Priority: <b> High <b> </i> <br><br><b>Thank you,</b> <br><br> <b>Best Access Doors Team!</b>";
+											mailmap = Map();
+											mailmap.put("to",{"Saher@bestaccessdoors.com","crmadmin@bestaccessdoors.com"});
+											mailmap.put("bcc",{""});
+											mailmap.put("scope","Droship Notify");
+											mailmap.put("subject","Duplicate DSO sent to Vendor");
+											mailmap.put("body",Email_body);
+											mailres = postURL("https://1.door-pay.com/api/Office360Mail/sendreq",mailmap,header_map);
+											/* Create a Crm Custom Logs for button clicked more than 1 time Log*/
+											whichUser.put("Event_triggered_user",zoho.loginuserid);
+											whichUser.put("Scope","Sent to Vendor button");
+											whichUser.put("Additional_information",mailP);
+											whichUser.put("Dropship_order_link",getDSOlink);
+											logMap.put("Name","sendPdfToVendor button clicked more than 1 time Log");
+											logMap.put("Function_name","sendPdfToVendor");
+											logMap.put("Module_name","Dropship Order");
+											logMap.put("Request",whichUser);
+											logMap.put("Response",TaskMap);
+											logMap.put("Date_and_time",currentDate.tostring());
+											Create_log = zoho.crm.createRecord("crm_custom_logs",logMap);
+											return "Already DSO sent to Vendor. Please, Contact with Saher..";
+										}
+										/** Yogesh code - end	**/
+									}
+									//Commented start by balaji on Mar- 17 2021
+									// 					get_Code = senddata.get("code");
+									// 					get_message = senddata.get("message");
+									// 					get_id = senddata.get("id");
+									// 					get_vendor = senddata.get("vendorId");
+									// 					get_email = senddata.get("Email");
+									// 					get_phone = senddata.get("contact_phone");
+									// 					// 					if(get_Code == 500)
+									// 					// 					{
+									// 					// 						BCClist1 = List();
+									// 					// 						BCClist1.add("tharmendheran@bizappln.com");
+									// 					// 						BCClist2 = List();
+									// 					// 						BCClist2.add("prashanth@bizappln.com");
+									// 					// 						content1 = Map();
+									// 					// 						Empty_map = Map();
+									// 					// 						content1.put("to",BCClist1);
+									// 					// 						content1.put("cc",BCClist2);
+									// 					// 						content1.put("Subject","test");
+									// 					// 						content1.put("Body","test");
+									// 					// 						Failure_Content = Map();
+									// 					// 						Failure_Content.put("content",content1.toString());
+									// 					// 						info "get_notify" + Failure_Content;
+									// 					// 						drop_ship_map = Map();
+									// 					// 						drop_ship_map.put("sendtovendor",true);
+									// 					// 						//code added by Vijay Kumar - 4/20/2020
+									// 					// 						curr_tim = zoho.currenttime.tostring();
+									// 					// 						ctime = toString(curr_tim.toTime(),"YYYY-MM-dd'T'HH:mm:ss") + "-05:00";
+									// 					// 						drop_ship_map.put("Order_Processed_Time",ctime);
+									// 					// 						update = zoho.crm.updateRecord("Purchase_Orders",id.toLong(),drop_ship_map);
+									// 					// 						url = "https://1.door-pay.com/api/Office360Mail/SendMailRequets";
+									// 					// 						info "Failure Content: " + Failure_Content;
+									// 					// 						senddata1 = postUrl(url,Failure_Content);
+									// 					// 						info "******" + senddata1;
+									// 					// 						var = senddata1.remove("mailcontents");
+									// 					// 						info "Send PDF Request: " + var;
+									// 					// 						// 						senddata12 = postUrl(url,var);
+									// 					// 						// 						info "senddata1" + senddata12;
+									// 					// 						// 				return "The vendor email has not sent.";
+									// 					// 					}
+									// 					if(get_Code == 200)
+									// 					{
+									// 						update_status = Map();
+									// 						update_status.put("Status","Sent to Dropshippers");
+									// 						update_status.put("sendtovendor",true);
+									// 						workflow = Map();
+									// 						workflow.put("trigger",{"workflow"});
+									// 						updatedropstatus = zoho.crm.updateRecord("Purchase_Orders",id.toLong(),update_status,workflow);
+									// 						info "updatedropstatus" + updatedropstatus;
+									// 						// 					posturl = "https://www.zohoapis.com/crm/v2/functions/update_sales_status_from_dropship/actions/execute?auth_type=apikey&zapikey=1003.84f6b88f042b49549074d50113dae2b6.276cb261a9b7531fe717d6f7d26c7d09&id=" + id;
+									// 						// 					res = postURL(posturl,"");
+									// 						// 					info "res:" + res;
+									// 						// 					drop_ship_map = Map();
+									// 						// 					drop_ship_map.put("sendtovendor",true);
+									// 						// 					update = zoho.crm.updateRecord("Purchase_Orders",id.toLong(),drop_ship_map);
+									// 						//Update Books Po Status
+									// 						// 					OrganizationID = "666840843";
+									// 						// 					getPO = zoho.books.getRecords("Purchaseorders",OrganizationID,"cf_crm_rec_id=" + id.toText());
+									// 						// 					if(getPO.getJSON("purchaseorders").size() > 0)
+									// 						// 					{
+									// 						// 						Books_po_id = getPO.getJSON("purchaseorders").getJSON("purchaseorder_id");
+									// 						// 						// 						response = invokeurl
+									// 						// 						// 						[
+									// 						// 						// 							url :"https://books.zoho.com/api/v3/purchaseorders/" + Books_po_id + "/status/open?organization_id=666840843"
+									// 						// 						// 							type :POST
+									// 						// 						// 							connection:"zoho_books_oauth2"
+									// 						// 						// 						];
+									// 						// 						// 						info response;
+									// 						// 					}
+									// 					}
+									//Commented ended by balaji on Mar- 17 2021
+									// 							return "The vendor email will be sent.";
+								}
+								else
+								{
+									return "Hi, " + zoho.loginuser + ". Unable to send dropship order PDF to vendor...";
+								}
+							}
+							else
+							{
+								return "Hi, " + zoho.loginuser + ". Test order send dropship order PDF to vendor has been restricted...";
+							}
+						}
+						else
+						{
+							return "No vendor email are associated with this dropship vendor name.";
+						}
+					}
+					else
+					{
+						// 			return "The one of the Line Items is have't available for PDF";
+						return "Product option visibility is NO in CRM; kindly update it to YES to send the DSO to the vendor.";
+					}
+				}
+				else
+				{
+					return "Hi, " + zoho.loginuser + ". This order already processed..., Please use Download PDF option ...";
+				}
+				// 				}
+				// 				else
+				// 				{
+				// 					return "Hi, " + zoho.loginuser + ". The EDI appears to be mismatched....Please correct the EDI error. Once it's fixed, the DSO will be sent to the vendor automatically.";
+				// 				}
+			}
+			else
+			{
+				return "Hi, " + zoho.loginuser + ".Sent to Vendor Mail is enabled...This mail will be sent by salesperson manually";
+			}
+		}
+		else
+		{
+			return "Hi, " + zoho.loginuser + ". This order was cancelled...";
+		}
+	}
+	else
+	{
+		Get_subject = getd.get("Subject");
+		Email_body = "<br> An order dated <b>" + Get_created_time + "</b> was attempted to send to the vendor. <br><br> Details are as follows:<br><br>Order ID: <b>" + Get_subject + "</b><br> Order created time: " + Get_created_time + "<br><br> SO link: https://crm.zoho.com/crm/org663942562/tab/SalesOrders/" + getd.get("Sales_Order").get("id") + "<br> DSO link: https://crm.zoho.com/crm/org663942562/tab/PurchaseOrders/" + id + "<br><br>Date & Time of attempt: " + zoho.currenttime + "<br>User:<b> " + zoho.loginuser + "</b><br><br> Please check and review. <br><br>Thank you";
+		mailmap = Map();
+		mailmap.put("to",{"balaji@bizappln.com"});
+		// 		mailmap.put("cc",{"anthony@bestaccessdoors.com","citrigno@bestaccessdoors.com"});
+		// 		mailmap.put("bcc",{"tharmendheran@bizappln.com","balaji@bizappln.com","ezhil@bizappln.com"});
+		mailmap.put("scope","Droship Notify");
+		mailmap.put("subject","A past order has been attempted to be sent to the vendor.");
+		mailmap.put("body",Email_body);
+		mailres = postURL("https://1.door-pay.com/api/Office360Mail/sendreq",mailmap,header_map);
+		DataMap = Map();
+		DataMap.put("Status","Not Started");
+		DataMap.put("Priority","High");
+		// 		DataMap.put("Due_Date",zoho.currentdate.addDay(1));3106252000026453004
+		DataMap.put("Subject","Past order attempted to be sent to vendor");
+		DataMap.put("Owner",3106252000000147013);
+		DataMap.put("$se_module","Purchase_Orders");
+		DataMap.put("What_Id",id.toLong());
+		DataMap.put("Who_Id",getd.get("Contact_Name").get("id").toLong());
+		DataMap.put("Description","Order attempted to be sent by " + zoho.loginuser + ". Please check order for verification purposes.");
+		TaskData = zoho.crm.createRecord("Tasks",DataMap);
+		info TaskData;
+		DataMap.put("Owner",3106252000328931027);
+		TaskData = zoho.crm.createRecord("Tasks",DataMap);
+		info TaskData;
+		DataMap.put("Owner",3106252001418902001);
+		TaskData = zoho.crm.createRecord("Tasks",DataMap);
+		info TaskData;
+		return "Hi, " + zoho.loginuser + ". This order was created before 10 days. Hence, it can't be sent!!";
+	}
+}
+else
+{
+	update_map = Map();
+	update_map.put("MCF_order_not_sent_to_vendor",true);
+	update_dso = zoho.crm.updateRecord("Purchase_Orders",id.toLong(),update_map);
+	info update_dso;
+	return "Hi, " + zoho.loginuser + ". This is an MCF order. Hence, it can't be sent to vendor!!";
+}
+}

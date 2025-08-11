@@ -1,0 +1,218 @@
+string standalone.Highrise_Accounts_Owner_Sync()
+{
+/* Created By prashanth on feb-2020 */
+/* Data Sync from highrise to zoho  */
+// currently not in use
+//---------------------------------------------
+//Account Update in CRM
+Get_schedule_records = zoho.crm.getRecordById("Tag_syncing_schedule",3106252000083158020);
+get_schedule_records_map = Get_schedule_records.tomap();
+Get_offset = get_schedule_records_map.get("Name");
+Get_function_execution_count = get_schedule_records_map.get("Function_Execution");
+function_execution_count = Get_function_execution_count.tolong();
+Offset_val = Get_offset.tolong();
+highrisecontactsUrl = "https://bestaccessdoors.highrisehq.com/companies.xml?n=" + Offset_val;
+headers = Map();
+headers.put("Authorization","Basic OWZiYjY1ODg2NWY5MTUyODlmN2U5ZDNiM2E3MWNkYmI6WA==");
+Get_companies = getUrl(highrisecontactsUrl,headers);
+highrisecompanieslist = Get_companies.executeXPath("companies/company").toXmlList();
+userlist = List();
+userlist.add({"name":"Fern Citrigno","crm_id":3106252000000152052,"hr_id":"1082383"});
+userlist.add({"name":"Rheanne Trottier","crm_id":3106252000024509019,"hr_id":"1382762"});
+userlist.add({"name":"Kristopher Clark","crm_id":3106252000058241283,"hr_id":"1414362"});
+userlist.add({"name":"Marko Savic","crm_id":3106252000037668001,"hr_id":"1406845"});
+userlist.add({"name":"Deborah Warner","crm_id":3106252000045664001,"hr_id":"1411870"});
+userlist.add({"name":"Christie Best","crm_id":3106252000025726001,"hr_id":"1395960"});
+userlist.add({"name":"Emma Burns","crm_id":3106252000025727001,"hr_id":"1382543"});
+userlist.add({"name":"Carlo  Citrigno","crm_id":3106252000000147013,"hr_id":"937881"});
+userlist.add({"name":"Franz Perez","crm_id":3106252000000147013,"hr_id":"1039649"});
+// no user found so using carlo as suggested by anthony
+userlist.add({"name":"Anthony La Rocca","crm_id":3106252000000147711,"hr_id":"1254582"});
+userlist.add({"name":"Chesia Melisa","crm_id":3106252000000152046,"hr_id":"1262788"});
+Count_val = 0;
+for each  rec in highrisecompanieslist
+{
+	Get_account_name = ifnull(rec.executeXPath("company/name/text()"),"");
+	Get_author_id = ifnull(rec.executeXPath("company/author-id/text()"),"");
+	Get_highrise_company_id = ifnull(rec.executeXPath("company/id/text()"),"");
+	info Get_highrise_company_id;
+	if(Get_account_name != "")
+	{
+		get_crm_contact = zoho.crm.searchRecords("Accounts","(Account_Name:equals:" + Get_account_name + ")and(Highrise_Update:equals:false)");
+	}
+	if(!get_crm_contact.isEmpty() && get_crm_contact.size() == 1 && Get_account_name != "")
+	{
+		Get_crm_contact_map = get_crm_contact.tomap();
+		Get_crm_contact_id = Get_crm_contact_map.get("id");
+		Get_crm_owner_id = "";
+		for each  rec_id in userlist
+		{
+			if(rec_id.containvalue(Get_author_id))
+			{
+				Get_crm_owner_id = rec_id.get("crm_id");
+			}
+		}
+		if(Get_crm_owner_id == "")
+		{
+			highrisetaskUrl = "https://bestaccessdoors.highrisehq.com/companies/" + Get_highrise_company_id + "/tasks.xml";
+			headers = Map();
+			headers.put("Authorization","Basic OWZiYjY1ODg2NWY5MTUyODlmN2U5ZDNiM2E3MWNkYmI6WA==");
+			highRisetasks = getUrl(highrisetaskUrl,headers);
+			highrisetaskslist = highRisetasks.executeXPath("tasks/task").toXmlList();
+			Get_list_count = highrisetaskslist.size();
+			Get_latest_task = ifnull(highRisetasks.executeXPath("tasks/task[1]/author-id/text()"),"");
+			if(Get_latest_task != "")
+			{
+				for each  rec_id in userlist
+				{
+					if(rec_id.containvalue(Get_latest_task))
+					{
+						Get_crm_owner_id = rec_id.get("crm_id");
+					}
+				}
+			}
+			else
+			{
+				highrisenotesUrl = "https://bestaccessdoors.highrisehq.com/companies/" + Get_highrise_company_id + "/notes.xml";
+				headers = Map();
+				headers.put("Authorization","Basic OWZiYjY1ODg2NWY5MTUyODlmN2U5ZDNiM2E3MWNkYmI6WA==");
+				highRisenotes = getUrl(highrisenotesUrl,headers);
+				highrisenoteslist = highRisenotes.executeXPath("notes/note").toXmlList();
+				Get_notes_list_count = highrisenoteslist.size();
+				Get_latest_note = ifnull(highRisenotes.executeXPath("notes/note[1]/author-id/text()"),"");
+				if(Get_latest_note != "")
+				{
+					for each  rec_id in userlist
+					{
+						if(rec_id.containvalue(Get_latest_note))
+						{
+							Get_crm_owner_id = rec_id.get("crm_id");
+						}
+					}
+				}
+			}
+			if(Get_crm_owner_id == "")
+			{
+				Get_crm_owner_id = 3106252000000147013;
+			}
+		}
+		Contact_Update_Map = Map();
+		Contact_Update_Map.put("Owner",Get_crm_owner_id);
+		// 		Get_contacts_mobile = ifnull(rec.executeXPath("company/contact-data/phone-numbers/phone-number[1]/number/text()"),"");
+		Get_contacts_phone = ifnull(rec.executeXPath("company/contact-data/phone-numbers/phone-number[2]/number/text()"),"");
+		Get_contacts_phone2 = ifnull(rec.executeXPath("company/contact-data/phone-numbers/phone-number[3]/number/text()"),"");
+		Get_contacts_phone3 = ifnull(rec.executeXPath("company/contact-data/phone-numbers/phone-number[4]/number/text()"),"");
+		if(Get_contacts_phone != "")
+		{
+			Contact_Update_Map.put("Additional_Phone_1",Get_contacts_phone);
+		}
+		if(Get_contacts_phone2 != "")
+		{
+			Contact_Update_Map.put("Additional_Phone_2",Get_contacts_phone2);
+		}
+		if(Get_contacts_phone3 != "")
+		{
+			Contact_Update_Map.put("Additional_Phone_3",Get_contacts_phone3);
+		}
+		CRM_Tag_list = List();
+		//Update Tags in Contacts
+		Get_contacts_tags_id_first = ifnull(rec.executeXPath("company/tags/tag[1]/id/text()"),"");
+		Get_contacts_tags_id_second = ifnull(rec.executeXPath("company/tags/tag[2]/id/text()"),"");
+		Get_contacts_tags_id_third = ifnull(rec.executeXPath("company/tags/tag[3]/id/text()"),"");
+		Get_contacts_tags_id_fourth = ifnull(rec.executeXPath("company/tags/tag[4]/id/text()"),"");
+		Get_contacts_tags_id_fifth = ifnull(rec.executeXPath("company/tags/tag[5]/id/text()"),"");
+		Get_contacts_tags_id_sixth = ifnull(rec.executeXPath("company/tags/tag[6]/id/text()"),"");
+		Get_contacts_tags_id_seventh = ifnull(rec.executeXPath("company/tags/tag[7]/id/text()"),"");
+		if(Get_contacts_tags_id_first != "")
+		{
+			first_Tag_id_search = zoho.crm.searchRecords("Highrise_Tags","(Highrise_Tag_Id:equals:" + Get_contacts_tags_id_first + ")");
+			if(!first_Tag_id_search.isEmpty())
+			{
+				first_Tag_id_map = first_Tag_id_search.tomap();
+				Contact_Update_Map.put("Tag_Name_1",first_Tag_id_map.get("id"));
+			}
+		}
+		if(Get_contacts_tags_id_second != "")
+		{
+			second_Tag_id_search = zoho.crm.searchRecords("Highrise_Tags","(Highrise_Tag_Id:equals:" + Get_contacts_tags_id_second + ")");
+			if(!second_Tag_id_search.isEmpty())
+			{
+				second_Tag_id_map = second_Tag_id_search.tomap();
+				Contact_Update_Map.put("Tag_Name_2",second_Tag_id_map.get("id"));
+			}
+		}
+		if(Get_contacts_tags_id_third != "")
+		{
+			third_Tag_id_search = zoho.crm.searchRecords("Highrise_Tags","(Highrise_Tag_Id:equals:" + Get_contacts_tags_id_third + ")");
+			if(!third_Tag_id_search.isEmpty())
+			{
+				Third_Tag_id_map = third_Tag_id_search.tomap();
+				Contact_Update_Map.put("Tag_Name_3",Third_Tag_id_map.get("id"));
+			}
+		}
+		if(Get_contacts_tags_id_fourth != "")
+		{
+			fourth_Tag_id_search = zoho.crm.searchRecords("Highrise_Tags","(Highrise_Tag_Id:equals:" + Get_contacts_tags_id_fourth + ")");
+			if(!fourth_Tag_id_search.isEmpty())
+			{
+				fourth_Tag_id_map = fourth_Tag_id_search.tomap();
+				CRM_Tag_list.add(fourth_Tag_id_map.get("id"));
+			}
+		}
+		if(Get_contacts_tags_id_fifth != "")
+		{
+			fifth_Tag_id_search = zoho.crm.searchRecords("Highrise_Tags","(Highrise_Tag_Id:equals:" + Get_contacts_tags_id_fifth + ")");
+			if(!fifth_Tag_id_search.isEmpty())
+			{
+				fifth_Tag_id_map = fifth_Tag_id_search.tomap();
+				CRM_Tag_list.add(fifth_Tag_id_map.get("id"));
+			}
+		}
+		if(Get_contacts_tags_id_sixth != "")
+		{
+			sixth_Tag_id_search = zoho.crm.searchRecords("Highrise_Tags","(Highrise_Tag_Id:equals:" + Get_contacts_tags_id_sixth + ")");
+			if(!sixth_Tag_id_search.isEmpty())
+			{
+				sixth_Tag_id_map = sixth_Tag_id_search.tomap();
+				CRM_Tag_list.add(sixth_Tag_id_map.get("id"));
+			}
+		}
+		if(Get_contacts_tags_id_seventh != "")
+		{
+			seventh_Tag_id_search = zoho.crm.searchRecords("Highrise_Tags","(Highrise_Tag_Id:equals:" + Get_contacts_tags_id_seventh + ")");
+			if(!seventh_Tag_id_search.isEmpty())
+			{
+				seventh_Tag_id_map = seventh_Tag_id_search.tomap();
+				CRM_Tag_list.add(seventh_Tag_id_map.get("id"));
+			}
+		}
+		if(CRM_Tag_list.size() > 0)
+		{
+			Contact_Update_Map.put("Additional_Tags",CRM_Tag_list);
+		}
+		info Contact_Update_Map;
+		// 			Update_crm_contact = zoho.crm.updateRecord("Accounts",Get_crm_contact_id,Contact_Update_Map);
+		// 			info Update_crm_contact;
+		Count_val = Count_val + 1;
+		if(Count_val == 150)
+		{
+			break;
+		}
+	}
+}
+//Update scheduler
+if(function_execution_count >= 50)
+{
+	Offset_val = Offset_val + 500;
+	function_execution_count = 0;
+}
+else
+{
+	function_execution_count = function_execution_count + 1;
+}
+scheduler_update_map = Map();
+scheduler_update_map.put("Name",Offset_val.tostring());
+scheduler_update_map.put("Function_Execution",function_execution_count.tostring());
+Update_scheduler_map = zoho.crm.updateRecord("Tag_syncing_schedule",3106252000083158020,scheduler_update_map);
+return "";
+}

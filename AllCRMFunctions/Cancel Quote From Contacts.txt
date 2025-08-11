@@ -1,0 +1,4 @@
+string button.Cancel_Quote_From_Contacts(String Quote_Id)
+{
+return Quote_Id;
+}

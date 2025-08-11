@@ -1,0 +1,129 @@
+void automation.sumTimes(Int id)
+{
+//zoho people tokens map, for every employee provide email and then token egenrated under their account
+tokensMap = Map();
+tokensMap.put("marcjason@bestaccessdoors.com","7ab305ebfd8db94ef4d5ff0cc46bcb04");
+tokensMap.put("anthony@bestaccessdoors.com","4560742d1708e8398c279a7d5fbf4823");
+/////////////////////
+work_time = 0;
+Break_Time = 0;
+meetings_time = 0;
+full_entry = zoho.crm.getRecordById("Time_Entries_for_Employe",id);
+info full_entry;
+for each  one_time in full_entry.get("Time_stamps")
+{
+	if(one_time.get("Type_of_time") == "Break")
+	{
+		Break_Time = Break_Time + ifnull(one_time.get("Break_Time"),0);
+	}
+	else
+	{
+		if(one_time.get("Type_of_time") == "Work")
+		{
+			work_time = work_time + ifnull(one_time.get("Time_working"),0);
+			last_checkout = one_time.get("End");
+		}
+		else
+		{
+			meetings_time = meetings_time + ifnull(one_time.get("Time_working"),0);
+		}
+	}
+}
+updMap = Map();
+updMap.put("Working_Time_in_minutes",work_time);
+updMap.put("Break_Time_in_minutes",Break_Time);
+updMap.put("Last_Logout",last_checkout);
+updMap.put("Meeting_and_Other_minutes",meetings_time);
+//upd = zoho.crm.updateRecord("Time_Entries_for_Employe",id,updMap,{"trigger":{"workflow","blueprint","approval"}});
+upd = zoho.crm.updateRecord("Time_Entries_for_Employe",id,updMap,{"trigger":{"workflow","blueprint","approval"}});
+//info upd;
+info work_time;
+info Break_Time;
+userTypeMap = Map();
+userTypeMap.put("type","ActiveUsers");
+response = zoho.crm.invokeConnector("crm.getusers",userTypeMap);
+users = response.get("response").get("users");
+for each  user in users
+{
+	if(full_entry.get("Employee").get("id") = user.get("id"))
+	{
+		allowed_break = user.get("Allowed_Break_Time_in_minutes");
+		user_email = user.get("email");
+		full_name = user.get("full_name");
+		info user_email;
+		info full_name;
+		//info user;
+	}
+}
+// if(Break_Time > allowed_break)
+// {
+//info "break too long";
+if(Break_Time > 45)
+{
+	recipientList = List();
+	recipientList.add("anthony@bestaccessdoors.com");
+	recipientList.add("citrigno@bestaccessdoors.com");
+	break_diff = Break_Time - 45;
+	//break_diff = Break_Time - allowed_break;
+	link_to_record = "https://crm.zoho.com/crm/org692773355/tab/CustomModule20/" + id;
+	// 	sendmail
+	// 	[
+	// 		from :zoho.adminuserid
+	// 		to :recipientList
+	// 		subject :"Over Break Limit, " + full_name + " went " + break_diff + " mins over break today"
+	// 		message :"" + link_to_record + "<br>"
+	// 	]
+}
+//3106252000056064003
+entry_id = id.toLong();
+//token = "7ab305ebfd8db94ef4d5ff0cc46bcb04";
+full_entry = zoho.crm.getRecordById("Time_Entries_for_Employe",entry_id);
+employe_id = full_entry.get("Employee").get("id");
+info employe_id;
+search = zoho.crm.searchRecords("users","id:equals:" + employe_id);
+id = search.get("users").get(0).get("email");
+token = tokensMap.get(id);
+dateFormat = "yyyy-MM-dd HH:mm:ss";
+counter = 1;
+for each  one_time in full_entry.get("Time_stamps")
+{
+	info one_time.get("Type_of_time");
+	start = one_time.get("Start").subString(0,19).replaceAll("T"," ");
+	info start;
+	if(one_time.get("End") != null)
+	{
+		end = one_time.get("End").subString(0,19).replaceAll("T"," ");
+	}
+	else
+	{
+		end = null;
+	}
+	if(one_time.get("Type_of_time") != "Work" && end != null)
+	{
+		type = one_time.get("Type_of_time");
+		info type;
+		Note = one_time.get("Note");
+		info "NOTE:________ " + Note;
+		url = "https://people.zoho.com/api/attendance/addBreakEntry";
+		par = "?authtoken=" + token + "&dateFormat=" + dateFormat + "&fromTime=" + start + "&toTime=" + end + "&emailId=" + id + "&breakName=" + type + "&breakStart_Notes=" + Note;
+		urlll = url + par;
+		g = getUrl(urlll);
+		info g;
+	}
+	if(one_time.get("Type_of_time") = "Work")
+	{
+		url = "https://people.zoho.com/people/api/attendance";
+		par = "?authtoken=" + token + "&dateFormat=" + dateFormat + "&checkIn=" + start + "&emailId=" + id;
+		urlll = url + par;
+		g = getUrl(urlll);
+		info g;
+		if(end != null)
+		{
+			par = "?authtoken=" + token + "&dateFormat=" + dateFormat + "&checkOut=" + end + "&emailId=" + id;
+			urlll = url + par;
+			g = getUrl(urlll);
+		}
+	}
+	counter = counter + 1;
+}
+}

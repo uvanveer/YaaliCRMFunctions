@@ -1,0 +1,54 @@
+string standalone.testingg(Int POID)
+{
+getPO = zoho.crm.getRecordById("Purchase_Orders",POID);
+getsoID = getPO.getJSON("Sales_Order").get("id");
+if(getsoID != Null)
+{
+	getSO = zoho.crm.getRecordById("Sales_Orders",getsoID);
+	getquoteID = getSO.getJSON("Sales_Quote_number");
+	if(getquoteID != NULL)
+	{
+		GetID = getquoteID.get("id");
+		getquotedetails = zoho.crm.getRecordById("Quotes",GetID);
+		getdeal = getquotedetails.getJSON("Deal_Name");
+		if(getdeal != NULL)
+		{
+			getdealID = getdeal.get("id");
+			getdealdetails = zoho.crm.getRecordById("Deals",getdealID);
+			getSO_ID = getdealdetails.getJSON("Sales_Order_ID").get("id");
+			searchrecords = zoho.crm.getRelatedRecords('Dropship_Orders','Sales_Orders',getSO_ID);
+			if(searchrecords.size() > 0)
+			{
+				info "More than one DSO";
+				update = list();
+				for each  dropshipInfo in searchrecords.toList()
+				{
+					getstatus = dropshipInfo.get("Status");
+					if(getstatus == "Sent to Dropshippers" || getstatus == "Shipped")
+					{
+						getPOnumber = dropshipInfo.get("Dropship_Number");
+						update.add(getPOnumber);
+					}
+				}
+				updatePO = Map();
+				updatePO.put("PO_number",update.toString());
+				updateres = zoho.crm.updateRecord("Deals",getdealID,updatePO,{"trigger":{}});
+				info updateres;
+			}
+		}
+		else
+		{
+			info "deal not found";
+		}
+	}
+	else
+	{
+		info "Quote not found";
+	}
+}
+else
+{
+	info "No sales order found for this DSO";
+}
+return "";
+}

@@ -1,0 +1,4 @@
+void automation.DeleteGermany(Int accountid)
+{
+delResp = zoho.crm.invokeConnector("crm.delete",Map:String({"module":"Accounts","id":accountid}));
+}

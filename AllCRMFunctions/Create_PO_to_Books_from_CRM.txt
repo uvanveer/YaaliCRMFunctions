@@ -1,0 +1,817 @@
+void automation.Create_PO_to_Books_from_CRM(Int id)
+{
+// id = 3106252000047226889;
+result_map = Map();
+OrganizationID = "666840843";
+getdropshiporder = zoho.crm.getRecordById("Purchase_Orders",id);
+// info getdropshiporder;
+Get_salesorder_subject = getdropshiporder.get("Sales_Order").get("name");
+//info "salesorder_subject:" + Get_salesorder_subject;
+getsaleorder = zoho.crm.getRecordById("Sales_Orders",getdropshiporder.get("Sales_Order").get("id"));
+//info "getsaleorder:" + getsaleorder;
+items = getdropshiporder.get("Product_Details");
+dropNo = getdropshiporder.get("Dropship_Number");
+Get_Owner = getdropshiporder.get("Owner").get("name");
+salesorder = getdropshiporder.get("Sales_Order").get("id");
+Confirmation_Number = ifnull(getdropshiporder.get("Confirmation_Number"),"");
+//info "confrm_number: "+Confirmation_Number ;
+Subject_from_DRO = ifnull(getdropshiporder.get("Subject"),"");
+//info "subject: "+Subject_from_DRO ;
+Vendor_Notes_Description = ifnull(getdropshiporder.get("Description"),"");
+//info "vendor_notes_descrptn: "+Vendor_Notes_Description ;
+Staff_Notes = ifnull(getdropshiporder.get("Staff_Notes"),"");
+//info "staff_notes: "+Staff_Notes ;
+Saleswarp_Number = ifnull(getdropshiporder.get("DS_Number"),"");
+//info "saleswarp_number: "+Saleswarp_Number ;
+Comments = ifnull(getdropshiporder.get("Comments"),"");
+//info "Comments: "+Comments ;
+SO_from_vendor = ifnull(getdropshiporder.get("Sales_Order").get("name"),"");
+//info "SO_from_vendor: "+SO_from_vendor;
+Exchange_Rate = ifnull(getdropshiporder.get("Exchange_Rate"),"");
+//info "Exchange_Rate: "+Exchange_Rate ;
+Currency = ifnull(getdropshiporder.get("Currency"),"");
+//info "Currency: "+Currency ;
+Previous_Exchange_Rate = ifnull(getdropshiporder.get("Previous_Exchange_Rate"),"");
+//info "Previous_exchange_rate: "+Previous_Exchange_Rate ;
+productlist = List();
+vendor = 0;
+counter = 0;
+createDropship = true;
+verifyCoaResponseList = List();
+for each  singleitem in items
+{
+	crm_itemid = singleitem.get("product").get("id");
+	// 	info "Product CRM ID : " + crm_itemid;
+	productmap = Map();
+	bk_itm = zoho.books.getRecords("Items",OrganizationID,"cf_crmrecorid=" + crm_itemid.toText());
+	if(bk_itm.get("items").size() > 0)
+	{
+		item = bk_itm.get("items");
+		productmap.put("item_id",item.getJSON("item_id"));
+		productmap.put("name",item.getJSON("name"));
+		productmap.put("quantity",singleitem.get("quantity"));
+		productmap.put("rate",singleitem.get("list_price"));
+		productmap.put("description",singleitem.get("product_description"));
+		productlist.add(productmap);
+		// Verify Books DSO - COA
+		verifyUrl = "https://1.door-pay.com/api/zohobooks/verify/coa?crmProductId=" + crm_itemid + "&booksProductId=" + item.getJSON("item_id") + "&crmDropshipId=" + id;
+		booksDsoRes = invokeurl
+		[
+			url :verifyUrl
+			type :POST
+		];
+		// 		info "Verify Coa response" + booksDsoRes;
+		booksDsoRes = booksDsoRes.toMap();
+		booksDsoRes.put("crmProductId",crm_itemid);
+		booksDsoRes.put("booksProductId",item.getJSON("item_id"));
+		verifyCoaResponseList.add(booksDsoRes);
+		if(booksDsoRes.get("code") == 500)
+		{
+			createDropship = false;
+			// break;
+		}
+	}
+	else
+	{
+		// 	create new Item
+		crmData = zoho.crm.getRecordById("Products",crm_itemid);
+		item_Namesrt = crmData.get("Product_Name");
+		Vendor_Name = crmData.get("Vendor_Name").get("name");
+		srorename = crmData.get("Store").get("name");
+		if(!isNull(crmData.get("Bigcommerce_Unique_ID")))
+		{
+			item_Name = item_Namesrt + "_" + crmData.get("Bigcommerce_Unique_ID") + "@" + srorename;
+		}
+		else
+		{
+			item_Name = item_Namesrt + "_" + Get_salesorder_subject + "@" + srorename;
+		}
+		Item_name_len = item_Name.len();
+		//info Item_name_len;
+		if(Item_name_len > 200)
+		{
+			item_Name = item_Name.subString(0,200);
+		}
+		// 		item_Name = item_Namesrt + "@" + srorename;
+		if(!isNull(crmData.get("Bigcommerce_Unique_ID")))
+		{
+			sku = crmData.get("Product_Code") + "_" + crmData.get("Bigcommerce_Unique_ID") + "@" + srorename;
+		}
+		else
+		{
+			sku = crmData.get("Product_Code") + "_" + Get_salesorder_subject + "@" + srorename;
+		}
+		Vendor_SKU = crmData.get("Vendor_SKU");
+		Unit_Price = crmData.get("Unit_Price");
+		Cost_Price = crmData.get("Cost_Price");
+		Sales_Price = crmData.get("Sale_Price");
+		Tax = crmData.get("Tax");
+		Total_Profit = crmData.get("Total_Profit");
+		Image1 = ifnull(crmData.get("Image1"),"");
+		Dropship_Print = ifnull(crmData.get("Dropship_Print"),"");
+		dataMapForBooks = Map();
+		dataMapForBooks.put("sku",sku);
+		dataMapForBooks.put("name",item_Name);
+		dataMapForBooks.put("rate",crmData.get("Unit_Price"));
+		dataMapForBooks.put("purchase_rate",crmData.get("Cost_Price"));
+		dataMapForBooks.put("item_type","sales_and_purchases");
+		Customfield_list = List();
+		customFieldMap1 = Map();
+		customFieldMap1.put("label","Vendor Name");
+		customFieldMap1.put("value",Vendor_Name);
+		customFieldMap2 = Map();
+		customFieldMap2.put("label","Height");
+		customFieldMap2.put("value",ifnull(crmData.get("Height"),""));
+		customFieldMap3 = Map();
+		customFieldMap3.put("label","Unit Price");
+		customFieldMap3.put("value",Unit_Price.toString());
+		customFieldMap4 = Map();
+		customFieldMap4.put("label","CRMRecorID");
+		customFieldMap4.put("value",crmData.get("id"));
+		customFieldMap5 = Map();
+		customFieldMap5.put("label","Retail Price");
+		customFieldMap5.put("value",crmData.get("Retail_Price"));
+		customFieldMap6 = Map();
+		customFieldMap6.put("label","Brand Name");
+		customFieldMap6.put("value",ifnull(crmData.get("Manufacturer"),""));
+		customFieldMap7 = Map();
+		customFieldMap7.put("label","Width");
+		customFieldMap7.put("value",ifnull(crmData.get("Width"),""));
+		customFieldMap8 = Map();
+		customFieldMap8.put("label","Product Type");
+		customFieldMap8.put("value",ifnull(crmData.get("Product_type"),""));
+		customFieldMap9 = Map();
+		customFieldMap9.put("label","Item_Name");
+		customFieldMap9.put("value",item_Namesrt);
+		customFieldMap10 = Map();
+		customFieldMap10.put("label","Bigcommerce Store Name");
+		customFieldMap10.put("value",ifnull(crmData.get("Store").get("name"),""));
+		customFieldMap11 = Map();
+		customFieldMap11.put("label","BigCommerce Unique ID");
+		customFieldMap11.put("value",ifnull(crmData.get("Bigcommerce_Unique_ID"),""));
+		customFieldMap12 = Map();
+		customFieldMap12.put("label","Bigcommerce ID");
+		customFieldMap12.put("value",ifnull(crmData.get("Bigcommerce_ID"),""));
+		customFieldMap13 = Map();
+		customFieldMap13.put("label","Vendor SKU");
+		customFieldMap13.put("value",ifnull(Vendor_SKU,""));
+		customFieldMap14 = Map();
+		customFieldMap14.put("label","Product SKU");
+		customFieldMap14.put("value",ifnull(crmData.get("Product_Code"),""));
+		Customfield_list.add(customFieldMap1);
+		Customfield_list.add(customFieldMap2);
+		Customfield_list.add(customFieldMap3);
+		Customfield_list.add(customFieldMap4);
+		Customfield_list.add(customFieldMap5);
+		Customfield_list.add(customFieldMap6);
+		Customfield_list.add(customFieldMap7);
+		Customfield_list.add(customFieldMap8);
+		Customfield_list.add(customFieldMap9);
+		Customfield_list.add(customFieldMap10);
+		Customfield_list.add(customFieldMap11);
+		Customfield_list.add(customFieldMap12);
+		Customfield_list.add(customFieldMap13);
+		Customfield_list.add(customFieldMap14);
+		dataMapForBooks.put("custom_fields",Customfield_list);
+		//info "create_New_Item:" + dataMapForBooks;
+		createitem = zoho.books.createRecord("Items",OrganizationID,dataMapForBooks);
+		// 		info "createitemrespones:" + createitem;
+		item = createitem.get("item");
+		//info "Product Not Exits in Books";
+		// 		info "Product Quantity:" + singleitem.get("quantity");
+		productmap.put("item_id",item.get("item_id"));
+		productmap.put("name",item.get("name"));
+		productmap.put("quantity",singleitem.get("quantity"));
+		productmap.put("rate",singleitem.get("list_price"));
+		productlist.add(productmap);
+	}
+	counter = counter + 1;
+}
+result_map.put("product_list",verifyCoaResponseList);
+// createDropship = false;
+if(createDropship)
+{
+	// info "counter" + counter;
+	//info "productlist" + productlist;
+	storeName = getdropshiporder.get("Store").get("name");
+	store_id = getdropshiporder.get("Store").get("id");
+	Get_orderstore_details = zoho.crm.getRecordById("Stores",store_id);
+	// info "Get_orderstore_details" + Get_orderstore_details;
+	Get_store_currency = Get_orderstore_details.get("Currency");
+	refrence = storeName.replaceAll("_","") + "-" + getdropshiporder.get("Subject");
+	//get vendor id
+	vendor = getdropshiporder.get("Vendor_Name").get("name");
+	vendor_crm_id = getdropshiporder.get("Vendor_Name").get("id");
+	// info vendor;
+	//Temp code this snippet has to be removed after cleaning up of duplicate contact in zoho CRM - Starting
+	get_vendor = zoho.crm.getRecordById("Vendors",vendor_crm_id);
+	// info get_vendor;
+	master_vendor_flag = get_vendor.get("Master_Vendor");
+	if(master_vendor_flag == false)
+	{
+		//info "Getting Master Vendor Details";
+		Master_Vendor_ID = get_vendor.get("Master_Vendor_ID");
+		get_master_vendor = zoho.crm.getRecordById("Vendors",Master_Vendor_ID);
+		if(Master_Vendor_ID != null)
+		{
+			vendor = get_master_vendor.get("Vendor_Name");
+		}
+	}
+	//Temp code this snippet has to be removed after cleaning up of duplicate contact in zoho CRM - Starting
+	vendor_encode = zoho.encryption.urlEncode(vendor);
+	vendor_id = "";
+	getvendor = zoho.books.getRecords("Contacts",OrganizationID,"contact_name=" + vendor_encode);
+	// info "getvendor" + getvendor;
+	getvendorfirst = getvendor;
+	if(getvendor.getJSON("code") == 0)
+	{
+		if(getvendor.getJSON("contacts").size() > 0)
+		{
+			for each  rec_vendor in getvendor.getJSON("contacts")
+			{
+				rec_vendor = rec_vendor.toMap();
+				Get_customer_type = rec_vendor.get("contact_type");
+				if(Get_customer_type == "vendor")
+				{
+					if(rec_vendor.getJSON("custom_field_hash").get("cf_master_vendor_id") != null)
+					{
+						getvendor = zoho.books.getRecords("Contacts",OrganizationID,"cf_crm_contact_id=" + vendor_crm_id);
+						vendor_id = rec_vendor.getJSON("contact_id");
+						// info "master vendor_id" + vendor_id;
+					}
+					else
+					{
+						vendor_id = rec_vendor.getJSON("contact_id");
+						// info "vendor_id" + vendor_id;
+					}
+				}
+			}
+			// 	info get_vendor.get("contacts").get(0).get("currency_code");
+		}
+		else if(vendor_id == "")
+		{
+			getvendor = zoho.books.getRecords("Contacts",OrganizationID,"cf_crm_contact_id=" + vendor_crm_id);
+			//info getvendor;
+			if(getvendor.getJSON("contacts").size() > 0)
+			{
+				vendor_id = getvendor.getJSON("contacts").getJSON("contact_id");
+			}
+			else
+			{
+				createvendor = Map();
+				createvendor.put("contact_name",vendor);
+				createvendor.put("last_name",vendor);
+				createvendor.put("contact_type","vendor");
+				createvendor.put("customer_sub_type","business");
+				createvendor.put("has_transaction",true);
+				createvendor.put("currency_code",getdropshiporder.get("Currency"));
+				createvendor.put("sales_channel","direct_sales");
+				createvendor.put("notes","direct_sales");
+				custom_fieldsmap = Map();
+				custom_fieldsmap.put("label","Crm Contact id");
+				custom_fieldsmap.put("value",vendor_crm_id);
+				createvendor.put("custom_fields",custom_fieldsmap.toList());
+				// 		info "createvendor" + createvendor;
+				getvendor = createvendor;
+				createvendor_res = zoho.books.createRecord("Contacts",OrganizationID,createvendor);
+				//	info "createvendor_res" + createvendor_res;
+				vendor_id = createvendor_res.get("contact").get("contact_id");
+			}
+		}
+	}
+	else
+	{
+		get_crm_vendor = zoho.crm.getRecordById("Vendors",vendor_crm_id);
+		get_crm_vendor_keys = get_crm_vendor.keys();
+		if(!get_crm_vendor_keys.contains("status"))
+		{
+			vendor_id = get_crm_vendor.get("ZBooksRecId");
+		}
+	}
+	//info "getvendor:" + vendor_id;
+	//get Customer id
+	if(getdropshiporder.get("Contact_Name") == null)
+	{
+		// info "Failed to Create PO in Books";
+	}
+	else
+	{
+		customerId = getdropshiporder.get("Contact_Name").get("id");
+		customer_id = "";
+		customer_address_id = "";
+		Get_shipping_phone = getdropshiporder.get("Shipping_Phone");
+		if(Get_shipping_phone.contains("-") == false)
+		{
+			Shipping_phone_makelist = Get_shipping_phone.toList(" ");
+			Shipping_phone_size = Shipping_phone_makelist.size();
+			Shipping_phone = "";
+			Count = 0;
+			for each  rec_phone in Shipping_phone_makelist
+			{
+				if(rec_phone.length() == 10)
+				{
+					First_Shipping_phone = rec_phone.mid(0,3);
+					Second_Shipping_Phone = rec_phone.mid(3,6);
+					Third_Shipping_Phone = rec_phone.mid(6,10);
+					if(Shipping_phone != "")
+					{
+						Shipping_phone = Shipping_phone + " " + First_Shipping_phone + "-" + Second_Shipping_Phone + "-" + Third_Shipping_Phone;
+					}
+					else
+					{
+						Shipping_phone = First_Shipping_phone + "-" + Second_Shipping_Phone + "-" + Third_Shipping_Phone;
+					}
+				}
+				else
+				{
+					if(Shipping_phone == "")
+					{
+						Shipping_phone = rec_phone;
+					}
+					else
+					{
+						Shipping_phone = Shipping_phone + " " + rec_phone;
+					}
+				}
+			}
+		}
+		else
+		{
+			Shipping_phone = Get_shipping_phone;
+		}
+		if(Shipping_phone == "")
+		{
+			Shipping_phone = Get_shipping_phone;
+		}
+		getcuctomer = zoho.books.getRecords("Contacts",OrganizationID,"cf_crm_contact_id=" + customerId.toText());
+		// 		info "getcustomer" + getcuctomer;
+		if(getcuctomer.getJSON("contacts").size() > 0)
+		{
+			Books_customer_id = getcuctomer.getJSON("contacts").getJSON("contact_id");
+			getcuctomer_details_with_id = zoho.books.getRecordsByID("Contacts",OrganizationID,Books_customer_id);
+			// 			info getcuctomer_details_with_id;
+			Get_books_customerdetails = getcuctomer_details_with_id.get("contact").get("currency_code");
+			if(Get_books_customerdetails == Get_store_currency)
+			{
+				customer_id = Books_customer_id;
+				customer_addresses_list = getcuctomer_details_with_id.getJSON("contact").getJSON("addresses");
+				//info customer_addresses_list;
+				if(customer_addresses_list.size() > 0)
+				{
+					// 		customer_address_id = customer_addresses_list.get(customer_addresses_list.size() - 1).get("address_id");
+					Get_shipping_street = getdropshiporder.get("Shipping_Street");
+					Get_shipping_street2 = getdropshiporder.get("Shipping_Street_2");
+					Get_shipping_city = getdropshiporder.get("Shipping_City");
+					Get_shipping_state = getdropshiporder.get("Shipping_State");
+					Get_shipping_country = getdropshiporder.get("Shipping_Country");
+					Get_shipping_phone = getdropshiporder.get("Shipping_Phone");
+					Get_shipping_code = getdropshiporder.get("Shipping_Code");
+					for each  cus_address in customer_addresses_list
+					{
+						if(cus_address.get("address") == Get_shipping_street && cus_address.get("street2") == Get_shipping_street2 && cus_address.get("city") == Get_shipping_city && cus_address.get("state") == Get_shipping_state && cus_address.get("country") == Get_shipping_country && cus_address.get("phone") == Shipping_phone && cus_address.get("zip") == Get_shipping_code)
+						{
+							customer_address_id = cus_address.get("address_id");
+							//info "success" + Get_shipping_phone + ":" + cus_address.get("phone");
+							// 							info "temp val" + customer_address_id;
+						}
+					}
+				}
+			}
+			else
+			{
+				Function_request = Map();
+				Get_crm_order = zoho.crm.getRecordById("Sales_Orders",salesorder);
+				Get_crmcontact = zoho.crm.getRecordById("Contacts",customerId);
+				// 	info "Get_crm_order" + Get_contact;
+				Function_request.put("crmcontactdetails",Get_crmcontact);
+				Function_request.put("orderdetails",Get_crm_order);
+				Contact_creation_books = posturl("https://www.1.door-pay.com/api/zcrm/createcontactbooks",Function_request);
+				// 				info Contact_creation_books;
+				if(Contact_creation_books != null)
+				{
+					Contact_creation_books = Contact_creation_books.toMap();
+					Get_contact_detail = Contact_creation_books.get("detail");
+					if(Get_contact_detail.containKey("contact_id"))
+					{
+						customer_id = Get_contact_detail.get("contact_id");
+					}
+				}
+				// info "Get_contact_id" + customer_id;
+			}
+		}
+		else
+		{
+			Function_request = Map();
+			Get_crm_order = zoho.crm.getRecordById("Sales_Orders",salesorder);
+			Get_crmcontact = zoho.crm.getRecordById("Contacts",customerId);
+			// 	info "Get_crm_order" + Get_contact;
+			Function_request.put("crmcontactdetails",Get_crmcontact);
+			Function_request.put("orderdetails",Get_crm_order);
+			Contact_creation_books = posturl("https://www.1.door-pay.com/api/zcrm/createcontactbooks",Function_request);
+			// info Contact_creation_books;
+			if(Contact_creation_books != null)
+			{
+				Contact_creation_books = Contact_creation_books.toMap();
+				Get_contact_detail = Contact_creation_books.get("detail");
+				if(Get_contact_detail.containKey("contact_id"))
+				{
+					customer_id = Get_contact_detail.get("contact_id");
+				}
+			}
+			// 			info "Get_contact_id" + customer_id;
+			//info "customer not Exits";
+		}
+		//info "customer_address_id" + customer_address_id;
+		// billing_address = Map();
+		// billing_address.put("address", "1");
+		// billing_address.put("street2", "1");
+		// billing_address.put("city", "1");
+		// billing_address.put("state", "1");
+		// billing_address.put("zip", "1");
+		// billing_address.put("country", "1");
+		// billing_address.put("phone", "1");
+		//get book saleorders
+		// getsaelorder = zoho.books.getRecords("Salesorders",OrganizationID,"cf_bigcommerce_unique_id="+getdropshiporder.get("BC_Unique_Id").toText());
+		// saleorderid = getsaelorder.getJSON("salesorders").getJSON("salesorder_id"); 
+		// saleorder = Map();
+		// saleorder.put("salesorder_id", saleorderid);
+		Customfield_list = List();
+		customFieldMap1 = Map();
+		customFieldMap1.put("label","BigCommerce Unique ID");
+		customFieldMap1.put("value",ifnull(getdropshiporder.get("BC_Unique_Id"),""));
+		customFieldMap2 = Map();
+		customFieldMap2.put("label","Contact Name");
+		customFieldMap2.put("value",getdropshiporder.get("Contact_Name").get("name"));
+		customFieldMap3 = Map();
+		customFieldMap3.put("label","Ship Method");
+		customFieldMap3.put("value",ifnull(getdropshiporder.get("Carrier"),""));
+		customFieldMap4 = Map();
+		customFieldMap4.put("label","Tracking_Number");
+		// Here we have updated single line 'Tracking Number' to Multiline 'Tracking Number' in Books
+		customFieldMap4.put("value",ifnull(getdropshiporder.get("Tracking_Number"),""));
+		// updated by sathish on 01/09/2020 
+		customFieldMap5 = Map();
+		customFieldMap5.put("label","Date Shipped");
+		customFieldMap5.put("value",ifnull(getdropshiporder.get("Ship_Date"),""));
+		customFieldMap6 = Map();
+		customFieldMap6.put("label","Status");
+		customFieldMap6.put("value",ifnull(getdropshiporder.get("Status"),""));
+		customFieldMap7 = Map();
+		customFieldMap7.put("label","Dropship Order #");
+		customFieldMap7.put("value",ifnull(dropNo,""));
+		customFieldMap8 = Map();
+		customFieldMap8.put("label","CRM Rec Id");
+		customFieldMap8.put("value",getdropshiporder.get("id"));
+		customFieldMap9 = Map();
+		customFieldMap9.put("label","Company");
+		customFieldMap9.put("value",ifnull(getsaleorder.get("Shipping_Company"),""));
+		customFieldMap10 = Map();
+		customFieldMap10.put("label","Confirmation Number");
+		customFieldMap10.put("value",Confirmation_Number);
+		customFieldMap11 = Map();
+		customFieldMap11.put("label","Subject");
+		customFieldMap11.put("value",Subject_from_DRO);
+		customFieldMap12 = Map();
+		customFieldMap12.put("label","Vendor Notes Description");
+		customFieldMap12.put("value",Vendor_Notes_Description);
+		customFieldMap13 = Map();
+		customFieldMap13.put("label","Staff Notes");
+		customFieldMap13.put("value",Staff_Notes);
+		customFieldMap14 = Map();
+		customFieldMap14.put("label","Saleswarp Number");
+		customFieldMap14.put("value",Saleswarp_Number);
+		customFieldMap15 = Map();
+		customFieldMap15.put("label","Comments");
+		customFieldMap15.put("value",Comments);
+		customFieldMap16 = Map();
+		customFieldMap16.put("label","SO from vendor");
+		customFieldMap16.put("value",SO_from_vendor);
+		customFieldMap17 = Map();
+		customFieldMap17.put("label","Exchange Rate");
+		customFieldMap17.put("value",Exchange_Rate);
+		customFieldMap18 = Map();
+		customFieldMap18.put("label","Currency");
+		customFieldMap18.put("value",Currency);
+		customFieldMap19 = Map();
+		customFieldMap19.put("label","Previous Exchange Rate");
+		customFieldMap19.put("value",Previous_Exchange_Rate);
+		// customFieldMap9 = Map();
+		// customFieldMap9.put("label","1324986000004750066");
+		// customFieldMap9.put("value",item_Namesrt);
+		// Amazon Dropship Order - cf_amazon_order_id
+		Po_order_source = ifnull(getdropshiporder.get("Source"),"");
+		if(Po_order_source.equals("Amazon Store"))
+		{
+			amazonOrderObj = Map();
+			amazonOrderObj.put("label","Amazon Order Id");
+			amazonOrderObj.put("value",ifnull(getdropshiporder.get("Subject"),""));
+			Customfield_list.add(amazonOrderObj);
+			Get_amazon_carrier_code = getdropshiporder.get("Amazon_Carrier_Code");
+			//from here added by sathish on 01/09/2020
+			//This code will update 'Amazon Carrier Code' from CRM to 'Ship Method' in Books. 
+			if(!isNull(Get_amazon_carrier_code))
+			{
+				if(getdropshiporder.get("Amazon_Carrier_Code") == "Other")
+				{
+					//if 'Amazon carrier code' was 'Other' then there will be a value in 'Other Carrier Name' so we have to put that value into map. 
+					customFieldMap3.put("label","Ship Method");
+					customFieldMap3.put("value",ifnull(getdropshiporder.get("Other_Carrier_Name"),""));
+				}
+				else
+				{
+					// if 'Amazon carrier code' was other than 'Other' then we have to put that 'Amazon Carrier Code' value into map. 
+					customFieldMap3.put("label","Ship Method");
+					customFieldMap3.put("value",ifnull(getdropshiporder.get("Amazon_Carrier_Code"),""));
+				}
+			}
+			//ended by sathish
+		}
+		Customfield_list.add(customFieldMap1);
+		Customfield_list.add(customFieldMap2);
+		Customfield_list.add(customFieldMap3);
+		Customfield_list.add(customFieldMap4);
+		Customfield_list.add(customFieldMap5);
+		Customfield_list.add(customFieldMap6);
+		Customfield_list.add(customFieldMap7);
+		Customfield_list.add(customFieldMap8);
+		Customfield_list.add(customFieldMap9);
+		Customfield_list.add(customFieldMap10);
+		Customfield_list.add(customFieldMap11);
+		Customfield_list.add(customFieldMap12);
+		Customfield_list.add(customFieldMap13);
+		Customfield_list.add(customFieldMap14);
+		Customfield_list.add(customFieldMap15);
+		Customfield_list.add(customFieldMap16);
+		Customfield_list.add(customFieldMap17);
+		Customfield_list.add(customFieldMap18);
+		Customfield_list.add(customFieldMap19);
+		createDrop = Map();
+		collectData = Map();
+		collectData.put("vendor_id",vendor_id);
+		get_vendor_by_id = zoho.books.getRecordsByID("Contacts",OrganizationID,vendor_id);
+		vendor_currency = get_vendor_by_id.get("contact").get("currency_code");
+		if(vendor_currency == "USD")
+		{
+			shiptmap = Map();
+			shiptmap.put("item_id","1324986000026491986");
+			shiptmap.put("name","Shipping Ex - USD");
+			shiptmap.put("quantity",1);
+			shiptmap.put("rate",0);
+			productlist.add(shiptmap);
+		}
+		else if(vendor_currency == "CAD")
+		{
+			shiptmap = Map();
+			shiptmap.put("item_id","1324986000026509004");
+			shiptmap.put("name","Shipping Ex - CAD");
+			shiptmap.put("quantity",1);
+			shiptmap.put("rate",0);
+			productlist.add(shiptmap);
+		}
+		if(customer_id != "")
+		{
+			collectData.put("delivery_customer_id",customer_id);
+		}
+		else
+		{
+			collectData.put("delivery_customer_name",getsaleorder.get("Shipping_First_Name") + " " + getsaleorder.get("Shipping_Last_Name"));
+		}
+		if(customer_address_id != "")
+		{
+			collectData.put("delivery_customer_address_id",customer_address_id);
+			// info " delivery_customer_address_id exists " + customer_address_id;
+		}
+		else
+		{
+			// info " delivery_customer_address_id not exists ";
+			Clist = {";",">","<"};
+			ShipFirstName = ifnull(getsaleorder.get("Shipping_First_Name"),'');
+			ShipLastName = ifnull(getsaleorder.get("Shipping_Last_Name"),'');
+			ShipStreet = ifnull(getsaleorder.get("Shipping_Street"),'');
+			ShipCity = ifnull(getsaleorder.get("Shipping_City"),'');
+			ShipStreet2 = ifnull(getsaleorder.get("Shipping_Street_2"),'');
+			ShipState = ifnull(getsaleorder.get("Shipping_State"),'');
+			ShipCountry = ifnull(getsaleorder.get("Shipping_Country"),'');
+			for each  special_char in Clist
+			{
+				ShipFirstName = ShipFirstName.remove(special_char);
+				ShipLastName = ShipLastName.remove(special_char);
+				ShipStreet = ShipStreet.remove(special_char);
+				ShipCity = ShipCity.remove(special_char);
+				ShipStreet2 = ShipStreet2.remove(special_char);
+				ShipState = ShipState.remove(special_char);
+				ShipCountry = ShipCountry.remove(special_char);
+			}
+			attention = ShipFirstName + " " + ShipLastName;
+			PO_Address_map = Map();
+			PO_Address_map.put("attention",attention);
+			PO_Address_map.put("address",ShipStreet);
+			PO_Address_map.put("city",ShipCity);
+			PO_Address_map.put("phone",ifnull(Shipping_phone,''));
+			PO_Address_map.put("street2",ShipStreet2);
+			PO_Address_map.put("state",ShipState);
+			PO_Address_map.put("zip",ifnull(getsaleorder.get("Shipping_Code"),''));
+			PO_Address_map.put("country",ShipCountry);
+			if(customer_id != "")
+			{
+				response = invokeurl
+				[
+					url :"https://www.zohoapis.com/books/v3/contacts/" + customer_id + "/address?organization_id=" + OrganizationID
+					type :POST
+					parameters:PO_Address_map.toString()
+					connection:"new_zoho_books"
+				];
+				info "Address response" + response;
+				// 				rpr - added null check at 12/14/2020 9.40 am ist
+				if(!isNull(response) && response.containsKey("address_info"))
+				{
+					customer_address_id = response.get("address_info").get("address_id");
+					collectData.put("delivery_customer_address_id",customer_address_id);
+					// info "temp vall " + customer_address_id;
+				}
+			}
+		}
+		collectData.put("purchaseorder_number",dropNo);
+		collectData.put("reference_number",refrence);
+		/* Updated By Ezhil on 09 December 2020 */
+		// To Add Books SO Link In PO
+		booksExistSoList = zoho.books.getRecords("Salesorders",OrganizationID,"cf_crm_salesorder_id=" + salesorder.toText());
+		if(booksExistSoList.getJSON("salesorders").size() > 0)
+		{
+			salesOrdersList = booksExistSoList.getJSON("salesorders");
+			booksExistSoInfo = salesOrdersList.get(0);
+			// info "booksExistSoInfo" + booksExistSoInfo;
+			booksSoId = booksExistSoInfo.get("salesorder_id");
+			saleOrderUrl = "https://books.zoho.com/app#/salesorders/" + booksSoId + "/edit";
+			CustomField20 = Map();
+			CustomField20.put("label","Sale Order URL");
+			CustomField20.put("value",saleOrderUrl);
+			Customfield_list.add(CustomField20);
+			result_map.put("SO_Response",booksSoId);
+		}
+		else
+		{
+			result_map.put("SO_Response",null);
+		}
+		// collectData.put("billing_address",billing_address);
+		collectData.put("custom_fields",Customfield_list);
+		collectData.put("line_items",productlist);
+		if(getdropshiporder.get("Ship_Method") != null)
+		{
+			collectData.put("ship_via",getdropshiporder.get("Ship_Method"));
+		}
+		collectData.put("notes",if(getdropshiporder.get("Staff_Notes") != null,getdropshiporder.get("Staff_Notes") + "\n","") + if(getsaleorder.get("Customer_Notes") != null,getsaleorder.get("Customer_Notes"),""));
+		collectData.put("adjustment",getdropshiporder.get("Adjustment"));
+		// collectData.put("salesorders",saleorder.toList());
+		info "collectData : " + collectData;
+		// check PO from Books
+		getPO = zoho.books.getRecords("Purchaseorders",OrganizationID,"cf_crm_rec_id=" + getdropshiporder.get("id").toText());
+		info "getPO" + getPO + "\n\nCount" + getPO.getJSON("purchaseorders").size();
+		// sendmail
+		// [
+		// 	from :zoho.adminuserid
+		// 	to :"sankar@bizappln.com"
+		// 	subject :"Create New PO Zoho Books"
+		// 	message :collectData
+		// ]
+		if(getPO.getJSON("purchaseorders").size() > 0)
+		{
+			po_id = getPO.getJSON("purchaseorders").getJSON("purchaseorder_id");
+			updateDrop = zoho.books.updateRecord("Purchaseorders",OrganizationID,po_id,collectData);
+			info "update DSO Response : " + updateDrop;
+			result_map.put("PO_ID",po_id);
+		}
+		else if(getPO.getJSON("purchaseorders").size() == 0 && getPO.getJSON("code") == 0)
+		{
+			// 			existSoList = zoho.books.getRecords("Salesorders",OrganizationID,"cf_crm_salesorder_id=" + salesorder.toText());
+			// info "existSoList : " + booksExistSoList;
+			if(booksExistSoList.getJSON("salesorders").size() > 0)
+			{
+				// Sales Order Exist In Books & Create PO
+				createDropres = zoho.books.createRecord("Purchaseorders",OrganizationID,collectData);
+				//				info createDropres;
+				//Add Purchase Order Creation Log
+				Books_PurchaseOrder_Id = "";
+				if(createDropres.containKey("purchaseorder"))
+				{
+					Get_created_BooksPO = createDropres.get("purchaseorder");
+					if(Get_created_BooksPO.size() > 0)
+					{
+						Books_PurchaseOrder_Id = createDropres.get("purchaseorder").get("purchaseorder_id");
+					}
+				}
+				logMap = Map();
+				logMap.put("Workflow_Name","Create PO to Books from CRM");
+				logMap.put("Name","Dropship Orders");
+				logMap.put("Dropship_Order_Number",dropNo);
+				logMap.put("Dropship_Order_Record_ID",id.toString());
+				logMap.put("Vendor_Name",vendor);
+				logMap.put("Created_Edited_By",Get_Owner);
+				logMap.put("PO_Request",collectData);
+				logMap.put("PO_response",createDropres);
+				logMap.put("Books_PO_Record_ID",Books_PurchaseOrder_Id);
+				logMap.put("Function_Name","Create PO to Books from CRM");
+				Create_log = zoho.crm.createRecord("Sales_Order_PO_Log",logMap);
+				// 	info Create_log;
+				if(createDropres.get("message") == "You cannot add items which have only Sales information in a Purchase Order.")
+				{
+					Update_PO = invokeurl
+					[
+						url :"https://www.zohoapis.com/crm/v2/functions/update_purchase_information_books/actions/execute?auth_type=oauth"
+						type :GET
+						parameters:{"Dropship_OrderId":id}
+						connection:"crm_connection"
+					];
+					CreateDropship_again = zoho.books.createRecord("Purchaseorders",OrganizationID,collectData);
+					// 					info CreateDropship_again;
+					if(CreateDropship_again.containKey("purchaseorder"))
+					{
+						Get_created_BooksPO = CreateDropship_again.get("purchaseorder");
+						if(Get_created_BooksPO.size() > 0)
+						{
+							Books_PurchaseOrder_Id = CreateDropship_again.get("purchaseorder").get("purchaseorder_id");
+							result_map.put("PO_ID",Books_PurchaseOrder_Id);
+						}
+					}
+					else
+					{
+						result_map.put("PO_ID",null);
+					}
+					logMap.put("PO_Request",collectData);
+					logMap.put("PO_response",CreateDropship_again);
+					logMap.put("Books_PO_Record_ID",Books_PurchaseOrder_Id);
+					Create_log = zoho.crm.createRecord("Sales_Order_PO_Log",logMap);
+					// 		info Create_log;
+				}
+			}
+			else
+			{
+				// Create Sales Order In Books
+				// 				createSoBooks = Map();
+				// 				createSoBooks.put("crmOrderId",salesorder);
+				// 				createRes = invokeurl
+				// 				[
+				// 					url :"https://www.1.door-pay.com/api/zohocrm/updateOrder"
+				// 					type :POST
+				// 					parameters:createSoBooks
+				// 					detailed:true
+				// 				];
+				// 				info createRes;
+			}
+		}
+	}
+}
+else
+{
+	// 	info "Verify COA Res : " + verifyCoaResponseList;
+	// COA Verify Failed Sennd Email 
+	// Trigger Email To Team
+	emailSendUrl = "https://1.door-pay.com/pq/m/sendMailNotification.php";
+	emailToken = "59AACEAFB2CE53271A6048D2D385D4C800587C0D047F8B07958934F710AE5D7891FB4EC28BB2FA684F638630E9EF76F7D19D22EE9A20EE892625DC2FCEDCD976";
+	emailListData = list();
+	emailList = list();
+	emailSubject = "Verify COA on Books Purchase Order Creation";
+	dropshipUrl = "https://crm.zoho.com/crm/org663942562/tab/PurchaseOrders/" + id;
+	emailBody = "<div> Hi Team,<br><br>We have identified a dropship order COA verification was failed due to the following response : <br><br> Dropship Order Link :" + dropshipUrl + "<br><br><table cellpadding='2' cellspacing='2' border='1' style='width: 100%; font-size: 10pt; font-family: Arial, Helvetica, sans-serif; border: 1px solid black; color: black;'><tbody><tr><td style='width: 105px;'><div>";
+	emailBody = emailBody + "CRM Product ID" + "</div></td><td style='width: 105px;'><div> Books Product ID <br></div></td><td style='width: 105px;'><div> Verify COA response <br></div></td></tr>";
+	for each  coaResponseObj in verifyCoaResponseList
+	{
+		if(coaResponseObj.get("Code") == 500 || coaResponseObj.get("code") == 500)
+		{
+			// <a href=\"https://crm.zoho.com/crm/org663942562/tab/SalesOrders/" + id + "\" target=\"_blank\" >
+			crmProductUrl = "<a href=\"https://crm.zoho.com/crm/org663942562/tab/Products/" + coaResponseObj.get("crmProductId") + "\" target=\"_blank\" > <b> " + coaResponseObj.get("crmProductId") + "</b> </a>";
+			booksProductUrl = "<a href=\"https://books.zoho.com/app#/inventory/items/" + coaResponseObj.get("booksProductId") + "/edit" + "\" target=\"_blank\" > <b> " + coaResponseObj.get("booksProductId") + "</b> </a>";
+			emailBody = emailBody + "<tr><td style='width: 105px;'><div> " + crmProductUrl + "</div></td><td style='width: 105px;'><div>" + booksProductUrl + "<br></div></td><td style='width: 105px;'><div>" + coaResponseObj.get("message") + "<br></div></td></tr>";
+		}
+	}
+	emailBody = emailBody + "</tbody></table><br><br></div><div><br><br>Thanks.</div>";
+	// 	info emailBody;
+	emailList.add("ezhil@bizappln.com");
+	// 	emailList.add("dinesh@bizappln.com");
+	emailList.add("balaji@bizappln.com");
+	// 	emailList.add("notifications@bestaccessdoors.com");
+	// 	emailList.add("dev@bestaccessdoors.com");
+	// 	emailList.add("zyarina@bestaccessdoors.com");
+	mailArrayDataObject = Map();
+	mailArrayDataObject.put("MailTo",emailList);
+	mailArrayDataObject.put("Subject",emailSubject);
+	mailArrayDataObject.put("Message",emailBody);
+	emailListData.add(mailArrayDataObject);
+	mailMap = Map();
+	mailMap.put("MailArray",emailListData);
+	mailMap.put("Authtoken",emailToken);
+	// Header
+	emailHeader = Map();
+	emailHeader.put("content-type","application/json");
+	response = invokeurl
+	[
+		url :emailSendUrl
+		type :POST
+		parameters:mailMap.toString()
+		headers:emailHeader
+		detailed:false
+	];
+}
+result_map.put("code","200");
+info result_map;
+}

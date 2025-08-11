@@ -1,0 +1,25 @@
+void automation.Test_bulk_update_sale_order_owner()
+{
+iteration_list = rightpad("t",10).replaceall(" ",",t").toList();
+for each  each_iterator in iteration_list
+{
+	count = 1;
+	getting_sales_Order = zoho.crm.searchRecords("Sales_Orders","(Owner:equals:3106252000014929001)",count,200).tolist();
+	if(!getting_sales_Order.isempty())
+	{
+		for each  each_sales_order in getting_sales_Order
+		{
+			zoho.crm.updateRecord("Sales_Orders",each_sales_order.get("id"),{"Owner":3106252000004512006});
+		}
+	}
+	else
+	{
+		break;
+	}
+	count = count + 1;
+}
+// upload_map=Map();
+// upload_map.put("name","CRM Admin");
+// upload_map.put("id","3106252000004512006");
+// upload_map.put("email","crm@bestaccessdoors.com");
+}

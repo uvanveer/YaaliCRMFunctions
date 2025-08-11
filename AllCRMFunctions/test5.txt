@@ -1,0 +1,43 @@
+void automation.test()
+{
+// Get_reminder_time = zoho.currenttime.addDay(14).toString("yyyy-MM-dd HH:mm:ss");
+// 	Get_date = Get_reminder_time.getprefix(" ");
+// 	Get_time = "09:00:00";
+// 	Get_reminder_due = Get_date + "T" + Get_time + "-04:00";
+// mp = MAP();
+// // mp.put("Status","In Progress");
+// // mp.put("Remind_At",{"ALARM":"FREQ=NONE;ACTION=EMAIL;TRIGGER=DATE-TIME:" + Get_reminder_due});
+// mp.put("$se_module","Quotes");
+// // mp.put("Quote_Status","Sent");
+// mp.put("Call_Type","Outbound");
+// mp.put("Subject","Success");
+// mp.put("Call_Start_Time",Get_reminder_due);
+// // mp.put("Call_Start_Time".zoho.currentim)
+// mp.put("What_Id","3106252000070237058");
+// mp.put("Who_Id","3106252000069889120");
+// mp.put("Owner",3106252000014929001);
+// create_task = zoho.crm.createRecord("Calls",mp);
+// info create_task;
+// 
+userlist = List();
+userlist.add({"name":"Fern Citrigno","crm_id":3106252000000152052,"hr_id":"1082383"});
+userlist.add({"name":"Rheanne Trottier","crm_id":3106252000024509019,"hr_id":"1382762"});
+userlist.add({"name":"Kristopher Clark","crm_id":3106252000058241283,"hr_id":"1414362"});
+userlist.add({"name":"Marko Savic","crm_id":3106252000037668001,"hr_id":"1406845"});
+userlist.add({"name":"Deborah Warner","crm_id":3106252000045664001,"hr_id":"1411870"});
+userlist.add({"name":"Christie Best","crm_id":3106252000025726001,"hr_id":"1395960"});
+userlist.add({"name":"Emma Burns","crm_id":3106252000025727001,"hr_id":"1382543"});
+userlist.add({"name":"Carlo  Citrigno","crm_id":3106252000000147013,"hr_id":"937881"});
+userlist.add({"name":"Franz Perez","crm_id":3106252000000147013,"hr_id":"1039649"});
+// no user found so using carlo as suggested by anthony
+userlist.add({"name":"Anthony La Rocca","crm_id":3106252000000147711,"hr_id":"1254582"});
+userlist.add({"name":"Chesia Melisa","crm_id":3106252000000152046,"hr_id":"1262788"});
+hr_id = "1262788";
+for each  rec in userlist
+{
+	if(rec.containvalue(hr_id))
+	{
+		info rec.get("crm_id");
+	}
+}
+}

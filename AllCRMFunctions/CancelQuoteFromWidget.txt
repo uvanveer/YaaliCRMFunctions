@@ -1,0 +1,62 @@
+string standalone.CancelQuoteFromWidget(Int QuoteID)
+{
+// Quote_in_Creator = zoho.creator.v1.getRecords("zoho_zoho1502","quotes","All_Quotes","ID == " + QuoteID);
+// QuoteMap = Quote_in_Creator.get(0);
+// QuoteStatus = ifnull(QuoteMap.get("Quote_Status"),"");
+// Quote_Number = ifnull(QuoteMap.get("Quote_Number"),"");
+// if(QuoteStatus != "Confirmed" && QuoteStatus != "Delivered" && QuoteStatus != "Paid" && QuoteStatus != "Won" && QuoteStatus != "Cancelled" && QuoteStatus != "")
+// {
+// 	updateMap = Map();
+// 	updateMap.put("Quote_Status","Cancelled");
+// 	creator_response = zoho.creator.v1.updateRecord("zoho_zoho1502","quotes","Create_Quote",QuoteID,updateMap);
+// 	info creator_response;
+// 	response = "The Quote " + Quote_Number + " was cancelled successfully";
+// }
+// else if(QuoteStatus == "Cancelled")
+// {
+// 	response = "You have already cancelled the Quote " + Quote_Number;
+// }
+// else
+// {
+// 	response = "You can not cancel the Quote " + Quote_Number + ". Because the Quote have the Status " + QuoteStatus;
+// }
+//v2 migrated by prashanth at 1/28/2021 9.30pm ist
+Quote_in_Creator = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Quotes","ID == " + QuoteID,1,200,"zcreator_connecction");
+if(Quote_in_Creator.get("code") == 3000)
+{
+	list = Quote_in_Creator.get("data");
+	if(list.size() > 0)
+	{
+		QuoteMap = list.get(0);
+		QuoteStatus = ifnull(QuoteMap.get("Quote_Status"),"");
+		Quote_Number = ifnull(QuoteMap.get("Quote_Number"),"");
+		if(QuoteStatus != "Confirmed" && QuoteStatus != "Delivered" && QuoteStatus != "Paid" && QuoteStatus != "Won" && QuoteStatus != "Cancelled" && QuoteStatus != "")
+		{
+			tempMap = Map();
+			updateMap = Map();
+			updateMap.put("Quote_Status","Cancelled");
+			// 				creator_response = zoho.creator.v1.updateRecord("zoho_zoho1502","quotes","Create_Quote",QuoteID,updateMap);
+			creator_response = zoho.creator.updateRecord("zoho_zoho1502","quotes","All_Quotes",QuoteID,updateMap,tempMap,"zcreator_connecction");
+			info creator_response;
+			response = "The Quote " + Quote_Number + " was cancelled successfully";
+		}
+		else if(QuoteStatus == "Cancelled")
+		{
+			response = "You have already cancelled the Quote " + Quote_Number;
+		}
+		else
+		{
+			response = "You can not cancel the Quote " + Quote_Number + ". Because the Quote have the Status " + QuoteStatus;
+		}
+	}
+	else
+	{
+		response = "No records found in All_Quotes, fetched quotes count is 0";
+	}
+}
+else
+{
+	response = "Fetching zoho creator - quote request failed." + Quote_in_Creator;
+}
+return response;
+}

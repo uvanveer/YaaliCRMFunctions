@@ -1,0 +1,38 @@
+string standalone.Get_Current_Shipping_Status(String Tracking_Num)
+{
+Api_key_map = Map();
+Api_key_map.put("api-key","7F2IiyWO0QSnRf81pKdlwJUrpz/53MR0xbuGR0gs8WE");
+Get_Current_shipping_status = getUrl("https://api.shipengine.com/v1/tracking?carrier_code=fedex&tracking_number=" + Tracking_Num,Api_key_map);
+info Get_Current_shipping_status;
+Get_all_events = Get_Current_shipping_status.get("events");
+Get_Current_status = Get_Current_shipping_status.get("status_description");
+Events_list = List();
+status_map = Map();
+status_map.put("Description",Get_Current_status);
+Events_list.add(status_map);
+if(Get_Current_status != "Unknown")
+{
+	for each  rec in Get_all_events
+	{
+		Get_event_occurred_date_time = rec.get("occurred_at");
+		Get_event_occurred_data = Get_event_occurred_date_time.getPrefix("T");
+		Get_event_occurred_time_details = Get_event_occurred_date_time.getSuffix("T");
+		Get_event_occurred_time = Get_event_occurred_time_details.getPrefix("Z");
+		Get_event_description = rec.get("description");
+		Get_event_city = rec.get("city_locality");
+		Get_event_state = rec.get("state_province");
+		Get_signer = rec.get("signer");
+		Event_map = Map();
+		Event_map.put("Event_occurred_date",Get_event_occurred_data);
+		Event_map.put("Event_occurred_time",Get_event_occurred_time);
+		Event_map.put("Event_Description",Get_event_description);
+		Event_map.put("Event_occurred_State",Get_event_state);
+		Event_map.put("Event_occurred_City",Get_event_city);
+		Event_map.put("Event_Signer",Get_signer);
+		Events_list.add(Event_map);
+	}
+}
+Event_list_string = Events_list.tostring();
+All_events_string = "[" + Event_list_string + "]";
+return All_events_string;
+}

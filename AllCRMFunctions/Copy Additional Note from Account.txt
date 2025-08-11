@@ -1,0 +1,17 @@
+void automation.copy_additional_note_from_account(Int cont_id)
+{
+contact_details = zoho.crm.getRecordById("Contacts",cont_id);
+acct_id = contact_details.get("Account_Name").get("id");
+account_details = zoho.crm.getRecordById("Accounts",acct_id);
+if(account_details.size() > 0)
+{
+	if(account_details.get("Additional_Note") != null)
+	{
+		additional_note = account_details.get("Additional_Note");
+		if(additional_note != null)
+		{
+			update = zoho.crm.updateRecord("Contacts",cont_id,{"Additional_Note":additional_note,"Update_Source":"ZCRM-Contact-3106252000072643109-" + now.toLong()});
+		}
+	}
+}
+}

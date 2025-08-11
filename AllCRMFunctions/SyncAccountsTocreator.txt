@@ -1,0 +1,12 @@
+void automation.getRecordIDforAccounts(Int AccountID)
+{
+Accountsmap = Map();
+Accountsmap.put("CRM_ID",AccountID);
+Accountsmap.put("Module_Name","CRM-Accounts");
+Temp_map = Map();
+// CreateAccount = zoho.creator.v1.createRecord("zoho_zoho1502","quotes","Mapping_Form",Accountsmap);
+CreateAccount = zoho.creator.createRecord("zoho_zoho1502","quotes","Mapping_Form",Accountsmap,Temp_map,"zcreator_connecction");
+info "CreateAccount" + CreateAccount;
+CreateAccountv3 = zoho.creator.createRecord("zoho_zoho1502","quotesv3","Mapping_Form",Accountsmap,Temp_map,"zcreator_connecction");
+info "CreateAccountv3" + CreateAccountv3;
+}

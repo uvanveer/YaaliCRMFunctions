@@ -1,0 +1,31 @@
+void automation.Untitled_Function38()
+{
+// started from 90
+datafull = "";
+data = zoho.crm.getRecords("Contacts",89,200);
+for each  eachd in data
+{
+	datafull = datafull + "," + eachd.get("id");
+}
+data = zoho.crm.getRecords("Contacts",88,200);
+for each  eachd in data
+{
+	datafull = datafull + "," + eachd.get("id");
+}
+data = zoho.crm.getRecords("Contacts",87,200);
+for each  eachd in data
+{
+	datafull = datafull + "," + eachd.get("id");
+}
+data = zoho.crm.getRecords("Contacts",86,200);
+for each  eachd in data
+{
+	datafull = datafull + "," + eachd.get("id");
+}
+data = zoho.crm.getRecords("Contacts",85,200);
+for each  eachd in data
+{
+	datafull = datafull + "," + eachd.get("id");
+}
+info datafull;
+}

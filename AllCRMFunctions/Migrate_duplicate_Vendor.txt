@@ -1,0 +1,162 @@
+void automation.Migrate_duplicate_Vendor()
+{
+// getquote = zoho.crm.getRecords("Quotes");
+// info getquote.size();
+// for each quote in getquote
+// {
+// info quote.get("id");
+// upadte = Map();
+// upadte.put("PDF", "https://ymaconnect.com/pq/quotepdf.php?q="+quote.get("Sales_Quote_Number"));
+// upadteq = zoho.crm.updateRecord("Quotes", quote.get("id"),upadte);
+// }
+// search = zoho.crm.searchRecords("Vendors","Vendor_Name:equals:BabcockDavis@Best_Access_Doors");
+// info search;
+// // orginalid = search.getJson("id");
+// orginalid = 3106252000038476144;
+// count = 0;
+// for each  getvendor in search
+// {
+// 	count = count + 1;
+// 	vendor_id = getvendor.get("id");
+// 	vendor_name = getvendor.get("Vendor_Name");
+// 	info vendor_name;
+// 	updatemap = Map();
+// 	updatemap.put("Is_Duplicate",true);
+// 	updatemap.put("Is_Processed","Yes");
+// 	updatevendor = zoho.crm.updateRecord("Vendors",vendor_id,updatemap);
+// 	info updatevendor;
+// 	if(vendor_id != orginalid)
+// 	{
+// 		searchproduct = zoho.crm.searchRecords("Products","Vendor_Name:equals:" + vendor_id);
+// 		if(searchproduct.size() > 0)
+// 		{
+// 			prcount = 0;
+// 			for each  proid in searchproduct
+// 			{
+// 				pid = proid.get("id");
+// 				productmap = Map();
+// 				productmap.put("Vendor_Name",orginalid);
+// 				productupdate = zoho.crm.updateRecord("Products",pid,productmap);
+// 				// 				info "Producupdate" +pid+ productupdate;
+// 				prcount = prcount + 1;
+// 			}
+// 			info "prcount" + prcount;
+// 		}
+// 		searchdropship = zoho.crm.searchRecords("Purchase_Orders","Vendor_Name:equals:" + vendor_id,1,200);
+// 		if(searchdropship.size() > 0)
+// 		{
+// 			vcount = 0;
+// 			for each  dropid in searchdropship
+// 			{
+// 				vid = dropid.get("id");
+// 				dropidmap = Map();
+// 				dropidmap.put("Vendor_Name",orginalid);
+// 				dropidupdate = zoho.crm.updateRecord("Purchase_Orders",vid,dropidmap);
+// 				// 				info "dropidupdate" + dropidupdate;
+// 				vcount = vcount + 1;
+// 			}
+// 			info "vcount" + vcount;
+// 		}
+// 		updatemap1 = Map();
+// 		updatemap1.put("Is_Duplicate","");
+// 		updatevendor = zoho.crm.updateRecord("Vendors",vendor_id,updatemap1);
+// 		info "updatevendor" + updatevendor;
+// 	}
+// 	else
+// 	{
+// 		updatemap2 = Map();
+// 		updatemap2.put("Is_Duplicate",false);
+// 		updatevendor = zoho.crm.updateRecord("Vendors",vendor_id,updatemap2);
+// 		info "updatevendorduplicate" + updatevendor;
+// 		info "id Orginal Id" + vendor_id;
+// 	}
+// }
+// info "count" + count;
+// 	getvendor = zoho.crm.getRecords("Vendors",2,200);
+// info getvendor;
+// 	count = 0;
+// 			for each  vendorname in getvendor
+// 			{
+// 				vname = vendorname.get("Vendor_Name");
+// 				vname = replaceAll(vname, " ",""); 
+// 				count = count + 1;
+// // 				vendorname.update("Vendor_Name", vname);
+// 				data = Map();
+// 				data.put("Vendor_Name",vname);				
+// 				updateproductvendor = zoho.crm.updateRecord("Vendors",vendorname.get("id"),data);
+// 				info updateproductvendor;
+// 			}
+// vendor_contact = zoho.crm.getRecords("Vendor_Contact",1,1);
+// info vendor_contact;
+//Vendor Conatct Bulk Craete and Associate
+// getvendor = zoho.crm.getRecords("Vendors",2,200);
+// count = 0;
+// for each  vendorname in getvendor
+// {
+// vendorid = vendorname.get("id");
+// currency = vendorname.get("Currency");
+// createvenconatc  = Map();
+// createvenconatc.put("Email", "anthony@bestaccessdoors.com");
+// createvenconatc.put("Name", "Anthony La Rocca");
+// createvenconatc.put("Phone", "8004830823");
+// createvenconatc.put("Street", "385 Wilson Street East, Unit #302");
+// createvenconatc.put("Currency", currency);
+// createvenconatc.put("Zip_Code", "L9G2C1");
+// createvenconatc.put("Order_Pdf", true);
+// createvenconatc.put("City", "Ancaster");
+// createvenconatc.put("State", "ON");
+// createvenconatc.put("Country", "Canada");
+// createvenconatc.put("Vendor", vendorid);
+// // info createvenconatc;
+// createcontact = zoho.crm.createRecord("Vendor_Contact", createvenconatc);
+// info "createcontact:" + createcontact;
+// createvenconatc1  = Map();
+// createvenconatc1.put("Email", "citrigno@bestaccessdoors.com");
+// createvenconatc1.put("Name", "Carlo Cirigno");
+// createvenconatc1.put("Phone", "8006915417");
+// createvenconatc1.put("Street", "370 Main Street East, Suite 40, Suite 400");
+// createvenconatc1.put("Currency", currency);
+// createvenconatc1.put("Zip_Code", "L8N1J6");
+// createvenconatc1.put("Order_Pdf", true);
+// createvenconatc1.put("City", "Hamilton");
+// createvenconatc1.put("State", "ON");
+// createvenconatc1.put("Country", "Canada");
+// createvenconatc1.put("Vendor", vendorid);
+// // info createvenconatc1;
+// createcontact1 = zoho.crm.createRecord("Vendor_Contact", createvenconatc1);
+// info "createcontact1:" + createcontact1;
+// 	updatemap = Map();
+// 	updatemap.put("Is_Processed","Yes");
+// 	updatevendor = zoho.crm.updateRecord("Vendors",id,updatemap);
+// 	info "updatevendor" + updatevendor;
+// 	vname = vendorname.get("Vendor_Name");
+// 	vname = replaceAll(vname," ","");
+// 	id = vendorname.get("id");
+// 	updatemap = Map();
+// 	updatemap.put("Vendor_Name",vname);
+// 	updatevendor = zoho.crm.updateRecord("Vendors",id,updatemap);
+// 	info "updatevendorduplicate" + updatevendor;
+// 	id = vendorname.get("id");
+// 	vendorname = vendorname.get("Vendor_Name");
+// 	search = zoho.crm.searchRecords("Vendors","Vendor_Name:equals:" + vendorname);
+// 	info search;
+// 	if(search.size() > 1)
+// 	{
+// 		updatemap = Map();
+// 		updatemap.put("Is_Duplicate",true);
+// 		updatemap.put("Is_Processed","Yes");
+// 		updatevendor = zoho.crm.updateRecord("Vendors",id,updatemap);
+// 		info "updatevendorduplicate" + updatevendor;
+// 		info "is duplicate";
+// 	}
+// 	else
+// 	{
+// 		updatemap = Map();
+// 		updatemap.put("Is_Processed","Yes");
+// 		updatevendor = zoho.crm.updateRecord("Vendors",id,updatemap);
+// 		info "updatevendor" + updatevendor;
+// 	}
+// 	count = count + 1;
+// }
+// info count;
+}

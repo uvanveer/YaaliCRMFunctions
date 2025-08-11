@@ -1,0 +1,69 @@
+void automation.testPeopleApi()
+{
+//date = zoho.currentdate.toString("yyyy-MM-dd");
+//time_str = zoho.currentdate.toString("yyyy-MM-dd") + "T" + substring(zoho.currenttime.tostring(),12,20);
+//PEOPLE ENTRY
+// time_str = zoho.currentdate.toString("dd/MM/yyyy") + " " + substring(zoho.currenttime.tostring(),12,20);
+// token = "7ab305ebfd8db94ef4d5ff0cc46bcb04";
+// url = "https://people.zoho.com/people/api/attendance";
+// dateFormat = "dd/MM/yyyy HH:mm:ss";
+// //dateFormat = "dd/MM/yyyy";
+// par = "?authtoken=" + token + "&dateFormat=" + dateFormat + "&checkIn=" + time_str + "&emailId=" + id + "&descIn=apidesv";
+// //breakId, fromTime, toTime, erecno, empId, breakName, dateformat Sample URL :
+// //Sample response: { "success": "failure", "message": "given time exceeded the shift timings", "uri": "/api/attendance/addBreakEntry", "status": 1 } ________________________________________ Best,
+// //url = "https://people.zoho.com/api/attendance/addBreakEntry?authtoken=PASTEYOURAUTHTOKENHERE&fromTime=12/11/2019 20:00:00&toTime=12/11/2019 21:00:00&empId=1234&breakName=Tea&dateFormat=dd/MM/yyyy HH:mm:ss";
+// url = "https://people.zoho.com/api/attendance/addBreakEntry";
+// par = "?authtoken=" + token + "&dateFormat=" + dateFormat + "&fromTime=" + "21/01/2020 15:15:00" + "&toTime=" + "21/01/2020 15:45:00" + "&emailId=" + id + "&breakName=Meeting&note=test";
+// urlll = url + par;
+// g = getUrl(urlll);
+// info g;
+// //&mapId=<mapId>
+// urlGet = "https://people.zoho.com/people/api/attendance/getUserReport?authtoken=" + token + "&sdate=20/01/2020&edate=20/01/2020&emailId=" + id + "&dateFormat=" + dateFormat;
+// getTimes = getUrl(urlGet);
+// info getTimes;
+//3106252000055955059
+token = "7ab305ebfd8db94ef4d5ff0cc46bcb04";
+//id = "anthony@bestaccessdoors.com";
+id = "marcjason@bestaccessdoors.com";
+full_entry = zoho.crm.getRecordById("Time_Entries_for_Employe",3106252000056064003);
+dateFormat = "yyyy-MM-dd HH:mm:ss";
+counter = 1;
+for each  one_time in full_entry.get("Time_stamps")
+{
+	info one_time.get("Type_of_time");
+	start = one_time.get("Start").subString(0,19).replaceAll("T"," ");
+	if(one_time.get("End") != null)
+	{
+		end = one_time.get("End").subString(0,19).replaceAll("T"," ");
+	}
+	else
+	{
+		end = null;
+	}
+	if(one_time.get("Type_of_time") != "Work" && end != null)
+	{
+		type = one_time.get("Type_of_time");
+		info type;
+		url = "https://people.zoho.com/api/attendance/addBreakEntry";
+		par = "?authtoken=" + token + "&dateFormat=" + dateFormat + "&fromTime=" + start + "&toTime=" + end + "&emailId=" + id + "&breakName=" + type;
+		urlll = url + par;
+		g = getUrl(urlll);
+		info g;
+	}
+	if(one_time.get("Type_of_time") = "Work")
+	{
+		url = "https://people.zoho.com/people/api/attendance";
+		par = "?authtoken=" + token + "&dateFormat=" + dateFormat + "&checkIn=" + start + "&emailId=" + id;
+		urlll = url + par;
+		g = getUrl(urlll);
+		info g;
+		if(end != null)
+		{
+			par = "?authtoken=" + token + "&dateFormat=" + dateFormat + "&checkOut=" + end + "&emailId=" + id;
+			urlll = url + par;
+			g = getUrl(urlll);
+		}
+	}
+	counter = counter + 1;
+}
+}

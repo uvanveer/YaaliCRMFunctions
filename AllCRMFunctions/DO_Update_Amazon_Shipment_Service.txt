@@ -1,0 +1,18 @@
+void automation.DO_Update_Amazon_Shipment_Service(Int shippingServiceId,Int dropShipOrderId)
+{
+shipServiceData = zoho.crm.getRecordById("Amazon_Shipment_Service",shippingServiceId);
+data = Map();
+if(shipServiceData != null)
+{
+	data.put("Carrier_Name",shipServiceData.get("Carrier_Name"));
+	data.put("Shipment_Service_Id",shipServiceData.get("Shipping_Service_Id"));
+	data.put("Shipment_Service_Name",shipServiceData.get("Shipping_Service_Name"));
+}
+else
+{
+	data.put("Carrier_Name","");
+	data.put("Shipment_Service_Id","");
+	data.put("Shipment_Service_Name","");
+}
+zoho.crm.updateRecord("Purchase_Orders",dropShipOrderId,data);
+}

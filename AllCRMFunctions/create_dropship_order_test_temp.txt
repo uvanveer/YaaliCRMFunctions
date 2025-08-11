@@ -1,0 +1,239 @@
+string standalone.create_dropship_order_test()
+{
+get_domain = zoho.crm.getRecordById("Domain_Settings",3106252000056886136);
+base_url = get_domain.get("Domain_Name");
+saleOrderId = "3106252000078256349";
+saleorderDetail = zoho.crm.getRecordById("Sales_Orders",saleOrderId);
+info saleorderDetail;
+amazonStoreRegion = saleorderDetail.get("Amazon_Store_Region");
+amazonOrderItemIdWithSKU = saleorderDetail.get("OrderItemId_with_SKU_Mapping");
+orderItemIDWithSKU = Map();
+if(amazonOrderItemIdWithSKU.contains("\n"))
+{
+	amazonOrderItemIdWithSKUList = amazonOrderItemIdWithSKU.toList("\n");
+	for each  amazonOrderIdItem in amazonOrderItemIdWithSKUList
+	{
+		domainsList = amazonOrderIdItem.toList("=");
+		// info domainsList.size();
+		orderItemIDWithSKU.put(domainsList.get(0),domainsList.get(1));
+	}
+}
+else
+{
+	domainsList = amazonOrderItemIdWithSKU.toList("=");
+	orderItemIDWithSKU.put(domainsList.get(0),domainsList.get(1));
+}
+info orderItemIDWithSKU;
+store_id = saleorderDetail.get("Store").get("id");
+get_store = zoho.crm.getRecordById("Stores",store_id);
+statusofOrder = saleorderDetail.get("Status");
+//fet if already dropshiporder exits
+if(saleorderDetail.get("Subject").contains("Order Number"))
+{
+	subject = saleorderDetail.get("Subject").getPrefix("for").getSuffix("Order Number").trim();
+}
+else
+{
+	subject = saleorderDetail.get("Subject");
+}
+if(saleorderDetail.get("Order_Date") == null)
+{
+	orderDate = zoho.currentdate;
+}
+else
+{
+	orderDate = saleorderDetail.get("Order_Date").toDate();
+}
+// updateSales = zoho.crm.updateRecord("Sales_Orders",id,{"Subject":subject,"Order_Date":orderDate});
+products = saleorderDetail.get("Product_Details").toJSONList();
+// info products;
+vidM = Map();
+vendorKey = Map();
+productDetails = Map();
+tax = 0.0;
+for each  singleproduct in products
+{
+	// info singleproduct;
+	salePro = Map();
+	pid = singleproduct.get("product").get("id");
+	crmresp = zoho.crm.getRecordById("Products",pid);
+	// info "crmresp:" + crmresp;
+	vid = crmresp.get("Vendor_Name").get("id");
+	productdes = ifnull(singleproduct.get("product").get("product_description"),"");
+	if(productdes != "")
+	{
+		productMap = Map();
+		// 		productMap = singleproduct.get("product");
+		productMap.put("product_description",ifnull(singleproduct.get("product").get("product_description"),""));
+	}
+	if(vidM.containKey(vid))
+	{
+		Cost_Price = crmresp.get("Cost_Price").toDecimal();
+		if(Cost_Price != 0 && Cost_Price != null)
+		{
+			singleproduct.put("list_price",crmresp.get("Cost_Price").toDecimal());
+		}
+		else
+		{
+			singleproduct.put("list_price",0);
+		}
+		exisProductList = list();
+		exisProductList = vidM.get(vid);
+		// info "Source : "+crmresp.get("Source");	
+		if(crmresp.get("Source").equals("Amazon Store"))
+		{
+			singleproduct.put("ASIN",crmresp.get("ASIN"));
+			// info orderItemIDWithSKU;
+			singleproduct.put("amazonOrderItemID",orderItemIDWithSKU.get(crmresp.get("ASIN")));
+		}
+		exisProductList.add(singleproduct);
+	}
+	else
+	{
+		productList = list();
+		Cost_Price = crmresp.get("Cost_Price").toDecimal();
+		if(Cost_Price != 0 && Cost_Price != null)
+		{
+			singleproduct.put("list_price",crmresp.get("Cost_Price").toDecimal());
+		}
+		else
+		{
+			singleproduct.put("list_price",0);
+		}
+		info crmresp.get("Source");
+		if(crmresp.get("Source").equals("Amazon Store"))
+		{
+			info crmresp.get("ASIN");
+			singleproduct.put("ASIN",crmresp.get("ASIN"));
+			singleproduct.put("amazonOrderItemID",orderItemIDWithSKU.get(crmresp.get("ASIN")));
+			info singleproduct;
+		}
+		productList.add(singleproduct);
+		vidM.put(vid,productList);
+	}
+	// info orderItemIDWithSKU.get(crmresp.get("Amazon_Product_ID"));
+	vendorKey.put(vid,"Keys");
+	salePro.put("item_id",pid);
+	salePro.put("rate",singleproduct.get("list_price"));
+	salePro.put("name",singleproduct.get("product").get("name"));
+	salePro.put("quantity",singleproduct.get("quantity"));
+	productDetails.put(pid,salePro);
+	tax = tax + singleproduct.get("Tax");
+}
+// // Create Sales Order in Book 
+// info "vidM : " + vidM;
+vKey = vidM.keys();
+vendors = vendorKey.keys();
+for each  m in vendors
+{
+	//info "M = "+m ;
+	total = 0.0;
+	drop = Map();
+	product = List();
+	prodm = "";
+	purchase = Map();
+	//info "VKey : " + vKey;
+	temp_product_list = List();
+	for each  v in vKey
+	{
+		if(v == m)
+		{
+			//info "VIDM = " + vidM;
+			// info "Test : "+vidM.get(v);
+			for each  pro_duct in vidM.get(v)
+			{
+				if(pro_duct.get("product_description") != null || pro_duct.get("product_description") != "null")
+				{
+					pro_duct.put("product_description",ifnull(pro_duct.get("product_description"),""));
+				}
+				//
+				temp_product_list.add(pro_duct);
+			}
+			product = vidM.get(v);
+			//info vidM.get(v);
+			// info "products :"+product;
+			break;
+		}
+	}
+	//info "product" + product;
+	temp = product.toMap();
+	temp2 = temp_product_list;
+	// info temp2.toJSONList();
+	orderItemIDWithSKUFormedData = "";
+	for each  orderItemObj in temp2
+	{
+		// orderItemObj.toMap();
+		if(orderItemObj.containsKey("amazonOrderItemID"))
+		{
+			amazonProductID = orderItemObj.get("ASIN");
+			amazonOrderItemID = orderItemObj.get("amazonOrderItemID");
+			if(orderItemIDWithSKUFormedData == "")
+			{
+				orderItemIDWithSKUFormed = amazonProductID + "=" + amazonOrderItemID;
+			}
+			else
+			{
+				orderItemIDWithSKUFormed = orderItemIDWithSKUFormed + "\n" + amazonProductID + "=" + amazonOrderItemID;
+			}
+			orderItemObj.remove("ASIN");
+			orderItemObj.remove("amazonOrderItemID");
+		}
+	}
+	// info orderItemIDWithSKUFormed;
+	account = null;
+	if(saleorderDetail.get("Account_Name") != null)
+	{
+		account = saleorderDetail.get("Account_Name").get("id");
+	}
+	drop.put("Subject",subject);
+	drop.put("Account_Name",account);
+	drop.put("Store",store_id);
+	drop.put("BC_Unique_Id",saleorderDetail.get("BigCommerce_Unique_ID"));
+	drop.put("Vendor_Name",m);
+	drop.put("Order_Date",orderDate);
+	// 	drop.put("Status",saleorderDetail.get("Status"));
+	drop.put("Status","created");
+	drop.put("Sales_Commission",saleorderDetail.get("Sales_Commission"));
+	drop.put("Sales_Order",saleorderDetail.get("id"));
+	drop.put("Due_Date",saleorderDetail.get("Due_Date"));
+	drop.put("Contact_Name",saleorderDetail.get("Contact_Name").get("id"));
+	drop.put("Billing_First_Name",get_store.get("First_Name"));
+	drop.put("Billing_Last_Name",get_store.get("Last_Name"));
+	drop.put("Billing_Street",get_store.get("Street"));
+	drop.put("Billing_City",get_store.get("City"));
+	drop.put("Billing_Code",get_store.get("Code"));
+	drop.put("Billing_State",get_store.get("State"));
+	drop.put("Billing_Country",get_store.get("Country"));
+	drop.put("Billing_Phone",get_store.get("Phone"));
+	drop.put("Billing_Email",get_store.get("Email"));
+	drop.put("Shipping_First_Name",saleorderDetail.get("Shipping_First_Name"));
+	drop.put("Shipping_Last_Name",saleorderDetail.get("Shipping_Last_Name"));
+	drop.put("Shipping_Street",saleorderDetail.get("Shipping_Street"));
+	drop.put("Shipping_Street_2",saleorderDetail.get("Shipping_Street_2"));
+	drop.put("Shipping_City",saleorderDetail.get("Shipping_City"));
+	drop.put("Shipping_Code",saleorderDetail.get("Shipping_Code"));
+	drop.put("Shipping_Country",saleorderDetail.get("Shipping_Country"));
+	drop.put("Shipping_State",saleorderDetail.get("Shipping_State"));
+	drop.put("Shipping_Phone",saleorderDetail.get("Shipping_Phone"));
+	drop.put("Shipping_Email",saleorderDetail.get("Shipping_Email"));
+	drop.put("Currency",saleorderDetail.get("Currency"));
+	drop.put("Product_Details",temp2.toJSONList());
+	// 	info "After Product Assign: " + temp2;
+	drop.put("Terms_and_Conditions",saleorderDetail.get("Terms_and_Conditions"));
+	drop.put("Description",saleorderDetail.get("Description"));
+	//entries
+	drop.put("Staff_Notes",saleorderDetail.get("Staff_Notes"));
+	drop.put("Order_Notes",saleorderDetail.get("Customer_Notes"));
+	drop.put("Confirmation_Number","ACN");
+	drop.put("Ship_Method",saleorderDetail.get("Ship_Method"));
+	// amazon fields
+	drop.put("Order_Item_Id_with_SKU_Mapping",orderItemIDWithSKUFormed);
+	drop.put("Amazon_Store_Region",saleorderDetail.get("Amazon_Store_Region"));
+	workflow = Map();
+	workflow.put("trigger",{"workflow"});
+	info drop;
+	// info "drop" + drop;
+	// createDrop = zoho.crm.createRecord("Purchase_Orders",drop,workflow);
+}
+return "";
+}

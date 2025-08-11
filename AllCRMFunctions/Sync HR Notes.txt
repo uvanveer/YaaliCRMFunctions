@@ -1,0 +1,16 @@
+string standalone.SyncHRNotes()
+{
+contactList = zoho.crm.getRecords("Contacts",0,2,{"cvid":3106252000071061054,"sort_by":"Created_Time","sort_order":"asc"});
+//info "contactList "+contactList;
+for each  contact in contactList
+{
+	info "Contact ID " + contact.get("id");
+	notesList = zoho.crm.getRelatedRecords("Notes","Contacts",contact.get("id"));
+	info "notesList " + notesList;
+	//zoho.crm.getRelatedRecords(<TEXT>, <TEXT>, <NUMBER>);
+	if(notesList.size() < 0)
+	{
+	}
+}
+return "";
+}

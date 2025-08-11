@@ -1,0 +1,308 @@
+string standalone.acceptDataFromPhyton1(String crmAPIRequest)
+{
+//crmAPIMap = crmAPIRequest.toMap();
+//bodyMap = crmAPIMap.get("body");
+params = crmAPIRequest.get("params").get("data").toMap();
+id = params.get("id");
+action = params.get("action");
+actionName = "";
+if(params.containsKey("name"))
+{
+	actionName = params.get("name");
+}
+if(actionName = "PopupDone")
+{
+	actionName = "Light plugged back in. Resuming work.";
+}
+//id = "aaron@bestaccessdoors.com";
+//action = "UNLOCK";
+//
+userTypeMap = Map();
+userTypeMap.put("type","ActiveUsers");
+response = zoho.crm.invokeConnector("crm.getusers",userTypeMap);
+users = response.get("response").get("users");
+for each  user in users
+{
+	if(id = user.get("email"))
+	{
+		id_in_zoho = user.get("id");
+	}
+}
+new_entry_needed = true;
+//entry = zoho.crm.getRecordById("Time_Entries_for_Employe",4082239000005589501);
+//info entry;
+date = zoho.currentdate.toString("yyyy-MM-dd");
+time_str = zoho.currentdate.toString("yyyy-MM-dd") + "T" + substring(zoho.currenttime.tostring(),12,20);
+info substring(zoho.currenttime.tostring(),12,20);
+info zoho.currenttime.tostring();
+param = Map();
+param.put("delay","false");
+search = zoho.crm.searchRecords("Time_Entries_for_Employe","(Date:equals:" + date + ")",1,200,param);
+//search = zoho.crm.searchRecords("Time_Entries_for_Employe","(Date:equals:" + date + ")");
+info search.size();
+if(search.size() == 0)
+{
+	new_entry_needed = true;
+}
+else
+{
+	for each  entry in search
+	{
+		employeeMap = entry.get("Employee");
+		//info entry;
+		if(id_in_zoho = employeeMap.get("id"))
+		{
+			new_entry_needed = false;
+			id_of_entry = entry.get("id").toLong();
+		}
+	}
+}
+//////////////
+info new_entry_needed;
+if(new_entry_needed && (action == "UNLOCK" || action == "Work"))
+{
+	info "create new entry";
+	create_map = Map();
+	create_map.put("Date",date);
+	create_map.put("Name","Time entry");
+	empMap = Map();
+	empMap.put("id",id_in_zoho);
+	create_map.put("Employee",empMap);
+	Time_stamps = List();
+	one_time_stamp = Map();
+	one_time_stamp.put("Type_of_time","Work");
+	one_time_stamp.put("Start",time_str);
+	one_time_stamp.put("Button","Phyton Start");
+	//2019-10-03T08:30:00-04:00
+	Time_stamps.add(one_time_stamp);
+	create_map.put("Time_stamps",Time_stamps);
+	createEntry = zoho.crm.createRecord("Time_Entries_for_Employe",create_map,{"trigger":{"workflow","blueprint","approval"}});
+	info createEntry;
+	//PEOPLE ENTRY
+	// 	time_str = zoho.currentdate.toString("dd/MM/yyyy") + " " + substring(zoho.currenttime.tostring(),12,20);
+	// 	token = "7ab305ebfd8db94ef4d5ff0cc46bcb04";
+	// 	url = "https://people.zoho.com/people/api/attendance";
+	// 	dateFormat = "dd/MM/yyyy HH:mm:ss";
+	// 	par = "?authtoken=" + token + "&dateFormat=" + dateFormat + "&checkIn=" + time_str + "&emailId=" + id + "&descIn=apidesv";
+	// 	urlll = url + par;
+	// 	g = getUrl(urlll);
+	// 	info g;
+	//SALESIQ ENTRY
+	url = "https://salesiq.zoho.com/api/v2/bestaccessdoorscom/operators";
+	response = invokeurl
+	[
+		url :url
+		type :GET
+		connection:"salesiqandpeople"
+	];
+	for each  op in response.get("data")
+	{
+		if(op.get("email_id") = id)
+		{
+			sales_iq_id = op.get("id");
+		}
+	}
+	setStatusUrl = "https://salesiq.zoho.com/api/v2/bestaccessdoorscom/operators/" + sales_iq_id + "/status";
+	paramsMap = Map();
+	paramsMap.put("status","Available");
+	response = invokeurl
+	[
+		url :setStatusUrl
+		type :POST
+		parameters:paramsMap.toString()
+		connection:"salesiqandpeople"
+	];
+	info response;
+}
+///////////////
+if(!new_entry_needed && (action == "UNLOCK" || action = "Meeting" || action = "Other" || action = "Work"))
+{
+	if(action = "UNLOCK" || action = "Work")
+	{
+		Type_of_time = "Work";
+		salesIQStatus = "Available";
+		checkOutOrCheckIn = "checkIn";
+	}
+	else
+	{
+		Type_of_time = action;
+		salesIQStatus = "Busy";
+		checkOutOrCheckIn = "checkOut";
+	}
+	full_entry = zoho.crm.getRecordById("Time_Entries_for_Employe",id_of_entry);
+	timesList = List();
+	for each  one_time in full_entry.get("Time_stamps")
+	{
+		//info one_time;
+		if(one_time.get("End") = null)
+		{
+			one_time.put("End",time_str);
+			timesList.add(one_time);
+			break_start = Map();
+			break_start.put("Start",time_str);
+			break_start.put("Type_of_time",Type_of_time);
+			break_start.put("Button",action);
+			break_start.put("Note",actionName);
+			break_start.put("Request",params);
+			timesList.add(break_start);
+		}
+		else
+		{
+			timesList.add(one_time);
+		}
+	}
+	updMap = Map();
+	updMap.put("Time_stamps",timesList);
+	upd = zoho.crm.updateRecord("Time_Entries_for_Employe",id_of_entry,updMap,{"trigger":{"workflow","blueprint","approval"}});
+	info upd;
+	//PEOPLE ENTRY
+	// 	time_str = zoho.currentdate.toString("dd/MM/yyyy") + " " + substring(zoho.currenttime.tostring(),12,20);
+	// 	token = "7ab305ebfd8db94ef4d5ff0cc46bcb04";
+	// 	url = "https://people.zoho.com/people/api/attendance";
+	// 	dateFormat = "dd/MM/yyyy HH:mm:ss";
+	// 	par = "?authtoken=" + token + "&dateFormat=" + dateFormat + "&" + checkOutOrCheckIn + "=" + time_str + "&emailId=" + id + "&descIn=apidesv";
+	// 	urlll = url + par;
+	// 	g = getUrl(urlll);
+	//info g;
+	//SALESIQ ENTRY
+	url = "https://salesiq.zoho.com/api/v2/bestaccessdoorscom/operators?index=1";
+	response = invokeurl
+	[
+		url :url
+		type :GET
+		connection:"salesiqandpeople"
+	];
+	for each  op in response.get("data")
+	{
+		//index
+		//info op.get("email_id");
+		if(op.get("email_id") = id)
+		{
+			sales_iq_id = op.get("id");
+		}
+	}
+	//
+	url = "https://salesiq.zoho.com/api/v2/bestaccessdoorscom/operators?index=2";
+	response = invokeurl
+	[
+		url :url
+		type :GET
+		connection:"salesiqandpeople"
+	];
+	for each  op in response.get("data")
+	{
+		//index
+		//info op.get("email_id");
+		if(op.get("email_id") = id)
+		{
+			sales_iq_id = op.get("id");
+		}
+	}
+	info sales_iq_id;
+	setStatusUrl = "https://salesiq.zoho.com/api/v2/bestaccessdoorscom/operators/" + sales_iq_id + "/status";
+	paramsMap = Map();
+	paramsMap.put("status",salesIQStatus);
+	response = invokeurl
+	[
+		url :setStatusUrl
+		type :POST
+		parameters:paramsMap.toString()
+		connection:"salesiqandpeople"
+	];
+	info response;
+}
+///////////
+if(!new_entry_needed && (action == "SHUTDOWN" || action == "LOCK"))
+{
+	full_entry = zoho.crm.getRecordById("Time_Entries_for_Employe",id_of_entry);
+	timesList = List();
+	for each  one_time in full_entry.get("Time_stamps")
+	{
+		info one_time;
+		//if(one_time.get("End") = null && one_time.get("Type_of_time") == "Work")
+		if(one_time.get("End") = null)
+		{
+			one_time.put("End",time_str);
+			timesList.add(one_time);
+			break_start = Map();
+			break_start.put("Start",time_str);
+			break_start.put("Type_of_time","Break");
+			if(action = "SHUTDOWN")
+			{
+				btn = "Phyton Shutdown";
+			}
+			if(action = "LOCK")
+			{
+				btn = "Phyton Lock";
+			}
+			break_start.put("Button",btn);
+			break_start.put("Note",actionName);
+			break_start.put("Request",params);
+			timesList.add(break_start);
+		}
+		else
+		{
+			timesList.add(one_time);
+		}
+	}
+	updMap = Map();
+	updMap.put("Time_stamps",timesList);
+	upd = zoho.crm.updateRecord("Time_Entries_for_Employe",id_of_entry,updMap,{"trigger":{"workflow","blueprint","approval"}});
+	info upd;
+	//PEOPLE ENTRY
+	// 	time_str = zoho.currentdate.toString("dd/MM/yyyy") + " " + substring(zoho.currenttime.tostring(),12,20);
+	// 	token = "7ab305ebfd8db94ef4d5ff0cc46bcb04";
+	// 	url = "https://people.zoho.com/people/api/attendance";
+	// 	dateFormat = "dd/MM/yyyy HH:mm:ss";
+	// 	par = "?authtoken=" + token + "&dateFormat=" + dateFormat + "&checkOut=" + time_str + "&emailId=" + id + "&descIn=apidesv";
+	// 	urlll = url + par;
+	// 	g = getUrl(urlll);
+	// 	info g;
+	//SALESIQ ENTRY
+	url = "https://salesiq.zoho.com/api/v2/bestaccessdoorscom/operators?index=1";
+	response = invokeurl
+	[
+		url :url
+		type :GET
+		connection:"salesiqandpeople"
+	];
+	for each  op in response.get("data")
+	{
+		//index
+		//info op.get("email_id");
+		if(op.get("email_id") = id)
+		{
+			sales_iq_id = op.get("id");
+		}
+	}
+	//
+	url = "https://salesiq.zoho.com/api/v2/bestaccessdoorscom/operators?index=2";
+	response = invokeurl
+	[
+		url :url
+		type :GET
+		connection:"salesiqandpeople"
+	];
+	for each  op in response.get("data")
+	{
+		//index
+		//info op.get("email_id");
+		if(op.get("email_id") = id)
+		{
+			sales_iq_id = op.get("id");
+		}
+	}
+	info sales_iq_id;
+	setStatusUrl = "https://salesiq.zoho.com/api/v2/bestaccessdoorscom/operators/" + sales_iq_id + "/status";
+	paramsMap = Map();
+	paramsMap.put("status","Busy");
+	response = invokeurl
+	[
+		url :setStatusUrl
+		type :POST
+		parameters:paramsMap.toString()
+		connection:"salesiqandpeople"
+	];
+}
+return "";
+}

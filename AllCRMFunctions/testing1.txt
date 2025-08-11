@@ -1,0 +1,51 @@
+string standalone.test(Int Purchase_ID)
+{
+//Get_users = zoho.crm.getRecords("users");
+//info Get_users;
+// crmrecond = 3106252001489473281;
+// response = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Update_Shipping_Addresses","CRM_Record_ID=\"" + crmrecond + "\"", 1,200, "zcreator_connecction");
+// // data = response.getJSON('data');
+// if(response.get("code") == 3000)
+// {
+// 	if(response.get("data").size() > 0)
+// 	{
+// 		getID = response.get("data").get(0);
+// 		getcreatorID = getID.getJSON("ID");
+// 		info getcreatorID;
+// 	}
+// }
+getcharge = "ch_3PnyplAKOGQVGWlw3ZLrYhEM";
+apiKey = "sk_test_bnlLPgfx0h2BPSWEPuuMarsQ00pWhcSIxb";
+headers = Map();
+headers.put("Authorization","Bearer " + apiKey);
+headers.put("Content-Type","application/x-www-form-urlencoded");
+response = geturl("https://api.stripe.com/v1/charges/" + getcharge,headers);
+info response;
+// vendor_info = zoho.crm.getOrgVariable("OAuthHashCode");
+// Header = Map();
+// Header.put("content-type","application/json");
+// Header.put("BADAuthorization",vendor_info);
+// info Header;
+// return "";
+// entered_crm_recordId = 3106252000488225047;
+// contact_info = zoho.crm.getRelatedRecords("Activities","Contacts",entered_crm_recordId);
+// CRM_contact = zoho.crm.getRecordById("Contacts",entered_crm_recordId);
+// Get_Owner_details = CRM_contact.get("Owner");
+// Owner_map = Get_Owner_details.toMap();
+// Get_Owner_id = Owner_map.get("id");
+// for each  activityObj in contact_info
+// {
+// 	if(activityObj.get("Owner").get("id") == Get_Owner_id)
+// 	{
+// 		if(activityObj.get("Activity_Type") == "Tasks" && activityObj.get("Status") != "Completed")
+// 		{
+// 			info "yes";
+// 			isTaskExist = true;
+// 			break;
+// 		}
+// 	}
+// }
+return "";
+//get_all_notes = zoho.crm.getRecordById("Contacts",contact_id);
+//info contact_info;
+}

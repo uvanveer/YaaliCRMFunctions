@@ -1,0 +1,129 @@
+string standalone.widgetInvoked(String crmAPIRequest)
+{
+crmAPIMap = crmAPIRequest.toMap();
+//bodyMap = crmAPIMap.get("body");
+params = crmAPIMap.get("params");
+id = params.get("id");
+action = params.get("action");
+//
+// id = "aaron@bestaccessdoors.com";
+// action = "UNLOCK";
+//4082239000005589501
+//LOCK UNLOCK SHUTDOWN
+userTypeMap = Map();
+userTypeMap.put("type","ActiveUsers");
+response = zoho.crm.invokeConnector("crm.getusers",userTypeMap);
+users = response.get("response").get("users");
+for each  user in users
+{
+	if(id = user.get("email"))
+	{
+		id_in_zoho = user.get("id");
+	}
+}
+new_entry_needed = true;
+//entry = zoho.crm.getRecordById("Time_Entries_for_Employe",4082239000005589501);
+//info entry;
+date = zoho.currentdate.toString("yyyy-MM-dd");
+time_str = zoho.currentdate.toString("yyyy-MM-dd") + "T" + substring(zoho.currenttime.tostring(),12,20);
+info substring(zoho.currenttime.tostring(),12,20);
+info zoho.currenttime.tostring();
+param = Map();
+param.put("delay","false");
+//search = zoho.crm.searchRecords("Time_Entries_for_Employe","(Date:equals:" + date + ")",1,200,param);
+search = zoho.crm.searchRecords("Time_Entries_for_Employe","(Date:equals:" + date + ")");
+info search.size();
+if(search.size() == 0)
+{
+	new_entry_needed = true;
+}
+else
+{
+	for each  entry in search
+	{
+		employeeMap = entry.get("Employee");
+		//info entry;
+		if(id_in_zoho = employeeMap.get("id"))
+		{
+			new_entry_needed = false;
+			id_of_entry = entry.get("id").toLong();
+		}
+	}
+}
+//////////////
+info new_entry_needed;
+if(new_entry_needed && action == "UNLOCK")
+{
+	info "create new entry";
+	create_map = Map();
+	create_map.put("Date",date);
+	create_map.put("Name","Time entry");
+	empMap = Map();
+	empMap.put("id",id_in_zoho);
+	create_map.put("Employee",empMap);
+	Time_stamps = List();
+	one_time_stamp = Map();
+	one_time_stamp.put("Type_of_time","Work");
+	one_time_stamp.put("Start",time_str);
+	//2019-10-03T08:30:00-04:00
+	Time_stamps.add(one_time_stamp);
+	create_map.put("Time_stamps",Time_stamps);
+	createEntry = zoho.crm.createRecord("Time_Entries_for_Employe",create_map);
+	info createEntry;
+}
+///////////////
+if(!new_entry_needed && action == "UNLOCK")
+{
+	full_entry = zoho.crm.getRecordById("Time_Entries_for_Employe",id_of_entry);
+	timesList = List();
+	for each  one_time in full_entry.get("Time_stamps")
+	{
+		info one_time;
+		if(one_time.get("End") = null && one_time.get("Type_of_time") == "Break")
+		{
+			one_time.put("End",time_str);
+			timesList.add(one_time);
+			break_start = Map();
+			break_start.put("Start",time_str);
+			break_start.put("Type_of_time","Work");
+			timesList.add(break_start);
+		}
+		else
+		{
+			timesList.add(one_time);
+		}
+	}
+	updMap = Map();
+	updMap.put("Time_stamps",timesList);
+	upd = zoho.crm.updateRecord("Time_Entries_for_Employe",id_of_entry,updMap);
+	info upd;
+}
+///////////
+if(!new_entry_needed && (action == "SHUTDOWN" || action == "LOCK"))
+{
+	full_entry = zoho.crm.getRecordById("Time_Entries_for_Employe",id_of_entry);
+	timesList = List();
+	for each  one_time in full_entry.get("Time_stamps")
+	{
+		//info one_time;
+		if(one_time.get("End") = null && one_time.get("Type_of_time") == "Work")
+		{
+			one_time.put("End",time_str);
+			timesList.add(one_time);
+			break_start = Map();
+			break_start.put("Start",time_str);
+			break_start.put("Type_of_time","Break");
+			timesList.add(break_start);
+		}
+		else
+		{
+			timesList.add(one_time);
+		}
+	}
+	updMap = Map();
+	updMap.put("Time_stamps",timesList);
+	upd = zoho.crm.updateRecord("Time_Entries_for_Employe",id_of_entry,updMap);
+	info upd;
+}
+return params;
+}

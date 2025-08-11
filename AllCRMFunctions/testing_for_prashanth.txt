@@ -1,0 +1,1261 @@
+string standalone.testing_for_prashanth()
+{
+// info now + " -- " +zoho.currentdate + " -- "+now.toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'") + " --- "+ zoho.currentdate.toString("yyyy-MM-dd HH:mm:ss");
+// Get_all_vendors=zoho.books.getRecordsByID("contacts", "666840843", "1324986000024345717");
+// // Get_all_vendors = zoho.books.getRecords("contacts","666840843","contact_type=vendor");
+// 	Get_vendor_details = Get_all_vendors.get("contacts");
+// info Get_vendor_details;
+// info Get_vendor_details.size();
+header_data = Map();
+// header_data.put("Authorization","Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2");
+// stattime = now.toLong();
+// emailchecking = "prashanthraj38@yopmail.com";r
+//-----------------------------------------
+info "date " + '2020-09-11';
+date = '2020-09-11';
+info date.todate();
+//---------------------------------------------
+ownerName = "zoho_zoho1502";
+appLinkName = "quotes";
+quoteName = "00YD0405";
+creatorId = 3767260000017022102;
+info "------------";
+quotenumber = "00PR3227";
+//---------------------------create quote----------------------------------------------
+if(false)
+{
+	id = 3106252000088657128;
+	crmcontact = zoho.crm.getRecordById("Contacts",id);
+	email = crmcontact.get("Email");
+	full_name = crmcontact.get("Full_Name");
+	if(crmcontact.get("Account_Name") != null)
+	{
+		companyname = crmcontact.get("Account_Name").get("name");
+	}
+	else
+	{
+		companyname = "";
+	}
+	if(email != null)
+	{
+		creatorContact = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Contacts","ContactCRMRecordID == " + id,1,200,"zcreator_connecction");
+		info "get_contact:" + creatorContact;
+		// 	ren = "Hi, Select Store to Enable All Fields ...";
+		if(creatorContact.get("code") == 3000)
+		{
+			list = creatorContact.get("data");
+			if(list.size() > 0)
+			{
+				//get_contact = list.get(0);
+				max_size = list.size();
+				get_contact = list.get(max_size - 1);
+				info "Create exits";
+				Creator_contact_email = get_contact.get("Email");
+				if(!isNull(Creator_contact_email) && email.containsIgnoreCase(Creator_contact_email))
+				{
+					Cretor_ID = get_contact.get("ID");
+					loginuser = zoho.loginuserid;
+					if(get_contact.get("Account_Name") != "")
+					{
+						account = get_contact.get("Account_Name");
+					}
+					else
+					{
+						account = get_contact.get("Company_Name");
+					}
+					get_salesperson = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Employees","Email==\"" + zoho.loginuserid + "\"",1,200,"zcreator_connecction");
+					saleperon_id = "";
+					if(get_salesperson.get("code") == 3000)
+					{
+						list = get_salesperson.get("data");
+						if(list.size() > 0)
+						{
+							salespersonData = list.get(0);
+							saleperon_id = salespersonData.getJSON("ID");
+						}
+					}
+					else
+					{
+						response = "Salesperson not found " + zoho.loginuserid;
+					}
+					crm_acc = "";
+					crm_acc_id = "";
+					if(crmcontact.get("Account_Name").size() > 0)
+					{
+						crm_acc = crmcontact.get("Account_Name").get("name");
+						crm_acc_id = crmcontact.get("Account_Name").get("id");
+					}
+					crmaccount = ifnull(crm_acc,crmcontact.get("Company_Name"));
+					if(account != crmaccount)
+					{
+						info "crmaccount:" + crmaccount;
+						if(crm_acc_id != "")
+						{
+							tempdata = Map();
+							updatedata = Map();
+							updatedata.put("Company_Name",crmaccount);
+							info "updatedata: " + updatedata;
+							updatecontact = zoho.creator.updateRecord("zoho_zoho1502","quotes","All_Contacts",get_contact.get("ID").toLong(),updatedata,tempdata,"zcreator_connecction");
+							info "updatecontact: " + updatecontact;
+						}
+					}
+					url = "https://creatorapp.zohopublic.com/zoho_zoho1502/quotes/form-perma/Create_Quote/FYDgOYE8UqBGJbOygHAzw4Cd6sgOUbxn4QSsXZhx3nHPy3vXdP21tnQZswXFkA4gv2JAuauJVFWvx724VEf9JCDFPDsZaVN5r6n7?Customer=" + Cretor_ID + "&Sales_Person=" + saleperon_id;
+					if(max_size > 0)
+					{
+						openUrl(url,"open window");
+						info url;
+						Log_map = Map();
+						Get_timestamp = zoho.currenttime.tolong();
+						Log_map.put("Which_Module","Quotes");
+						Log_map.put("Salesperson",zoho.loginuser);
+						Log_map.put("Quote_Request",url);
+						Log_map.put("Name","Create Quote Button");
+						Log_map.put("Created_Edited_By",zoho.loginuser);
+						Log_map.put("Contact_Record_ID",toString(id));
+						Log_map.put("Email",email);
+						Log_map.put("Contact_Name",if(full_name != null,full_name,""));
+						Log_map.put("Start_Time",Get_timestamp.tostring());
+						Log_map.put("End_Time",Get_timestamp.tostring());
+						Create_log = zoho.crm.createRecord("Log_ContactQuoteDeals",Log_map);
+						info "crm logs response: " + Create_log;
+						// 	ren = "Successfully opened";
+						response = '';
+					}
+				}
+				else
+				{
+					response = "Hi " + zoho.loginuser + ", The Creator Contact Email and the CRM Contact Email does not match!!!";
+				}
+			}
+		}
+		else if(creatorContact.get("code") == 3100)
+		{
+			loginuser = zoho.loginuserid;
+			get_salesperson = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Employees","Email==\"" + zoho.loginuserid + "\"",1,200,"zcreator_connecction");
+			saleperon_id = "";
+			if(get_salesperson.get("code") == 3000)
+			{
+				list = get_salesperson.get("data");
+				if(list.size() > 0)
+				{
+					salespersonData = list.get(0);
+					saleperon_id = salespersonData.getJSON("ID");
+					url = "https://creatorapp.zohopublic.com/zoho_zoho1502/quotes/form-perma/Create_Quote/FYDgOYE8UqBGJbOygHAzw4Cd6sgOUbxn4QSsXZhx3nHPy3vXdP21tnQZswXFkA4gv2JAuauJVFWvx724VEf9JCDFPDsZaVN5r6n7?Sales_Person=" + saleperon_id + "&CRM_Contact_ID=" + id;
+					// + "&Company=" + companyname
+					openUrl(url,"open window");
+					info url;
+					//Adding log to the Create Quote Button Action
+					Log_map = Map();
+					Get_timestamp = zoho.currenttime.tolong();
+					Log_map.put("Which_Module","Quotes");
+					Log_map.put("Salesperson",zoho.loginuser);
+					Log_map.put("Quote_Request",url);
+					Log_map.put("Name","Create Quote Button");
+					Log_map.put("Created_Edited_By",zoho.loginuser);
+					Log_map.put("Contact_Name",if(full_name != null,full_name,""));
+					Log_map.put("Email",email);
+					Log_map.put("Contact_Record_ID",toString(id));
+					Log_map.put("Start_Time",Get_timestamp.tostring());
+					Log_map.put("End_Time",Get_timestamp.tostring());
+					Create_log = zoho.crm.createRecord("Log_ContactQuoteDeals",Log_map);
+					info "Contact not found in creator: CRM log response " + Create_log;
+					info url;
+					// 		response = "Contact does not exsist in Quote Form. We have initiated New Contact Creation to Quote Form. Please try again after Few Minuts...";
+					response = '';
+				}
+			}
+		}
+	}
+	else
+	{
+		response = "Hi " + zoho.loginuser + ", Fill the Email id to Proceed Quote Creation...";
+	}
+}
+//----------------------------------create order to bc-----------------------------------------
+if(true)
+{
+	quote_id = 3106252000163820533;
+	quote_id = 3106252000142415772;
+	Quote = zoho.crm.getRecordById("Quotes",quote_id);
+	if(Quote.containKey("Sales_Quote_Number"))
+	{
+		QuoteNumber = ifnull(Quote.get("Sales_Quote_Number"),"");
+		QuoterResponse = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Quotes","Quote_Number==\"" + QuoteNumber + "\"",1,200,"zcreator_connecction");
+		info "Quote Response: " + QuoterResponse;
+		if(QuoterResponse.get("code") == 3000)
+		{
+			QuoteList = QuoterResponse.get("data");
+			if(QuoteList.size() > 0)
+			{
+				response = QuoteList.get(0);
+				info "--inside quote fetch using quick view api--";
+				quote_id = response.getJSON("ID");
+				creator_rec_id = response.get("ID");
+				TrackingNumber = ifnull(response.get("Tracking_Number"),"");
+				QuoteStatus = ifnull(response.get("Quote_Status"),"");
+				BC_ID = ifnull(response.get("BigCommerce_Order_ID"),"");
+				storename = ifnull(response.get("Quote_Store_Prams"),"");
+				info "--> " + creator_rec_id + " " + TrackingNumber + " " + QuoteStatus + " " + BC_ID + " " + storename;
+				getQuoteRecord = zoho.creator.getRecords("zoho_zoho1502","quotes","Quote_Sales_Order_Schedule_Report","Quoteno==\"" + QuoteNumber + "\"",1,200,"zcreator_connecction");
+				if(BC_ID != "")
+				{
+					resp = "Order already created for the Quote. Bigcommerce Order id: " + BC_ID;
+				}
+				else if(TrackingNumber != "" && QuoteStatus == "Cheque Payment" || QuoteStatus == "Cheque Delivered")
+				{
+					info "inside check part";
+					tempMap = Map();
+					option_map = Map();
+					option_map.put("Create_Order_From_CRM",true);
+					option_map.put("Quote_Status","Cheque Received");
+					update_rec = zoho.creator.updateRecord("zoho_zoho1502","quotes","All_Quotes",creator_rec_id.toLong(),option_map,tempMap,"zcreator_connecction");
+					info "update_rec:" + update_rec;
+					scheduleradd = Map();
+					shedrec = getQuoteRecord.toMap().keys();
+					if(shedrec.contains("message"))
+					{
+						scheduleradd.put("Execution_Time",now.addSeconds(50).toString());
+						scheduleradd.put("Store_Name",storename);
+						scheduleradd.put("Quote_Rec_Id",creator_rec_id.toLong());
+						scheduleradd.put("Quoteno",QuoteNumber);
+						scheduleradd.put("Salesperson_Email",zoho.loginuserid);
+						scheduleradd.put("Source","CRMQuote");
+						scheduleradd.put("Status","Pending");
+						// 							scheduleupdate = zoho.creator.v1.createRecord("zoho_zoho1502","quotes","Quote_Sales_Order_Schedule",scheduleradd);
+						scheduleupdate = zoho.creator.createRecord("zoho_zoho1502","quotes","Quote_Sales_Order_Schedule",scheduleradd,tempMap,"zcreator_connecction");
+						info "scheduler record not exists:  schedulecreate: " + scheduleupdate;
+					}
+					else
+					{
+						schedid = getQuoteRecord.getJSON("ID");
+						scheduleradd.put("Execution_Time",now.addSeconds(50).toString());
+						scheduleradd.put("Source","CRMQuote");
+						scheduleradd.put("Salesperson_Email",zoho.loginuserid);
+						info "scheduleradd" + scheduleradd + schedid;
+						scheduleupdate = zoho.creator.updateRecord("zoho_zoho1502","quotes","Quote_Sales_Order_Schedule",schedid.toLong(),scheduleradd,tempMap,"zcreator_connecction");
+						info "scheduler record exists: scheduleupdate: " + scheduleupdate;
+					}
+					serchcrm_deal = zoho.crm.searchRecords("Potentials","(Deal_Name:equals:" + QuoteNumber + ")");
+					if(!serchcrm_deal.isEmpty())
+					{
+						Quotedatacrm_deal = Map();
+						Quotedatacrm_deal.put("Stage","WON");
+						crmid_deal = serchcrm_deal.getJSON("id");
+						quoteupdated_deal = zoho.crm.updateRecord("Potentials",crmid_deal.tolong(),Quotedatacrm_deal);
+						info "CRM Deal has updated";
+					}
+					serchcrm = zoho.crm.searchRecords("Quotes","(Sales_Quote_Number:equals:" + QuoteNumber + ")");
+					if(!serchcrm.isEmpty())
+					{
+						Quotedatacrm = Map();
+						Quotedatacrm.put("Quote_Stage","Paid");
+						crmid = serchcrm.getJSON("id");
+						quoteupdated = zoho.crm.updateRecord("Quotes",crmid.tolong(),Quotedatacrm);
+						info "CRM Quote Status Update";
+					}
+					resp = "Order creation was Initiated. We will email to " + zoho.loginuserid + " once the saleorder creation proccessed...";
+				}
+				else if(QuoteStatus == "Cheque Received")
+				{
+					resp = "This Quote Order creation Process was already initiated " + ifnull(getQuoteRecord.getJSON("Added_Time"),"") + ". If the salesorder was not created, Please inform to administrator...";
+				}
+				else
+				{
+					resp = "Somthing went wrong, Please contact to administrator...";
+				}
+			}
+		}
+		else if(QuoterResponse.get("code") == 3100)
+		{
+			resp = "No records found for the given criteria.";
+		}
+	}
+	else
+	{
+		resp = "There is no Quote in ZOHO Creator";
+	}
+}
+//----------------------------------------Cancel Quote From Quote---------------------------------------------
+if(false)
+{
+	quote_id = 3106252000164878484;
+	Quote = zoho.crm.getRecordById("Quotes",quote_id);
+	Quote_Id_in_Creator = ifnull(Quote.get("Creator_Record_ID"),"");
+	Quote_Number = Quote.get("Subject");
+	if(Quote_Id_in_Creator != "")
+	{
+		// Quote_in_Creator = zoho.creator.v1.getRecords("zoho_zoho1502","quotes","All_Quotes","ID == " + Quote_Id_in_Creator);
+		Quote_in_Creator = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Quotes","ID == " + Quote_Id_in_Creator,1,200,"zcreator_connecction");
+		if(Quote_in_Creator.get("code") == 3000)
+		{
+			list = Quote_in_Creator.get("data");
+			if(list.size() > 0)
+			{
+				QuoteMap = list.get(0);
+				QuoteStatus = ifnull(QuoteMap.get("Quote_Status"),"");
+				if(QuoteStatus != "Confirmed" && QuoteStatus != "Delivered" && QuoteStatus != "Paid" && QuoteStatus != "Won" && QuoteStatus != "Cancelled" && QuoteStatus != "")
+				{
+					tempMap = Map();
+					updateMap = Map();
+					updateMap.put("Quote_Status","Cancelled");
+					// 				creator_response = zoho.creator.v1.updateRecord("zoho_zoho1502","quotes","Create_Quote",Quote_Id_in_Creator,updateMap);
+					creator_response = zoho.creator.updateRecord("zoho_zoho1502","quotes","All_Quotes",Quote_Id_in_Creator,updateMap,tempMap,"zcreator_connecction");
+					info "update quote response " + creator_response;
+					response = "The Quote " + Quote_Number + " was cancelled successfully";
+				}
+				else if(QuoteStatus == "Cancelled")
+				{
+					response = "You have already cancelled the Quote " + Quote_Number;
+				}
+				else
+				{
+					response = "You can not cancel the Quote " + Quote_Number + ". Because the Quote have the Status " + QuoteStatus;
+				}
+			}
+			else
+			{
+				response = "No records found in All_Quotes, fetched quotes count is 0";
+			}
+		}
+		else
+		{
+			response = "Fetching zoho creator - quote request failed.";
+		}
+	}
+	else
+	{
+		response = "Fetching zoho crm - quote request failed.";
+	}
+}
+//-----------------------------------cancel quote from widget-----------------------------------------------
+if(false)
+{
+	QuoteID = 12343;
+	Quote_in_Creator = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Quotes","ID == " + QuoteID,1,200,"zcreator_connecction");
+	if(Quote_in_Creator.get("code") == 3000)
+	{
+		list = Quote_in_Creator.get("data");
+		if(list.size() > 0)
+		{
+			QuoteMap = list.get(0);
+			QuoteStatus = ifnull(QuoteMap.get("Quote_Status"),"");
+			if(QuoteStatus != "Confirmed" && QuoteStatus != "Delivered" && QuoteStatus != "Paid" && QuoteStatus != "Won" && QuoteStatus != "Cancelled" && QuoteStatus != "")
+			{
+				updateMap = Map();
+				updateMap.put("Quote_Status","Cancelled");
+				// 				creator_response = zoho.creator.v1.updateRecord("zoho_zoho1502","quotes","Create_Quote",QuoteID,updateMap);
+				creator_response = zoho.creator.updateRecord("zoho_zoho1502","quotes","All_Quotes",QuoteID,updateMap,tempMap,"zcreator_connecction");
+				info creator_response;
+				response = "The Quote " + Quote_Number + " was cancelled successfully";
+			}
+			else if(QuoteStatus == "Cancelled")
+			{
+				response = "You have already cancelled the Quote " + Quote_Number;
+			}
+			else
+			{
+				response = "You can not cancel the Quote " + Quote_Number + ". Because the Quote have the Status " + QuoteStatus;
+			}
+		}
+		else
+		{
+			response = "No records found in All_Quotes, fetched quotes count is 0";
+		}
+	}
+	else
+	{
+		response = "Fetching zoho creator - quote request failed.";
+	}
+}
+//--------------------------------------Send Quote From Widget----------------------------------------------
+if(false)
+{
+	quote_id = 3106252000114209368;
+	Quote = zoho.crm.getRecordById("Quotes",quote_id);
+	info Quote.get("Sales_Quote_Number");
+	Quote_Id_in_Creator = ifnull(Quote.get("Creator_Record_ID"),"");
+	Quote_Number = ifnull(Quote.get("Subject"),"");
+	info "quote details id & number " + Quote_Id_in_Creator + " - " + Quote_Number;
+	if(Quote.get("Quote_Stage") != "Paid")
+	{
+		if(Quote_Id_in_Creator != "" && Quote_Number != "")
+		{
+			info "inside condition starts";
+			Quote_Number = Quote_Number.remove("#");
+			Quote_in_Creator = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Mail_Schedules","Quote_ID == " + Quote_Id_in_Creator,1,200,"zcreator_connecction");
+			info Quote_in_Creator;
+			tempMap = Map();
+			scheduleMap = Map();
+			scheduled_time = zoho.currenttime.addSeconds(40);
+			if(Quote_in_Creator.get("code") == 3000)
+			{
+				list = Quote_in_Creator.get("data");
+				if(list.size() > 0)
+				{
+					QuoteMap = list.get(0);
+					info QuoteMap;
+					scheduleMap.put("Quoteno",Quote_Number);
+					scheduleMap.put("Excution_Time",scheduled_time.toString());
+					schedule_id = QuoteMap.get("ID");
+					update_rec = zoho.creator.updateRecord("zoho_zoho1502","quotes","All_Mail_Schedules",schedule_id,scheduleMap,tempMap,"zcreator_connecction");
+					if(update_rec.get("code") == 3000)
+					{
+						response = "Mail will send on " + scheduled_time;
+						//update creator quote status
+						QUpdateMap = Map();
+						QUpdateMap.put("Quote_Status","Sent");
+						// 					Quote_Res = zoho.creator.v1.updateRecord("zoho_zoho1502","quotes","Create_Quote",Quote_Id_in_Creator,QUpdateMap);
+						Quote_Res = zoho.creator.updateRecord("zoho_zoho1502","quotes","All_Quotes",Quote_Id_in_Creator,QUpdateMap,tempMap,"zcreator_connecction");
+						info "scheduler contains entry already so update " + update_rec + " -quote update " + Quote_Res;
+					}
+					else
+					{
+						response = "Mail scheduler - time update failed " + update_rec;
+					}
+				}
+				else
+				{
+					response = "Fetched record count is 0";
+				}
+			}
+			else
+			{
+				info "insdide no records condition ";
+				scheduleMap.put("Quoteno",Quote_Number);
+				scheduleMap.put("Quote_ID",Quote_Id_in_Creator);
+				scheduleMap.put("Mail_Status","Sent");
+				scheduleMap.put("Excution_Time",scheduled_time.toString());
+				newRec = zoho.creator.createRecord("zoho_zoho1502","quotes","Send_Mail_Schedule",scheduleMap,tempMap,"zcreator_connecction");
+				if(newRec.get("code") == 3000)
+				{
+					response = "Mail will send on " + scheduled_time;
+					//update creator quote status
+					QUpdateMap = Map();
+					QUpdateMap.put("Quote_Status","Sent");
+					Quote_Res = zoho.creator.updateRecord("zoho_zoho1502","quotes","All_Quotes",Quote_Id_in_Creator,QUpdateMap,tempMap,"zcreator_connecction");
+					info "scheduler new entry " + newRec + " - quote update " + Quote_Res;
+				}
+				else
+				{
+					response = "Mail scheduler - time update failed " + newRec;
+				}
+			}
+		}
+		else
+		{
+			response = "There is no Quote with the quote hash";
+			info "there is no quote with quote hash";
+		}
+	}
+	else
+	{
+		response = "Quote is Paid Already!!";
+	}
+}
+//--------------------------------send quote from quote-----------------------------------------------------
+if(false)
+{
+	quote_id = 3106252000138164961;
+	Quote = zoho.crm.getRecordById("Quotes",quote_id);
+	// info Quote;
+	if(Quote.get("Contact_Name") != null)
+	{
+		contatc_id = Quote.get("Contact_Name").get("id");
+		contact = zoho.crm.getRecordById("Contacts",contatc_id);
+		emailid = contact.get("Email");
+		info emailid;
+		rencont = "Quote sent to customer email " + emailid + ". ";
+	}
+	else
+	{
+		rencont = "";
+	}
+	Quote_Id_in_Creator = ifnull(Quote.get("Creator_Record_ID"),"");
+	Quote_Number = Quote.get("Subject").remove("#");
+	if(Quote.get("Quote_Stage") != "Paid")
+	{
+		if(Quote_Id_in_Creator != "")
+		{
+			Quote_in_Creator = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Mail_Schedules","Quote_ID == " + Quote_Id_in_Creator,1,200,"zcreator_connecction");
+			// 		info Quote_in_Creator;
+			tempMap = Map();
+			scheduleMap = Map();
+			scheduled_time = zoho.currenttime.addSeconds(60);
+			if(Quote_in_Creator.get("code") == 3000)
+			{
+				list = Quote_in_Creator.get("data");
+				if(list.size() > 0)
+				{
+					QuoteMap = list.get(0);
+					// 				info QuoteMap;
+					scheduleMap.put("Quoteno",Quote_Number);
+					scheduleMap.put("Excution_Time",scheduled_time.toString());
+					scheduleMap.put("Source","CRM Send Quote");
+					schedule_id = QuoteMap.get("ID");
+					update_rec = zoho.creator.updateRecord("zoho_zoho1502","quotes","Send_Mail_Schedule",schedule_id,scheduleMap,tempMap,"zcreator_connecction");
+					if(update_rec.get("code") == 3000)
+					{
+						response = "Mail will send on " + scheduled_time;
+						//update creator quote status
+						QUpdateMap = Map();
+						QUpdateMap.put("Quote_Status","Sent");
+						// 					Quote_Res = zoho.creator.v1.updateRecord("zoho_zoho1502","quotes","Create_Quote",Quote_Id_in_Creator,QUpdateMap);
+						Quote_Res = zoho.creator.updateRecord("zoho_zoho1502","quotes","Create_Quote",Quote_Id_in_Creator,QUpdateMap,tempMap,"zcreator_connecction");
+						info "scheduler contains entry already so update " + update_rec + " -quote update " + Quote_Res;
+					}
+					else
+					{
+						response = "Mail scheduler - time update failed " + update_rec;
+					}
+				}
+				else
+				{
+					response = "Fetched record count is 0";
+				}
+			}
+			else
+			{
+				info "insdide no records condition ";
+				scheduleMap.put("Quoteno",Quote_Number);
+				scheduleMap.put("Quote_ID",Quote_Id_in_Creator);
+				scheduleMap.put("Source","CRM Send Quote");
+				scheduleMap.put("Excution_Time",scheduled_time.toString());
+				newRec = zoho.creator.createRecord("zoho_zoho1502","quotes","Send_Mail_Schedule",scheduleMap,tempMap,"zcreator_connecction");
+				if(newRec.get("code") == 3000)
+				{
+					response = "Mail will send on " + scheduled_time;
+					//update creator quote status
+					QUpdateMap = Map();
+					QUpdateMap.put("Quote_Status","Sent");
+					Quote_Res = zoho.creator.updateRecord("zoho_zoho1502","quotes","All_Quotes",Quote_Id_in_Creator,QUpdateMap,tempMap,"zcreator_connecction");
+					info "scheduler new entry " + newRec + " - quote update " + Quote_Res;
+				}
+				else
+				{
+					response = "Mail scheduler - time update failed " + newRec;
+				}
+			}
+		}
+		return rencont + "Customer will receive within 1 to 5 minutes ";
+	}
+	else
+	{
+		return "Quote is already Paid!";
+	}
+}
+//--------------------------------add notes cancel quote---------------------------------------------------
+if(false)
+{
+	Get_creator_record_Id = 3767260000019200216;
+	Get_creator_record_Id = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Quotes","ID == " + Get_creator_record_Id,1,9,"zcreator_connecction");
+	if(Get_creator_record_Id.get("code") == 3000)
+	{
+		list = Get_creator_record_Id.get("data");
+		if(list.size() > 0)
+		{
+			info Get_creator_record_Id;
+		}
+	}
+}
+//------------------------------------Create_Manual_Order_Without_Trans------------------------------------
+if(false)
+{
+	quotenumber = "00PR3227";
+	quoteResponse = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Quotes","Quote_Number==\"" + quotenumber + "\"",1,200,"zcreator_connecction");
+	if(quoteResponse.get("code") == 3000)
+	{
+		list = quoteResponse.get("data");
+		if(list.size() > 0)
+		{
+			fetchedQuote = list.get(0);
+			status = fetchedQuote.getJSON("Quote_Status");
+			info " api status" + status + " , res -- ";
+			if(fetchedQuote.getJSON("Quote_Status") != "Cancelled")
+			{
+				if(response.getJSON("Quote_Status") == "Sent" || response.getJSON("Quote_Status") == "Draft" || response.getJSON("Quote_Status") == "Opened")
+				{
+					BF = fetchedQuote.getJSON("Billing_First_Name");
+					BL = fetchedQuote.getJSON("Billing_Last_Name");
+					BE = fetchedQuote.getJSON("Billing_Email");
+					SF = fetchedQuote.getJSON("First_Name");
+					SL = fetchedQuote.getJSON("Last_Name");
+					SE = fetchedQuote.getJSON("Email");
+					if(BF == "" || BL == "" || BE == "" || SL == "" || SF == "" || SE == "")
+					{
+						response = "Please check/fill address details for order creation";
+						openUrl("https://creator.zohopublic.com/zoho_zoho1502/quotes/form-perma/Cheque_Manual_Order_Addresses/Bmz1kSSkJkXtdbMAaJZxf8dp7Wy8bBzZZ59jZOD6VGrXDMun9Hd3ZbQBkGYzFQEzTx8CynzW3OEbEn7Vwf3WYJwM9w1CyuKwrRyJ?Quote_Number=" + fetchedQuote.getJSON("ID") + "&Mail_Notification=" + zoho.loginuserid,"popup window","height=786,width=1444");
+					}
+					else
+					{
+						getSchedulerRecord = zoho.creator.getRecords("zoho_zoho1502","quotes","Quote_Sales_Order_Schedule_Report","Quoteno==\"" + quotenumber + "\"",1,200,"zcreator_connecction");
+						tempMap = Map();
+						scheduleradd = Map();
+						if(getSchedulerRecord.get("code") == 3000)
+						{
+							schedulerResponseList = getSchedulerRecord.get("data");
+							if(schedulerResponseList.size() > 0)
+							{
+								schedulerData = schedulerResponseList.get(0);
+								schedid = schedulerData.getJSON("ID");
+								scheduleradd.put("Execution_Time",now.addSeconds(30).toString());
+								scheduleradd.put("Source","Cheque Manual Order");
+								scheduleradd.put("Salesperson_Email",zoho.loginuserid);
+								info "scheduleradd" + scheduleradd + schedid;
+								scheduleupdate = zoho.creator.updateRecords("zoho_zoho1502","quotes","Quote_Sales_Order_Schedule",schedid.toLong(),scheduleradd,tempMap,"zcreator_connecction");
+								info "scheduler update response: " + scheduleupdate;
+								res = postUrl("https://www.zohoapis.com/crm/v2/functions/yl_updatechequmanualorderquotestaus/actions/execute?auth_type=apikey&zapikey=1003.84f6b88f042b49549074d50113dae2b6.276cb261a9b7531fe717d6f7d26c7d09&creator_rec_id=" + fetchedQuote.getJSON("ID"),"");
+								info "res:" + res;
+								response = "Required values are available. Going to create...";
+							}
+						}
+						else if(getSchedulerRecord.get("code") == 3100)
+						{
+							scheduleradd.put("Execution_Time",now.addSeconds(30).toString());
+							scheduleradd.put("Store_Name",fetchedQuote.getJSON("Quote_Store_Prams"));
+							scheduleradd.put("Quote_Rec_Id",fetchedQuote.getJSON("ID").toLong());
+							scheduleradd.put("Quoteno",quotenumber);
+							scheduleradd.put("Salesperson_Email",zoho.loginuserid);
+							scheduleradd.put("Source","Cheque Manual Order");
+							scheduleradd.put("Status","Pending");
+							scheduleCreateResponse = zoho.creator.createRecord("zoho_zoho1502","quotes","Quote_Sales_Order_Schedule",scheduleradd,tempMap,"zcreator_connecction");
+							info "schedulecreate response: " + scheduleCreateResponse;
+							res = postUrl("https://www.zohoapis.com/crm/v2/functions/yl_updatechequmanualorderquotestaus/actions/execute?auth_type=apikey&zapikey=1003.84f6b88f042b49549074d50113dae2b6.276cb261a9b7531fe717d6f7d26c7d09&creator_rec_id=" + fetchedQuote.getJSON("ID"),"");
+							info "res:" + res;
+							response = "Required values are available. Going to create...";
+						}
+						else
+						{
+							response = "Fetching scheduler record api request failed. " + getSchedulerRecord;
+						}
+					}
+				}
+				else
+				{
+					response = "The Quote status was must Draft or Sent or Opened. Please contact administrator....";
+				}
+			}
+			else
+			{
+				response = "The Quote status was Cancelled. Please contact administrator....";
+			}
+		}
+		else
+		{
+			response = "The quote number does not exists in Creator.";
+		}
+	}
+	else
+	{
+		response = "Fetching quote failed at initial stage";
+	}
+}
+//-------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
+// response1 = zoho.creator.v1.getRecords("zoho_zoho1502","quotes","All_Quotes","Quote_Number == \"" + quotenumber + "\"");
+// // info response1;
+// fetchedQuote = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Quotes","Quote_Number==\"" + quotenumber + "\"",1,200,"zcreator_connecction");
+// if(fetchedQuote.get("code") == 3000)
+// {
+// 	list = fetchedQuote.get("data");
+// 	if(list.size() > 0)
+// 	{
+// 		minimalResponse = list.get(0);
+// 		// 		fetchedQuote = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Quotes", response.getJSON("ID"),1,200,"zcreator_connecction");
+// 		fetchedQuote = zoho.creator.getRecordById("zoho_zoho1502","quotes","All_Quotes",minimalResponse.getJSON("ID"),"zcreator_connecction");
+// 		if(fetchedQuote.get("code") == 3000)
+// 		{
+// 			response = fetchedQuote.get("data");
+// 			status = response.getJSON("Quote_Status");
+// 			info " api status" + status + " , res -- " + fetchedQuote;
+// 		}
+// 		else
+// 		{
+// 		}
+// 	}
+// }
+// else
+// {
+// 	info "fetch failed";
+// }
+// info response;
+//------------------------------------------------------
+// quoteName = quoteName.replaceFirst("#","");
+// creatorQuoteDetails = zoho.creator.v1.getRecords(ownerName,appLinkName,"All_Quotes","ID=\"" + creatorId + "\"");
+// fetchcreatorQuote = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Quotes","ID == " + creatorId,1,9,"zcreator_connecction");
+// // fetchemp = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Quotes","ID== + creatorId + "\"",1,200,"zcreator_connecction");
+// info "fetchemp " + fetchcreatorQuote;
+// info "size "+ fetchcreatorQuote.size() +" -data- "+ fetchcreatorQuote;
+// if(fetchcreatorQuote.get("code") == 3000)
+// {
+// 	list = fetchcreatorQuote.get("data");
+// 	if(list.size() > 0)
+// 	{
+// 		creatorQuoteDetails = list.get(0);
+// 		trackingNo = ifnull(creatorQuoteDetails.get("Tracking_Number"),"");
+// 		//get tracking number
+// 		trackingStatus = ifnull(creatorQuoteDetails.get("Tracking_Status"),"");
+// 		//get tracking status
+// 		severity = ifnull(creatorQuoteDetails.get("Severity"),"");
+// 		//get code
+// 		shippingLabelFile = ifnull(creatorQuoteDetails.get("Shipping_Label"),"");
+// 		//get file
+// 		quoteStatus = ifnull(creatorQuoteDetails.get("Quote_Status"),"");
+// 		//get quote status
+// 		info trackingNo + " - " + trackingStatus + " - " +severity + " - "+shippingLabelFile + " - "+quoteStatus;
+// 	}
+// }
+info "-------------------------------------------";
+// loginuser = zoho.loginuserid;
+// get_salesperson = zoho.creator.v1.getRecords("zoho_zoho1502","quotes","All_Employees",'(Email == \"' + loginuser + '\")');
+// info get_salesperson;
+//------------------------------------------
+// orgId = 666840843;
+// po_no = 3106252000154279656;
+// po_resps = invokeurl
+// [
+// 	url :"https://books.zoho.com/api/v3/purchaseorders?organization_id=" + orgId + "&purchaseorder_number=" + zoho.encryption.urlEncode(po_no)
+// 	type :GET
+// 	connection:"mailparserzoho"
+// ];
+// info po_resps;
+//--------------------------------------
+// data = zoho.crm.getRelatedRecords("Sales_Orders", "Contacts", 3106252000116110035);
+// response = invokeurl
+// [
+// 	url :"https://www.zohoapis.com/crm/v2/settings/related_lists?module=Contacts"
+// 	type :GET
+// 	connection:"crm_connection"
+// ];
+// info response;
+//-----------------------------------------
+// salesperson_data = zoho.crm.searchRecords("Contacts","(Email:equals:" + emailchecking + ")");
+// if(!isnull(salesperson_data) && salesperson_data.size() > 0)
+// {
+// 	info " data is not null " + salesperson_data.get(0).get("id");
+// }
+// else
+// {
+// 	info "data is null";
+// }
+// storename = "Best_Access_Doors";
+// storedata = zoho.crm.searchRecords("Stores","(Name:equals:" + storename + ")");
+// info "store response " + storedata;
+// info " empty " + storedata.isEmpty();
+// if(!storedata.isEmpty())
+// {
+// 	info "not null";
+// 	info "unformated " + storedata.getJson("Phone");
+// 	phone = storedata.getjson("Phone");
+// 	info " phone " + phone;
+// }
+// else
+// {
+// 	info "response null";
+// 	phone = "1-800-483-0823";
+// }
+// cphone =IF( phone, phone, "800-483-0823");
+// info cphone;
+// info phone;
+//---------------notes for task module-----------------
+// info zoho.currentdate.addDay(1).toString("yyyy-MM-dd")+"T09:00:00-04:00";
+// paramMap = Map();
+// paramMap.put("$se_module","Contacts");
+// paramMap.put("Who_Id",{"id":3106252000087145159});
+// paramMap.put("Description","scheduler through contact us");
+// paramMap.put("Owner",3106252000026453004);
+// paramMap.put("Priority","High");
+// paramMap.put("Subject","Task To Sales Person");
+// dueDate = zoho.currentdate.addDay(2).toString("yyyy-MM-dd");
+// reminder = zoho.currentdate.addDay(1).toString("yyyy-MM-dd") + "T09:00:00-04:00";
+// paramMap.put("Due_Date",dueDate);
+// paramMap.put("Remind_At",{"ALARM":"FREQ=NONE;ACTION=EMAIL;TRIGGER=DATE-TIME:" + reminder});
+// response = zoho.crm.createRecord("Tasks",paramMap);
+// info response;
+// if(!isnull(response))
+// {
+// 	taskID = response.get("id");
+// 	notesMap = Map();
+// 	notesMap.put("Parent_Id",taskID);
+// 	notesMap.put("se_module","Tasks");
+// 	notesMap.put("Note_Title","Best.com Contact us form");
+// 	notesMap.put("Note_Content","Details:" + starttime + "\n Submitted by: " + starttime + "\n contact us form using " + emailchecking + " at " + now);
+// 	noteCreate = zoho.crm.createRecord("Notes",notesMap);
+// 	info noteCreate;
+// }
+//-----------------------
+// getnotes = zoho.crm.getRelatedRecords("Notes", "Tasks", 3106252000106195928);
+// info getnotes;
+// info now.toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'");
+// data = "select Who_Id,Call_Duration,Owner,Due_Date1 from Calls where Owner = '3106252000000152052' OFFSET 0 LIMIT 200";
+// info " overdue tasks due req: " + data;
+// coql_map = Map();
+// coql_map.put("select_query",data);
+// maillist = invokeurl
+// [
+// 	url :"https://www.zohoapis.com/crm/v2/coql"
+// 	type :POST
+// 	parameters:coql_map.tostring()
+// 	connection:"crm_connection"
+// ];
+// info " --- " + maillist.get("data").size();
+// info "mrec " + maillist.get("data");
+// contactList = zoho.crm.getRecords("Contacts",2080,50,{"cvid":3106252000071061054,"sort_by":"Created_Time","sort_order":"desc"});
+// info "res "+ contactList.size();
+//--------------------salesperson report-----------------------
+if(false)
+{
+	// info Get_Owner + " " + Get_data.get("Owner").get("email");
+	Quote_Id = 3106252000085433905;
+	Get_data = zoho.crm.getRecordById("Quotes",Quote_Id);
+	info Get_data;
+	// Owner_id = Get_data.get("Owner").get("id").toString();
+	// Owner_email = Get_data.get("Owner").get("email");
+	userTypeMap = Map();
+	userTypeMap.put("type","ActiveUsers");
+	responseUser = zoho.crm.invokeConnector("crm.getusers",userTypeMap);
+	userlist = responseUser.get("response").get("users");
+	enableValidation = false;
+	counter = 0;
+	Total_Quotes = 0;
+	for each  user in userlist
+	{
+		counter = counter + 1;
+		if(user.get("email") == "dev@bestaccessdoors.com")
+		{
+			info user.get("email") + " " + user.get("full_name");
+			Owner_email = user.get("email");
+			Owner_id = user.get("id").toString();
+			salesperson_data = zoho.crm.searchRecords("Salesperson_Dashboard_Rpt","(Email:equals:" + Owner_email + ")");
+			saleperson_data = salesperson_data.get(0);
+			User_recordID = saleperson_data.get("id");
+			Total_quote_count = ifnull(saleperson_data.get("Total_Quotes"),"");
+			Total_Quotes = IF(Total_quote_count != "",Total_Quotes,0);
+			Quotes_Today = ifnull(saleperson_data.get("Quotes_Today"),"");
+			Quotes_Today_Amount = ifnull(saleperson_data.get("Quotes_Today_Amount"),"");
+			Quotes_Weekly_Amount = ifnull(saleperson_data.get("Quotes_Weekly_Amount"),"");
+			Quotes_Monthly_Amount = ifnull(saleperson_data.get("Quotes_Monthly_Amount"),"");
+			//overall quote count
+			overall_coql_map = Map();
+			overall_coql_map.put("select_query","select Sales_Quote_Number,Owner,Date,Quote_Stage,Created_Time from Quotes where Stage = 'LOST' && Owner = '" + Owner_id + "'");
+			overall_quotes = invokeurl
+			[
+				url :"https://www.zohoapis.com/crm/v2/coql"
+				type :POST
+				parameters:overall_coql_map.tostring()
+				connection:"crm_connection"
+			];
+			// 	info " --- " + overall_quotes.get("data");
+			Total_Quotes = overall_quotes.get("data").size();
+			//total quotes paid count
+			offset = 0;
+			coql_map = Map();
+			coql_map.put("select_query","select Sales_Quote_Number,Owner,Date,Quote_Stage,Created_Time,Grand_Total from Quotes where Quote_Stage = 'Paid' and Owner = '" + Owner_id + "'");
+			totalpaid = invokeurl
+			[
+				url :"https://www.zohoapis.com/crm/v2/coql"
+				type :POST
+				parameters:coql_map.tostring()
+				connection:"crm_connection"
+			];
+			info "total quotes paid --- " + totalpaid.get("data").size();
+			info "res " + totalpaid.get("data").get(0);
+			if(totalpaid.get("data").size() > 1)
+			{
+				// offset
+				Total_Quotes_Paid = Total_Quotes + totalpaid.get("data").size();
+				if(totalpaid.get("data"))
+				{
+					coql_map = Map();
+					coql_map.put("select_query","select Sales_Quote_Number,Owner,Date,Quote_Stage,Created_Time,Grand_Total from Quotes where Quote_Stage = 'Paid' and Owner = '" + Owner_id + "'");
+					totalpaid = invokeurl
+					[
+						url :"https://www.zohoapis.com/crm/v2/coql"
+						type :POST
+						parameters:coql_map.tostring()
+						connection:"crm_connection"
+					];
+					info "total quotes paid --- " + totalpaid.get("data").size();
+					Total_Quotes_Paid = Total_Quotes + totalpaid.get("data").size();
+				}
+			}
+			else
+			{
+				// existing
+				Total_Quotes_Paid = totalpaid.get("data").size();
+			}
+			//overall paid
+			coql_map = Map();
+			coql_map.put("select_query","select Sales_Quote_Number,Owner,Date,Quote_Stage,Created_Time from Quotes where Quote_Stage = 'Paid' and Owner = '" + Owner_id + "'");
+			maillist = invokeurl
+			[
+				url :"https://www.zohoapis.com/crm/v2/coql"
+				type :POST
+				parameters:coql_map.tostring()
+				connection:"crm_connection"
+			];
+			info "overall paid count --- " + maillist.get("data").size();
+			monthly = now.toStartOfMonth().toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'");
+			weekly = now.toStartOfWeek().toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'");
+			today = zoho.currentdate.toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'");
+			info "start of the week --> " + monthly + " --> " + weekly + " --> " + today;
+			//today paid
+			coql_maps = Map();
+			coql_maps.put("select_query","select Sales_Quote_Number,Owner,Date,Quote_Stage,Created_Time from Quotes where ((Created_Time >=  '" + today + "') and (Quote_Stage = 'Paid')) and Owner = '" + Owner_id + "'");
+			maillists = invokeurl
+			[
+				url :"https://www.zohoapis.com/crm/v2/coql"
+				type :POST
+				parameters:coql_maps.tostring()
+				connection:"crm_connection"
+			];
+			info " today paid ---> " + maillists.get("data").size();
+			Total_Quotes_Paid = Quotes_Today + maillists.get("data").size();
+			//weekly paid
+			weeklycoql_maps = Map();
+			weeklycoql_maps.put("select_query","select Sales_Quote_Number,Owner,Date,Quote_Stage,Created_Time from Quotes where ((Created_Time >=  '" + weekly + "') and (Quote_Stage = 'Paid')) and Owner = '" + Owner_id + "'");
+			weekly_quotes = invokeurl
+			[
+				url :"https://www.zohoapis.com/crm/v2/coql"
+				type :POST
+				parameters:weeklycoql_maps.tostring()
+				connection:"crm_connection"
+			];
+			info " -weekly paid -- " + weekly_quotes.get("data").size();
+			Quotes_weekly = weekly_quotes.get("data").size();
+			//monthly paid
+			monthlycoql_maps = Map();
+			monthlycoql_maps.put("select_query","select Sales_Quote_Number,Owner,Date,Quote_Stage,Created_Time from Quotes where ((Created_Time >=  '" + monthly + "') and (Quote_Stage = 'Paid')) and Owner = '" + Owner_id + "'");
+			monthly_quotes = invokeurl
+			[
+				url :"https://www.zohoapis.com/crm/v2/coql"
+				type :POST
+				parameters:monthlycoql_maps.tostring()
+				connection:"crm_connection"
+			];
+			info " -monthly paid -- " + monthly_quotes.get("data").size();
+			Quotes_monthly = monthly_quotes.get("data").size();
+			data_map = Map();
+			data_map.put("Total_Quotes",Total_Quotes);
+			data_map.put("Quotes_Today",Total_Quotes_Paid);
+			data_map.put("Quotes_Weekly",Quotes_weekly);
+			data_map.put("Quotes_Monthly",Quotes_monthly);
+			update_userrecord = zoho.crm.updateRecord("Salesperson_Dashboard_Rpt",User_recordID,data_map);
+			info update_userrecord;
+		}
+	}
+}
+// userTypeMap = Map();
+// userTypeMap.put("type","ActiveUsers");
+// responseUser = zoho.crm.invokeConnector("crm.getusers",userTypeMap);
+// userlist = responseUser.get("response").get("users");
+// enableValidation = false;
+// for each  user in userlist
+// {
+// 	info user.get("email") +" "+ user.get("profile").get("full_name");
+// // 	if(user.get("email") == "dev")
+// // 	{
+// 	data=Map();
+// 	data.put("Name", user.get("full_name"));
+// 	data.put("Email", user.get("email"));
+// 	data.put("RecordID", user.get("id"));
+// 	test = zoho.crm.createRecord("Salesperson_Dashboard_Rpt",data);
+// 	info test;
+// // 	}
+// }
+//--------------------books contact count-----------------------
+if(false)
+{
+	testing = zoho.books.getRecords("contacts","666840843","contact_type=customer&cf_duplicate_is_processed=false&page=4&per_page=30&cf_is_processed=true");
+	// testing = zoho.books.getRecords("contacts","666840843","contact_type=customer&cf_master_contactid=1324986000022436859&page=1");
+	info testing.get("contacts").size();
+	counter = 0;
+	for each  customer in testing.get("contacts")
+	{
+		counter = counter + 1;
+		contact_id = customer.get("contact_id");
+		masterContact_id = ifnull(customer.get("cf_master_contactid"),"");
+		crmContactEmail = ifnull(customer.get("email"),"");
+		syncdcrmMasterID = customer.get("cf_crm_contact_id");
+		// 	contact_id = 1324986000018873931;
+		// 	masterContact_id = ifnull(1324986000018924254,""); 
+		// 	crmContactEmail = "balaji@bizappln.com";
+		info counter + "------- function starts " + contact_id + " |master| " + masterContact_id + " |email| " + crmContactEmail + " |syncdcrm| " + syncdcrmMasterID + "\n <br />";
+		info "null heck " + ifnull(customer.get("cf_master_contactid"),"") + " email " + ifnull(customer.get("email"),"");
+		//process only if master id is available
+		if(masterContact_id != "" && crmContactEmail != "")
+		{
+			urlencoded_Email = zoho.encryption.urlEncode(crmContactEmail);
+			Get_all_contactslist = zoho.books.getRecords("contacts","666840843","contact_type=customer&email=" + urlencoded_Email);
+			info "books contact size " + Get_all_contactslist.get("contacts").size();
+			Get_contact_details = Get_all_contactslist.get("contacts");
+			if(Get_contact_details.size() > 1)
+			{
+				info "morethan 1 contact";
+				master_data = zoho.books.getRecordsByID("contacts","666840843",masterContact_id);
+				info "master data " + master_data;
+				if(master_data.get("message") == "success")
+				{
+					masterCheck = master_data.get("contact");
+					masterEmail = masterCheck.get("email");
+					mastercontactID = masterCheck.get("contact_id");
+					info masterEmail + " " + mastercontactID;
+					info "customer details " + customer.get("customer_name") + " email " + crmContactEmail + " - type: " + customer.get("contact_type") + " id " + contact_id + " --master " + customer.get("cf_duplicate_is_processed") + " --processed " + customer.get("cf_is_processed") + " masterid " + masterContact_id;
+					if(customer.get("contact_type") == "customer" && customer.get("cf_is_processed") == true && customer.get("cf_duplicate_is_processed") == false && customer.get("cf_master_contactid") != "" && customer.get("customer_name") != "" && masterEmail == crmContactEmail)
+					{
+						//sales order
+						Get_SO_data = zoho.books.getRecords("salesorders","666840843","customer_id=" + contact_id);
+						if(Get_SO_data.get("message") == "success")
+						{
+							Get_So = Get_SO_data.get("salesorders");
+							info "sale order count " + Get_So.size();
+							so_count = 0;
+							for each  SO in Get_So
+							{
+								so_count = so_count + 1;
+								// 								if(so_count == 1)
+								// 							if(SO.get("salesorder_id") == "1324986000024209097")
+								// 							{
+								saleorder_id = SO.get("salesorder_id");
+								info "saleorder iteration starts " + saleorder_id;
+								saleorders = getUrl("https://books.zoho.com/api/v3/salesorders/" + saleorder_id + "?organization_id=666840843",header_data);
+								// info saleorders;
+								if(saleorders.get("message") == "success")
+								{
+									saleorder_detail = saleorders.get("salesorder");
+									info "inside saleorder loop " + saleorder_detail.get("invoices").size() + " saleorder id " + saleorder_id;
+									//invoice processing
+									if(saleorder_detail.get("invoices").size() > 0)
+									{
+										inv_count = 0;
+										for each  inv in saleorder_detail.get("invoices")
+										{
+											inv_count = inv_count + 1;
+											invoice_id = inv.get("invoice_id");
+											info inv_count + " invoice id iteration starts for " + inv.get("invoice_id") + " Sale Order_id" + saleorder_id + "status " + inv.get("status");
+											//to add log
+											invoice = zoho.books.getRecordsByID("invoices","666840843",invoice_id);
+											info invoice.get("message");
+											// 		if(invoices.get("message") == "success")
+											// 		{									
+											payment_list = getUrl("https://books.zoho.com/api/v3/invoices/" + invoice_id + "/payments?organization_id=666840843",{"Authorization":"Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2"});
+											// 	info payment_list;
+											if(payment_list.get("message") == "success")
+											{
+												info "inside payments for " + invoice_id;
+												if(payment_list.get("payments").size() > 0)
+												{
+													info "payement deletion crm log ";
+												}
+												else if(payment_list.get("payments").size() == 0)
+												{
+													info "delete invoice with 0 payment crm log ";
+												}
+											}
+										}
+									}
+									else if(saleorder_detail.get("invoices").size() == 0)
+									{
+										info "o saleorder";
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			else if(Get_contact_details.size() == 1)
+			{
+				info "only one contact is found so not to re-associate ";
+			}
+		}
+		else
+		{
+			info "no master/ email found";
+		}
+	}
+}
+//------------------log test--------------------
+// inv_id = 1324986000022761170;
+// invoice = zoho.books.getRecordsByID("invoices", "666840843",inv_id);
+// // info invoice;
+// values = {"value": invoice, "response": "success"};
+// info values.toMap();
+// mapdata =Map();
+// mapdata.put("test","yes");
+// mapdata.put("response", inv_id);
+// logs = postUrl("https://1.door-pay.com/api/add/log",values.tostring());
+// info "master and contact email doesnt match. re-process log ------> "+logs  ;
+// logs = zoho.crm.createRecord("Log_ContactQuoteDeals",{"Which_Module":"Books-Invoice","Status":"success","Action":"duplicate merge","Contact_Data":"","What_Time":now.toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'"),"Name":"custom function - Book_Duplicate_Contacts_Records_Merger_To_Master", "Contact_Response":" contact details","Start_Time":starttime.toString(),"End_Time":now.toLong().toString(),"Books_Record_ID":"","Contact_Record_ID":"crmID:  -- booksmaster:","Contact_Name":"test invoice log","Email":"prashanth@bizappln.com","Invoice_Record_ID":inv_id.toString(),"Invoice_Request": "requst message with data ","Invoice_Response": invoice});
+// info logs;
+//--------contact master--update-------
+// email = "balaji@bizappln.com";
+// urlString = zoho.encryption.urlEncode(email);
+// info email + " " + urlString;
+// testing = zoho.books.getRecords("contacts","666840843","contact_type=customer&email="+email);
+// // testing = zoho.books.getRecords("contacts","666840843","contact_type=customer&page=18&per_page=50&cf_is_processed=false");
+// info testing.get("contacts").size();
+// counter = 0;
+// for each  customer in testing.get("contacts")
+// {
+// 	info customer.get("email") + " "+ customer.get("contact_id");
+// 	emailcheck = ifnull(customer.get("email"),"");
+// 	if(customer.get("email") != "" && emailcheck != "" || customer.get("email") != null && emailcheck != ""){
+// 		counter = counter +1;
+// 		info customer.get("contact_id") + " " + customer.get("contact_name") + " processed : " + customer.get("cf_is_processed") + " " + customer.get("contact_type") + " email "+ customer.get("email");
+// 	}
+// }
+// info "remaining count "+counter;
+//-------------------------------------------------------------
+if(false)
+{
+	coql_map = Map();
+	// // coql_map.put("select_query","select Last_Name, First_Name, Account_Name from Contacts where Account_Name is null ORDER BY First_Name DESC LIMIT " + Limit_val + " OFFSET " + Offset_val);
+	coql_map.put("select_query","select Email,First_Name,Last_Name,Full_Name,Phone,Mailing_Street,Mailing_Street_2,Mailing_City,Mailing_Country,Mailing_State,Mailing_Zip, Other_Street,Other_Street_2, Other_City,Other_State,Other_Zip,Other_Country from Contacts where ((Email = 'prashanth@bizappln.com') and (Merged = true)) ORDER BY Created_Time ASC");
+	response = invokeurl
+	[
+		url :"https://www.zohoapis.com/crm/v2/coql"
+		type :POST
+		parameters:coql_map.tostring()
+		connection:"crm_connection"
+	];
+	// info response;
+	contactList = response.get("data");
+	info contactList;
+	// for each red in response.get("data")
+	// {
+	// info red.get("id") +" =="+ red.get("Email")+"============";
+	// 		update_masterdata_map = Map();
+	// 		update_masterdata_map.put("custom_fields",{{"customfield_id":"1324986000001053007","value":crmRecordID},{"customfield_id":"1324986000022494833","value":true},{"customfield_id":"1324986000022555479","value":masterRecId},{"customfield_id":"1324986000020148916","value":true}});
+	// // 		masterresponse_update_status = zoho.books.updateRecord("Contacts","666840843",masterRecId,update_masterdata_map);
+	// // 		info "Update master contact Response: " + masterresponse_update_status.get("message");
+	// }
+	//process master contacts - update
+	// contactList = zoho.crm.getRecords("Contacts",Books_Contact_Index,1,{"cvid":3106252000094927322,"sort_by":"Created_Time","sort_order":"asc"});
+	crmContact_Count = 0;
+	for each  ZCcontact in contactList
+	{
+		update_masterdata_map = Map();
+		// 		crmRecordID = ZCcontact.get("id");   // for testing
+		crmRecordID = 3106252000085699021;
+		update_masterdata_map.put("contact_name",ZCcontact.get("Full_Name"));
+		update_masterdata_map.put("phone",ZCcontact.get("phone"));
+		billing_address = Map();
+		billing_address.put("address",ZCcontact.get("Mailing_Street"));
+		billing_address.put("street2",ZCcontact.get("Mailing_Street_2"));
+		billing_address.put("city",ZCcontact.get("Mailing_City"));
+		billing_address.put("country",ZCcontact.get("Mailing_Country"));
+		billing_address.put("state",ZCcontact.get("Mailing_State"));
+		billing_address.put("zip",ZCcontact.get("Mailing_Zip"));
+		update_masterdata_map.put("billing_address",billing_address);
+		//shipping charge
+		shipping_address = Map();
+		shipping_address.put("address",ZCcontact.get("Other_Street"));
+		shipping_address.put("street2",ZCcontact.get("Other_Street_2"));
+		shipping_address.put("city",ZCcontact.get("Other_City"));
+		shipping_address.put("country",ZCcontact.get("Other_Country"));
+		shipping_address.put("state",ZCcontact.get("Other_State"));
+		shipping_address.put("zip",ZCcontact.get("Other_Zip"));
+		update_masterdata_map.put("shipping_address",shipping_address);
+		contact_persons = Map();
+		contact_person1 = Map();
+		contact_person1.put("first_name",ZCcontact.get("First_Name"));
+		contact_person1.put("last_name",ZCcontact.get("Last_Name"));
+		contact_person1.put("phone",ZCcontact.get("Phone"));
+		// 		contact_persons.add(contact_persons);
+		update_masterdata_map.put("contact_persons",contact_person1);
+		// 		update_masterdata_map.put("custom_fields",{{"customfield_id":"1324986000001053007","value":crmRecordID},{"customfield_id":"1324986000022494833","value":true}});
+		masterresponse = zoho.books.getRecords("Contacts","666840843","cf_crm_contact_id=" + crmRecordID.toString());
+		info "master " + update_masterdata_map;
+		masterId = "";
+		if(masterresponse.get("message") == "success")
+		{
+			for each  rec in masterresponse.get("contacts")
+			{
+				info rec.get("contact_id");
+				if(rec.get("cf_duplicate_is_processed") == true && rec.get("cf_is_processed") == true)
+				{
+					masterId = rec.get("cf_master_contactid");
+				}
+			}
+			info "master sss " + masterId;
+			masterresponse_update_status = zoho.books.updateRecord("Contacts","666840843",masterId,update_masterdata_map);
+			info "Update master contact Response: " + masterresponse_update_status;
+		}
+	}
+}
+//------------records reassociation------------------
+//===============
+// delete_payment = invokeurl
+// 		[
+// 							url :"https://books.zoho.com/api/v3/contacts/1324986000024345717?organization_id=666840843"
+// 							type :DELETE
+// 							headers:header_data
+// 		];
+// 						info delete_payment;
+//=======================================================
+// JSONString = {"customer_id":"1324986000015934259","invoices":{{"invoice_id":"1324986000024524601","amount_applied":"23.4"}},"payment_mode":"Cash","description":"test","date":"2020-06-02","reference_number":"","exchange_rate":"1","amount":"23.4","bank_charges":"","account_id":"1324986000011201119","custom_fields":{{"customfield_id":"1324986000012371282","value":""},{"customfield_id":"1324986000017324099","value":""},{"customfield_id":"1324986000017324103","value":""}},"documents":{}};
+// url = "https://books.zoho.com/api/v3/customerpayments?organization_id=666840843";
+// jsonmap = Map();
+// datamap = Map();
+// maps = {"customer_id":"1324986000015934259","invoices":{{"invoice_id":"1324986000024524601","amount_applied":"23.4"}},"payment_mode":"Cash","description":"test","date":"2020-06-02","reference_number":"","exchange_rate":"1","amount":"23.4","bank_charges":""};
+// jsonmap.put("JSONString",maps);
+// payment = postUrl(url,jsonmap,header_data);
+// info payment;
+//-------------------------records deletion -------------------------------
+// testing = zoho.books.getRecords("contacts","666840843","contact_type=vendor&cf_is_master_vendor=false&page=1&cf_is_processed=true");
+// info testing.get("contacts");
+// counter = 0;
+// for each  vendor in testing.get("contacts")
+// {
+// 	// 	info vendor.get("contact_type") + " -- "+ vendor.get("contact_id") + " -- " + vendor.get("cf_is_master_vendor") + " -- "+ vendor.get("cf_is_processed");
+// 	if(vendor.get("contact_type") == "vendor" && vendor.get("cf_is_processed") == true && vendor.get("cf_is_master_vendor") == false)
+// 	{
+// 		info vendor.get("contact_type") + " -- " + vendor.get("contact_id") + " -- " + vendor.get("cf_is_master_vendor") + " -- " + vendor.get("cf_is_processed") + " -- " + vendor.get("contact_name");
+// 		contact_id = vendor.get("contact_id");
+// 		index_count = 0;
+// 		// 	Update PO
+// 		Get_PO_data = zoho.books.getRecords("Purchaseorders","666840843","vendor_id=" + contact_id);
+// 		Get_Inv_Po = Get_PO_data.get("purchaseorders");
+// 		// 		info Get_Inv_Po.size();
+// 		index_count = index_count + Get_Inv_Po.size();
+// 		// 	Update Exp
+// 		Get_Exp_data = zoho.books.getRecords("expenses","666840843","vendor_id=" + contact_id);
+// 		Get_Inv_Exp = Get_Exp_data.get("expenses");
+// 		// 		info Get_Inv_Exp.size();
+// 		index_count = index_count + Get_Inv_Exp.size();
+// 		// update bills
+// 		Get_Bill_data = zoho.books.getRecords("bills","666840843","vendor_id=" + contact_id);
+// 		Get_Inv_Bill = Get_Bill_data.get("bills");
+// 		// 		info Get_Inv_Bill.size();
+// 		index_count = index_count + Get_Inv_Bill.size();
+// 		info index_count;
+// 		if(index_count > 0)
+// 		{
+// 			info vendor.get("vendor_name") + "This Vendor Can't' be deleted";
+// 		}
+// 		else if(index_count == 0)
+// 		{
+// 			info vendor.get("vendor_name") + "This Vendor Can be deleted";
+// 			delete_payment = invokeurl
+// 			[
+// 				url :"https://books.zoho.com/api/v3/contacts/" + vendor.get("contact_id") + "?organization_id=666840843"
+// 				type :DELETE
+// 				headers:header_data
+// 			];
+// 			info delete_payment;
+// 			counter = counter + 1;
+// 			if(counter == 21)
+// 			{
+// 				break;
+// 			}
+// 		}
+// 	}
+// 	else
+// 	{
+// 		info vendor.get("vendor_name") + "This Vendor Can't' be deleted";
+// 	}
+// }
+// info "Counter " + counter;
+// return "completed processing count ";
+return response;
+}

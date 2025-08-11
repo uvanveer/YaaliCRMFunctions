@@ -1,0 +1,231 @@
+void automation.rk_createDropShipOrder1(Int id)
+{
+// saleorderDetail = zoho.crm.getRecordById("Sales_Orders",id);
+// info saleorderDetail;
+// store_id = saleorderDetail.get("Store").get("id");
+// get_store = zoho.crm.getRecordById("Stores",store_id);
+// statusofOrder = saleorderDetail.get("Status");
+// //fet if already dropshiporder exits
+// BigCommerce_Unique_ID = saleorderDetail.get("BigCommerce_Unique_ID");
+// serchdropship = zoho.crm.searchRecords("Purchase_Orders","BC_Unique_Id:equals:" + BigCommerce_Unique_ID);
+// dropshiporderdeltionid = List();
+// serchdropshiplist = List();
+// serchdropshiplist.add(serchdropship);
+// if(serchdropshiplist.size() > 0)
+// {
+// 	for each  dropshipid in serchdropshiplist.toList()
+// 	{
+// 		dropshiporder = Map();
+// 		dropshiporder.put("id",dropshipid.getJSON("id"));
+// 		dropshiporderdeltionid.add(dropshiporder);
+// 	}
+// }
+// if(saleorderDetail.get("Subject").contains("Order Number"))
+// {
+// 	subject = saleorderDetail.get("Subject").getPrefix("for").getSuffix("Order Number").trim();
+// }
+// else
+// {
+// 	subject = saleorderDetail.get("Subject");
+// }
+// if(saleorderDetail.get("Order_Date") == null)
+// {
+// 	orderDate = zoho.currentdate;
+// }
+// else
+// {
+// 	orderDate = saleorderDetail.get("Order_Date").toDate();
+// }
+// updateSales = zoho.crm.updateRecord("Sales_Orders",id,{"Subject":subject,"Order_Date":orderDate});
+// products = saleorderDetail.get("Product_Details").toJSONList();
+// vidM = Map();
+// vendorKey = Map();
+// productDetails = Map();
+// tax = 0.0;
+// for each  singleproduct in products
+// {
+// 	if(singleproduct.get("quantity") > 0)
+// 	{
+// 		salePro = Map();
+// 		pid = singleproduct.get("product").get("id");
+// 		crmresp = zoho.crm.getRecordById("Products",pid);
+// 		vid = crmresp.get("Vendor_Name").get("id");
+// 		if(vidM.containKey(vid))
+// 		{
+// 			Cost_Price = crmresp.get("Cost_Price").toDecimal();
+// 			if(Cost_Price != 0 || Cost_Price != null)
+// 			{
+// 				singleproduct.put("list_price",crmresp.get("Cost_Price").toDecimal());
+// 			}
+// 			else if(crmresp.get("Sale_Price") != 0)
+// 			{
+// 				singleproduct.put("list_price",crmresp.get("Sale_Price").toDecimal());
+// 			}
+// 			else if(crmresp.get("Sale_Price") != 0)
+// 			{
+// 				singleproduct.put("list_price",crmresp.get("Unit_Price").toDecimal());
+// 			}
+// 			else
+// 			{
+// 				singleproduct.put("list_price",pid.get("list_price").toDecimal());
+// 			}
+// 			exisProductList = list();
+// 			exisProductList = vidM.get(vid);
+// 			Cost_Price = crmresp.get("Cost_Price").toDecimal();
+// 			if(Cost_Price != 0 || Cost_Price != null)
+// 			{
+// 				singleproduct.put("list_price",crmresp.get("Cost_Price").toDecimal());
+// 			}
+// 			else if(crmresp.get("Sale_Price") != 0)
+// 			{
+// 				singleproduct.put("list_price",crmresp.get("Sale_Price").toDecimal());
+// 			}
+// 			else if(crmresp.get("Sale_Price") != 0)
+// 			{
+// 				singleproduct.put("list_price",crmresp.get("Unit_Price").toDecimal());
+// 			}
+// 			else
+// 			{
+// 				singleproduct.put("list_price",pid.get("list_price").toDecimal());
+// 			}
+// 			exisProductList.add(singleproduct);
+// 		}
+// 		else
+// 		{
+// 			productList = list();
+// 			Cost_Price = crmresp.get("Cost_Price").toDecimal();
+// 			if(Cost_Price != 0 || Cost_Price != null)
+// 			{
+// 				singleproduct.put("list_price",crmresp.get("Cost_Price").toDecimal());
+// 			}
+// 			else if(crmresp.get("Sale_Price") != 0)
+// 			{
+// 				singleproduct.put("list_price",crmresp.get("Sale_Price").toDecimal());
+// 			}
+// 			else if(crmresp.get("Sale_Price") != 0)
+// 			{
+// 				singleproduct.put("list_price",crmresp.get("Unit_Price").toDecimal());
+// 			}
+// 			else
+// 			{
+// 				singleproduct.put("list_price",pid.get("list_price").toDecimal());
+// 			}
+// 			productList.add(singleproduct);
+// 			vidM.put(vid,productList);
+// 		}
+// 		// 		}
+// 		vendorKey.put(vid,"Keys");
+// 		salePro.put("item_id",pid);
+// 		// 	salePro.put("rate",singleproduct.get("unit_price"));
+// 		//info"Cost Price = " +crmresp.get("Cost_Price");
+// 		salePro.put("rate",crmresp.get("Cost_Price"));
+// 		salePro.put("name",singleproduct.get("product").get("name"));
+// 		salePro.put("quantity",singleproduct.get("quantity"));
+// 		productDetails.put(pid,salePro);
+// 		tax = tax + singleproduct.get("Tax");
+// 	}
+// }
+// finalProduct = List();
+// productkey = productDetails.keys();
+// for each  singleProductKey in productkey
+// {
+// 	finalProduct.add(productDetails.get(singleProductKey));
+// }
+// // // Create Sales Order in Book 
+// // info "vidM : " + vidM;
+// vKey = vidM.keys();
+// info "vkey : " + vKey;
+// vendors = vendorKey.keys();
+// for each  m in vendors
+// {
+// 	//info "M = "+m ;
+// 	total = 0.0;
+// 	drop = Map();
+// 	product = List();
+// 	prodm = "";
+// 	purchase = Map();
+// 	// 	info "VKey : " + vKey;
+// 	temp_product_list = List();
+// 	for each  v in vKey
+// 	{
+// 		if(v == m)
+// 		{
+// 			// 			info "VIDM = "+vidM;`
+// 			for each  pro_duct in vidM.get(v)
+// 			{
+// 				temp_product_list.add(pro_duct);
+// 			}
+// 			product = vidM.get(v);
+// 			// 			info vidM.get(v);
+// 			break;
+// 		}
+// 	}
+// 	// 	info product;
+// 	temp = product.toMap();
+// 	temp2 = temp_product_list;
+// 	// 	info "Temp map : " + temp;
+// 	// 	info "Temp map : " + temp2;
+// 	// 	info "Cost Price = " + crmresp.get("Cost_Price");
+// 	// 	temp.put("list_price",crmresp.get("Cost_Price").toLong());
+// 	// 	drop.put("Adjustment",saleorderDetail.get("Adjustment"));
+// 	drop.put("Owner",saleorderDetail.get("Owner").get("id"));
+// 	drop.put("Subject",subject);
+// 	drop.put("Account_Name",saleorderDetail.get("Account_Name").get("id"));
+// 	drop.put("Store",saleorderDetail.get("Store").get("id"));
+// 	drop.put("BC_Unique_Id",saleorderDetail.get("BigCommerce_Unique_ID"));
+// 	drop.put("Vendor_Name",m);
+// 	drop.put("Order_Date",orderDate);
+// 	// 	drop.put("Status",saleorderDetail.get("Status"));
+// 	drop.put("Status","created");
+// 	drop.put("Sales_Commission",saleorderDetail.get("Sales_Commission"));
+// 	drop.put("Sales_Order",saleorderDetail.get("id"));
+// 	drop.put("Due_Date",saleorderDetail.get("Due_Date"));
+// 	drop.put("Contact_Name",saleorderDetail.get("Contact_Name").get("id"));
+// 	drop.put("Billing_First_Name",get_store.get("First_Name"));
+// 	drop.put("Billing_Last_Name",get_store.get("Last_Name"));
+// 	drop.put("Billing_Street",get_store.get("Street"));
+// 	drop.put("Billing_City",get_store.get("City"));
+// 	drop.put("Billing_Code",get_store.get("Code"));
+// 	drop.put("Billing_State",get_store.get("State"));
+// 	drop.put("Billing_Country",get_store.get("Country"));
+// 	drop.put("Shipping_First_Name",saleorderDetail.get("Shipping_First_Name"));
+// 	drop.put("Shipping_Last_Name",saleorderDetail.get("Shipping_Last_Name"));
+// 	drop.put("Shipping_Street",saleorderDetail.get("Shipping_Street"));
+// 	drop.put("Shipping_City",saleorderDetail.get("Shipping_City"));
+// 	drop.put("Shipping_Code",saleorderDetail.get("Shipping_Code"));
+// 	drop.put("Shipping_Country",saleorderDetail.get("Shipping_Country"));
+// 	drop.put("Shipping_State",saleorderDetail.get("Shipping_State"));
+// 	drop.put("Currency",saleorderDetail.get("Currency"));
+// 	drop.put("Product_Details",temp2.toJSONList());
+// 	// 	info "After Product Assign: " + temp2;
+// 	drop.put("Terms_and_Conditions",saleorderDetail.get("Terms_and_Conditions"));
+// 	drop.put("Description",saleorderDetail.get("Description"));
+// 	//entries
+// 	drop.put("Staff_Notes",saleorderDetail.get("Staff_Notes"));
+// 	drop.put("Confirmation_Number","ACN");
+// 	if(saleorderDetail.get("Source").contains("Amazon"))
+// 	{
+// 		drop.put("Ship_Date",saleorderDetail.get("Date_Shipped"));
+// 		drop.put("Amazon_Store_Region",saleorderDetail.get("Amazon_Store_Region"));
+// 	}
+// 	createDrop = zoho.crm.createRecord("Purchase_Orders",drop);
+// 	getrecentDrop = zoho.crm.getRecordById("Purchase_Orders",createDrop.get("id"));
+// 	Dropship_Number = getrecentDrop.get("Dropship_Number");
+// 	info "createDrop" + createDrop;
+// }
+// if(createDrop.size() > 0)
+// {
+// 	info "dropshiporderdeltionid" + dropshiporderdeltionid;
+// 	counter = 0;
+// 	for each  deletedropshi in dropshiporderdeltionid
+// 	{
+// 		deleteRecordMap = Map();
+// 		deleteRecordMap.put("module","Purchase_Orders");
+// 		deleteRecordMap.put("id",deletedropshi.getJSON("id"));
+// 		deleteResp = zoho.crm.invokeConnector("crm.delete",deleteRecordMap);
+// 		info "\ndeleteResp" + deleteResp;
+// 		counter = counter + 1;
+// 	}
+// 	info counter;
+// }
+}

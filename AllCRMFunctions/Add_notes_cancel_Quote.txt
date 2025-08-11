@@ -1,0 +1,141 @@
+string standalone.Add_notes_cancel_Quote(String Cancel_Notes,Int Quote_Id)
+{
+//Notes for Quotes
+Add_notes = Map();
+Add_notes.put("Note_Title","Cancel Notes");
+Add_notes.put("Note_Content",Cancel_Notes);
+Add_notes.put("Parent_Id",Quote_Id);
+Add_notes.put("$se_module","Quotes");
+createres = zoho.crm.createRecord("Notes",Add_notes);
+//Get_CRM_Deal
+Get_crm_data = zoho.crm.getRecordById("Quotes",Quote_Id);
+Get_crm_deal_id = Get_crm_data.get("Deal_Name").get("id");
+Add_notes_deal = Map();
+Add_notes_deal.put("Note_Title","Cancel Notes");
+Add_notes_deal.put("Note_Content",Cancel_Notes);
+Add_notes_deal.put("Parent_Id",Get_crm_deal_id);
+Add_notes_deal.put("$se_module","Deals");
+Notes_Deal = zoho.crm.createRecord("Notes",Add_notes_deal);
+info Notes_Deal;
+//Complete Followup Activities
+// Get_all_tasks = zoho.crm.getRelatedRecords("Activities","Quotes",Quote_Id);
+// for each  rec_activity in Get_all_tasks
+// {
+// 	Get_activity_type = rec_activity.get("Activity_Type");
+// 	Get_activity_id = rec_activity.get("id");
+// 	Get_reminder_time = zoho.currenttime.toString("yyyy-MM-dd HH:mm:ss");
+// 	Get_date = Get_reminder_time.getprefix(" ");
+// 	Get_time = Get_reminder_time.getsuffix(" ");
+// 	Get_call_starttime = Get_date + "T" + Get_time + "-04:00";
+// 	if(Get_activity_type == "Calls")
+// 	{
+// 		status_map = Map();
+// 		status_map.put("Call_Start_Time",Get_call_starttime);
+// 		status_map.put("Call_Duration","00:00");
+// 		status_map.put("Call_Status","Scheduled Unattended");
+// 		Update_activity_status = zoho.crm.updateRecord("Calls",Get_activity_id,status_map);
+// 		info Update_activity_status;
+// 	}
+// 	if(Get_activity_type == "Tasks")
+// 	{
+// 		status_map = Map();
+// 		status_map.put("Status","Completed");
+// 		Update_activity_status = zoho.crm.updateRecord("Tasks",Get_activity_id,status_map);
+// 		info Update_activity_status;
+// 	}
+// }
+//-----Developed by VIJAY to get the task and call details 
+Get_quote_details = zoho.crm.getRecordById("Quotes",Quote_Id);
+getcontact = Get_quote_details.get("Contact_Name").get("id");
+gettaskdetails = zoho.crm.getRelatedRecords("Tasks","Contacts",getcontact);
+for each  updatetaskdetails in gettaskdetails
+{
+	if(updatetaskdetails != null)
+	{
+		gettaskid = updatetaskdetails.getJSON("id");
+		info gettaskid;
+		status_map = Map();
+		status_map.put("Status","Completed");
+		Update_activity_status = zoho.crm.updateRecord("Tasks",gettaskid,status_map);
+	}
+	else
+	{
+		info "No task available for this contact";
+	}
+}
+getcalldetails = zoho.crm.getRelatedRecords("Calls","Contacts",getcontact);
+for each  updatecalls in getcalldetails
+{
+	if(updatecalls != null)
+	{
+		getcallsid = updatecalls.getJSON("id");
+		info getcallsid;
+		Get_reminder_time = zoho.currenttime.toString("yyyy-MM-dd HH:mm:ss");
+		Get_date = Get_reminder_time.getprefix(" ");
+		Get_time = Get_reminder_time.getsuffix(" ");
+		Get_call_starttime = Get_date + "T" + Get_time + "-04:00";
+		status_map = Map();
+		status_map.put("Call_Start_Time",Get_call_starttime);
+		status_map.put("Call_Duration","00:00");
+		//status_map.put("Call_Status","Scheduled Unattended");
+		Update_activity_status = zoho.crm.updateRecord("Calls",getcallsid,status_map);
+	}
+	else
+	{
+		info "No calls available for this contact";
+	}
+}
+//------Update status in creator----v1 api-------------
+Get_creator_record_Id = Get_crm_data.get("Creator_Record_ID");
+info Get_creator_record_Id;
+// Quote_in_Creator = zoho.creator.v1.getRecords("zoho_zoho1502","quotes","All_Quotes","ID == " + Get_creator_record_Id);
+// QuoteMap = Quote_in_Creator.get(0);
+// QuoteStatus = ifnull(QuoteMap.get("Quote_Status"),"");
+// Quote_Number = ifnull(QuoteMap.get("Quote_Number"),"");
+// if(QuoteStatus != "Confirmed" && QuoteStatus != "Delivered" && QuoteStatus != "Paid" && QuoteStatus != "Won" && QuoteStatus != "Cancelled" && QuoteStatus != "")
+// {
+// 	updateMap = Map();
+// 	updateMap.put("Quote_Status","Cancelled");
+// 	creator_response = zoho.creator.v1.updateRecord("zoho_zoho1502","quotes","Create_Quote",Get_creator_record_Id,updateMap);
+// 	info creator_response;
+// 	response = "The Quote " + Quote_Number + " was cancelled successfully";
+// }
+// else if(QuoteStatus == "Cancelled")
+// {
+// 	response = "You have already cancelled the Quote " + Quote_Number;
+// }
+// else
+// {
+// 	response = "You can not cancel the Quote " + Quote_Number + ". Because the Quote have the Status " + QuoteStatus;
+// }
+//------------------- v2 migrated by prashanth on 1/2/2021 at 10.39 am ist---------------------
+Quote_in_Creator = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Quotes","ID == " + Get_creator_record_Id,1,9,"zcreator_connecction");
+if(Quote_in_Creator.get("code") == 3000)
+{
+	list = Quote_in_Creator.get("data");
+	if(list.size() > 0)
+	{
+		QuoteMap = list.get(0);
+		QuoteStatus = ifnull(QuoteMap.get("Quote_Status"),"");
+		Quote_Number = ifnull(QuoteMap.get("Quote_Number"),"");
+		if(QuoteStatus != "Confirmed" && QuoteStatus != "Delivered" && QuoteStatus != "Paid" && QuoteStatus != "Won" && QuoteStatus != "Cancelled" && QuoteStatus != "")
+		{
+			tempMap = Map();
+			updateMap = Map();
+			updateMap.put("Quote_Status","Cancelled");
+			Update_Creator_Quote = zoho.creator.updateRecord("zoho_zoho1502","quotes","All_Quotes",Get_creator_record_Id,updateMap,tempMap,"zcreator_connecction");
+			info Update_Creator_Quote;
+			response = "The Quote " + Quote_Number + " was cancelled successfully";
+		}
+		else if(QuoteStatus == "Cancelled")
+		{
+			response = "You have already cancelled the Quote " + Quote_Number;
+		}
+		else
+		{
+			response = "You can not cancel the Quote " + Quote_Number + ". Because the Quote have the Status " + QuoteStatus;
+		}
+	}
+}
+return response;
+}

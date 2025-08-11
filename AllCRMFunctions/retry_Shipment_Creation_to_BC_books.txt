@@ -1,0 +1,30 @@
+string button.retry_Shipment_Creation_to_BC_books(String id)
+{
+getd = zoho.crm.getRecordById("Purchase_Orders",id);
+if(getd.get("Store").get("name") != "Amazon Store")
+{
+	if(getd.get("Shipment_Id") != "")
+	{
+		if(getd.get("Carrier") != "" && getd.get("Tracking_Number") != "")
+		{
+			getPur = zoho.books.getRecords("Purchaseorders","666840843","purchaseorder_number=" + getd.get("Dropship_Number"));
+			purid = getPur.get("purchaseorders").toString().get("purchaseorder_id");
+			upPur = zoho.books.updateRecord("Purchaseorders","666840843",purid.toString(),{"status":"closed","reference_number":getd.get("Tracking_Number"),"ship_via":getd.get("Carrier")});
+			getreldrop = zoho.crm.getRelatedRecords("Dropship_Orders","Sales_Orders",getd.get("Sales_Order").get("id"));
+		}
+		else
+		{
+			responsertn = "No Carrier and Tracking number are available for this order";
+		}
+	}
+	else
+	{
+		responsertn = "This order already created shipment.";
+	}
+}
+else
+{
+	responsertn = "We are unable to process this order becuase this Order from Amazon Store... We will enable this option soon...  ";
+}
+return responsertn;
+}

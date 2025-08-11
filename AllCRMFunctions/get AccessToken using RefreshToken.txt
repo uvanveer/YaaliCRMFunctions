@@ -1,0 +1,16 @@
+void automation.Get_AccessToken_Using_RefreshToken()
+{
+token = postUrl("https://accounts.zoho.com/oauth/v2/token?refresh_token=1000.02f5747d4012a6975f714caa0097238c.d4a6fe01579dd8bab518b7079e7348d8&client_id=1000.7XLKTA9XOCX2RD8C5KF302T15YIK0H&client_secret=7fc2c8d21256f4a9a302f0267884dfa999911acc7b&grant_type=refresh_token",false);
+info token.get("access_token");
+updateToken = zoho.crm.updateRecord("Merger_Schedule",3106252000061961343,{"Authtoken":token.get("access_token")});
+// hmp = Map();
+// //hmp.put("Authorization", "Zoho-oauthtoken "+token.get("access_token"));
+// info hmp ;
+// resp = invokeurl
+// [
+// 	url: "https://www.zohoapis.com/crm/v2/Contacts/3106252000058889468/Attachments/3106252000066617221"
+// 	type: GET
+// 	connection : "crm_connection"
+// ];
+// info resp ;
+}

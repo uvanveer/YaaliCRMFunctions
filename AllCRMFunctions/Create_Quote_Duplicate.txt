@@ -1,0 +1,4 @@
+string button.Create_Duplicate_Quote()
+{
+return "";
+}

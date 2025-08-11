@@ -1,0 +1,110 @@
+void automation.Untitled_Function83(Map task)
+{
+taskId = task.get("Tasks.ID");
+datamap = Map:String();
+datamap.put("module","Tasks");
+datamap.put("id",taskId);
+resp = zoho.crm.invokeConnector("crm.get",datamap);
+respMap = resp.get("response")._toMap();
+users = respMap.get("data");
+info users;
+if(users.startsWith("["))
+{
+	temp = users.subString(1,users.length() - 1);
+}
+else
+{
+	temp = users.toJSONList().toString();
+}
+dataVal = temp._toMap();
+se_module = dataVal.get("$se_module");
+if(se_module == "Leads")
+{
+	What_Id = dataVal.get("What_Id")._toMap();
+	leadId = What_Id.get("id");
+	datamapx = Map:String();
+	datamapx.put("module","Leads");
+	datamapx.put("id",leadId);
+	respx = zoho.crm.invokeConnector("crm.get",datamapx);
+	respMapx = respx.get("response")._toMap();
+	usersx = respMapx.get("data");
+	if(usersx.startsWith("["))
+	{
+		tempx = usersx.subString(1,usersx.length() - 1);
+	}
+	else
+	{
+		tempx = usersx.toJSONList().toString();
+	}
+	dataValx = tempx._toMap();
+	mobile = dataValx.get("Mobile");
+}
+else
+{
+	Who_Id = dataVal.get("Who_Id")._toMap();
+	contactId = Who_Id.get("id");
+	datamapx = Map:String();
+	datamapx.put("module","Contacts");
+	datamapx.put("id",contactId);
+	respx = zoho.crm.invokeConnector("crm.get",datamapx);
+	respMapx = respx.get("response")._toMap();
+	usersx = respMapx.get("data");
+	if(usersx.startsWith("["))
+	{
+		tempx = usersx.subString(1,usersx.length() - 1);
+	}
+	else
+	{
+		tempx = usersx.toJSONList().toString();
+	}
+	dataValx = tempx._toMap();
+	mobile = dataValx.get("Mobile");
+}
+tmobiletemp = zoho.crm.getOrgVariable("twilio.Twilio_Mobile_Number");
+if(tmobiletemp.contains(" "))
+{
+	twiliomobile = tmobiletemp.replaceAll(" ","",false);
+}
+else
+{
+	twiliomobile = tmobiletemp;
+}
+if(twiliomobile.contains("-"))
+{
+	twiliomobilenew = twiliomobile.replaceAll("-","",false);
+}
+else
+{
+	twiliomobilenew = tmobiletemp;
+}
+twilioAccSId = zoho.crm.getOrgVariable("twilio.Account_SID");
+authtokenTwilio = zoho.crm.getOrgVariable("twilio.AuthToken");
+baseEncoded = zoho.encryption.base64Encode(twilioAccSId + ":" + authtokenTwilio);
+encode = baseEncoded.removeFirstOccurence("\n");
+headermap = Map:String();
+headermap.put("Authorization","Basic " + encode);
+mappp = Map:String();
+mappp.put("To",mobile);
+locale = zoho.crm.getOrgVariable("twilio.Language");
+if(locale == null || locale == "null" || locale == "")
+{
+	mappp.put("locale","en");
+}
+else
+{
+	mappp.put("locale",locale);
+}
+mappp.put("From",twiliomobilenew);
+locale = zoho.crm.getOrgVariable("twilio.Language");
+if(locale == null || locale == "null" || locale == "")
+{
+	mappp.put("locale","en");
+}
+else
+{
+	mappp.put("locale",locale);
+}
+mappp.put("Body","This is alert for your task deadline, you have only two days left !");
+respp = postUrl("https://api.twilio.com/2010-04-01/Accounts/" + twilioAccSId + "/Messages.json",mappp,headermap);
+info respp;
+}

@@ -1,0 +1,658 @@
+void automation.rk_createDropShipOrder(Int id)
+{
+get_domain = zoho.crm.getRecordById("Domain_Settings",3106252000056886136);
+base_url = get_domain.get("Domain_Name");
+// id = 3106252000070556001;
+if(!isNull(id))
+{
+	saleorderDetail = zoho.crm.getRecordById("Sales_Orders",id);
+	// info "Order Info : "+saleorderDetail;
+	//Link Deal and Sale Order - Starting
+	so_staff_notes = "";
+	if(saleorderDetail.get("Staff_Notes") != null)
+	{
+		so_staff_notes = saleorderDetail.get("Staff_Notes");
+	}
+	if(saleorderDetail.get("Source") == "BigCommerce" && so_staff_notes.contains("Quote #"))
+	{
+		BigCommerce_Unique_ID = saleorderDetail.get("BigCommerce_Unique_ID");
+		if(BigCommerce_Unique_ID != null)
+		{
+			get_creator_quote = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Quotes","BigCommerce_Unique_ID=\"" + BigCommerce_Unique_ID + "\"",1,100,"zcreator_connecction");
+			info get_creator_quote;
+			if(get_creator_quote.get("code") == 3000)
+			{
+				if(get_creator_quote.get("data").size() > 0)
+				{
+					quote_data = get_creator_quote.get("data").get(0);
+					quote_number = quote_data.get("Quote_Number");
+					search_deal = zoho.crm.searchRecords("Deals","(Deal_Name:equals:" + quote_number + ")");
+					if(search_deal.size() > 0)
+					{
+						deal_data = search_deal.get(0);
+						deal_id = deal_data.get("id");
+						link_so_deal_map = Map();
+						link_so_deal_map.put("Sales_Order_ID",id);
+						update_deal = zoho.crm.updateRecord("Deals",deal_id,link_so_deal_map);
+						info update_deal;
+					}
+				}
+			}
+		}
+	}
+	//Link Deal and Sale Order - Ending
+	Salesorderowner = saleorderDetail.get("Owner").get("id");
+	if(saleorderDetail.get("Store") != null)
+	{
+		store_id = saleorderDetail.get("Store").get("id");
+		storename = saleorderDetail.get("Store").get("name");
+		get_store = zoho.crm.getRecordById("Stores",store_id);
+	}
+	orderSource = saleorderDetail.get("Source");
+	statusofOrder = saleorderDetail.get("Staff_Notes");
+	start_time = now.toLong();
+	if(statusofOrder != null)
+	{
+		if(statusofOrder.contains("Quote #"))
+		{
+			quoteno = saleorderDetail.get("Staff_Notes").getSuffix("#");
+			quoteno = quoteno.getPrefix(" ");
+			// 		info "quoteno:" + quoteno;
+			// 			quote = zoho.creator.v1.getRecords("zoho_zoho1502","quotes","All_Quotes","Quote_Number ==" + "\"" + quoteno + "\"");
+			quote = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Quotes","Quote_Number ==" + "\"" + quoteno + "\"",1,1,"zcreator_connecction");
+			if(quote.get("code") == 3000)
+			{
+				if(quote.get("data").size() > 0)
+				{
+					quote_data = quote.get("data").get(0);
+					quoteid = quote_data.getJSON("ID");
+				}
+			}
+			// 			quoteid = quote.getJSON("ID");
+			// 			customitem = zoho.creator.v1.getRecords("zoho_zoho1502","quotes","Custom_Product_In_Quote_Report","Quotes == " + "\"" + quoteid + "\"");
+			customitem = zoho.creator.getRecords("zoho_zoho1502","quotes","Custom_Product_In_Quote_Report","Quotes == " + quoteid,1,90,"zcreator_connecction");
+			info "Custom Item" + customitem;
+			if(customitem.get("code") == 3000)
+			{
+				if(customitem.get("data").size() > 0)
+				{
+					customitem = customitem.get("data");
+				}
+			}
+			else
+			{
+				customitem = list();
+			}
+			// 			Standard_item = zoho.creator.v1.getRecords("zoho_zoho1502","quotes","Items_In_Quote_Report","Create_Quote == " + "\"" + quoteid + "\"");
+			Standard_item = zoho.creator.getRecords("zoho_zoho1502","quotes","Items_In_Quote_Report","Create_Quote == " + quoteid,1,90,"zcreator_connecction");
+			if(Standard_item.get("code") == 3000)
+			{
+				if(Standard_item.get("data").size() > 0)
+				{
+					Standard_item = Standard_item.get("data");
+				}
+			}
+			else
+			{
+				Standard_item = list();
+			}
+		}
+	}
+	OrganizationID = "666840843";
+	//fet if already dropshiporder exits
+	BigCommerce_Unique_ID = saleorderDetail.get("BigCommerce_Unique_ID");
+	serchdropship = zoho.crm.searchRecords("Purchase_Orders","Sales_Order:equals:" + id);
+	dropshiporderdeltionid = List();
+	if(serchdropship.size() > 0)
+	{
+		for each  dropshipid in serchdropship.toList()
+		{
+			dropshiporder = Map();
+			dropshiporder.put("id",dropshipid.getJSON("id"));
+			dropshiporderdeltionid.add(dropshiporder);
+		}
+	}
+	// info "dropshiporderdeltionid:" + dropshiporderdeltionid;
+	if(saleorderDetail.get("Subject").contains("Order Number"))
+	{
+		subject = saleorderDetail.get("Subject").getPrefix("for").getSuffix("Order Number").trim();
+	}
+	else
+	{
+		subject = saleorderDetail.get("Subject");
+	}
+	if(saleorderDetail.get("Order_Date") == null)
+	{
+		orderDate = zoho.currentdate;
+	}
+	else
+	{
+		orderDate = saleorderDetail.get("Order_Date").toDate();
+	}
+	updateSales = zoho.crm.updateRecord("Sales_Orders",id,{"Subject":subject,"Order_Date":orderDate});
+	products = saleorderDetail.get("Product_Details").toJSONList();
+	Vendor_Validation_count = 0;
+	Vendor_costprice_validation = 0;
+	defualvendor = List();
+	defaultvendoritemid = List();
+	NullCostPriceProductid = List();
+	NullCostPriceName = List();
+	vidM = Map();
+	vendorKey = Map();
+	productDetails = Map();
+	tax = 0.0;
+	if(saleorderDetail.get("Contact_Name") != null)
+	{
+		for each  singleproduct in products
+		{
+			if(singleproduct.get("quantity") > 0)
+			{
+				info singleproduct;
+				salePro = Map();
+				pid = singleproduct.get("product").get("id");
+				crmresp = zoho.crm.getRecordById("Products",pid);
+				// info "Response : " + crmresp;
+				vname = "";
+				Get_vendor_details = crmresp.get("Vendor_Name");
+				if(!isNull(Get_vendor_details))
+				{
+					vid = crmresp.get("Vendor_Name").get("id");
+					vname = crmresp.get("Vendor_Name").get("name");
+					if(vname.contains("@"))
+					{
+						vname = vname.getPrefix("@");
+					}
+				}
+				else
+				{
+					Vendor_Validation_count = Vendor_Validation_count + 1;
+				}
+				if(vname == "default")
+				{
+					Vendor_Validation_count = Vendor_Validation_count + 1;
+					defualvendor.add(singleproduct.get("product").get("name"));
+					defaultvendoritemid.add(pid);
+				}
+				productdes = ifnull(singleproduct.get("product").get("product_description"),"");
+				if(productdes != "")
+				{
+					productMap = Map();
+					// 		productMap = singleproduct.get("product");
+					productMap.put("product_description",ifnull(singleproduct.get("product").get("product_description"),""));
+				}
+				if(vidM.containKey(vid))
+				{
+					// 		info crmresp.get("Cost_Price");
+					Cost_Price = crmresp.get("Cost_Price").toDecimal();
+					if(Cost_Price != 0 && Cost_Price != null)
+					{
+						// singleproduct.put("list_price",crmresp.get("Cost_Price").toDecimal());
+						/* Updated by Ezhilarasu 01/06/2020 */
+						/* Send mail if the cose price was 0 */
+						singleproduct.put("list_price",crmresp.get("Cost_Price").toDecimal());
+					}
+					else
+					{
+						Vendor_costprice_validation = Vendor_costprice_validation + 1;
+						NullCostPriceName.add(singleproduct.get("product").get("name"));
+						NullCostPriceProductid.add(pid);
+						messageContent = "Hi Team, Can you please add cost price of the product for the sales order with ID " + id + ".\n" + "Please update the cost price of the product and Regenerate Dropship order.";
+						// 			sendmail
+						// 			[
+						// 				from :zoho.adminuserid
+						// 				to :"notifications@bestaccessdoors.com","dev@bestaccessdoors.com"
+						// 				cc:"balaji@bizappln.com"
+						// 				subject :"Failed to create dropship order"
+						// 				message :messageContent
+						// 			]
+					}
+					exisProductList = list();
+					exisProductList = vidM.get(vid);
+					exisProductList.add(singleproduct);
+				}
+				else
+				{
+					info "New Vendor Found";
+					productList = list();
+					if(crmresp.get("Cost_Price") != null && crmresp.get("Cost_Price") != "" && crmresp.get("Cost_Price") != 0)
+					{
+						Cost_Price = crmresp.get("Cost_Price").toDecimal();
+						if(Cost_Price != 0 && Cost_Price != null)
+						{
+							singleproduct.put("list_price",crmresp.get("Cost_Price").toDecimal());
+						}
+						else
+						{
+							singleproduct.put("list_price",0);
+						}
+						productList.add(singleproduct);
+						vidM.put(vid,productList);
+						info vidM;
+					}
+					else
+					{
+						info "cccc";
+						Vendor_costprice_validation = Vendor_costprice_validation + 1;
+						NullCostPriceName.add(singleproduct.get("product").get("name"));
+						NullCostPriceProductid.add(pid);
+						messageContent = "Hi Team, Can you please add cost price of the product for the sales order with ID " + id + ".\n" + "Please update the cost price of the product and Regenerate Dropship order.";
+						// 			sendmail
+						// 			[
+						// 				from :zoho.adminuserid
+						// 				to :"notifications@bestaccessdoors.com","dev@bestaccessdoors.com"
+						// 				cc:"balaji@bizappln.com"
+						// 				subject :"Failed to create dropship order"
+						// 				message :messageContent
+						// 			]
+					}
+				}
+				vendorKey.put(vid,"Keys");
+				salePro.put("item_id",pid);
+				salePro.put("rate",singleproduct.get("list_price"));
+				salePro.put("name",singleproduct.get("product").get("name"));
+				salePro.put("quantity",singleproduct.get("quantity"));
+				productDetails.put(pid,salePro);
+				tax = tax + singleproduct.get("Tax");
+			}
+		}
+		info "vidM:" + vidM;
+		// info "vidM : " + vidM;
+		if(Vendor_Validation_count < 1 && Vendor_costprice_validation == 0)
+		{
+			finalProduct = List();
+			productkey = productDetails.keys();
+			for each  singleProductKey in productkey
+			{
+				finalProduct.add(productDetails.get(singleProductKey));
+			}
+			// // Create Sales Order in Book
+			// 	info "vidM : " + vidM;
+			vKey = vidM.keys();
+			vendors = vendorKey.keys();
+			for each  m in vendors
+			{
+				// 				info "M = " + m;
+				total = 0.0;
+				drop = Map();
+				product = List();
+				prodm = "";
+				purchase = Map();
+				// 		info "VKey : " + vKey;
+				temp_product_list = List();
+				notestovendor = List();
+				// 	notestovendor=[];
+				info "vKey : " + vKey;
+				for each  v in vKey
+				{
+					if(v == m)
+					{
+						//info "VIDM = " + vidM;
+						for each  pro_duct in vidM.get(v)
+						{
+							//
+							if(pro_duct.get("product_description") != null || pro_duct.get("product_description") != "null")
+							{
+								pro_duct.put("product_description",ifnull(pro_duct.get("product_description"),""));
+							}
+							if(orderSource == "Amazon Store")
+							{
+								pro_duct.remove("Tax");
+								// 								line_tax_list = List();
+								// 								line_tax_map = Map();
+								// 								line_tax_map.put("percentage",0);
+								// 								line_tax_map.put("name","Amazon Order Tax");
+								// 								line_tax_list.add(line_tax_map);
+								// 								pro_duct.put("line_tax",line_tax_list);
+							}
+							//
+							temp_product_list.add(pro_duct);
+							prosku = pro_duct.get("product").get("Product_Code");
+							// 					info pro_duct;
+							info "Standard_item : " + Standard_item;
+							// 					info "customitem : " + customitem;
+							if(Standard_item.size() > 0)
+							{
+								for each  singlestditem in Standard_item
+								{
+									// 							info singlecustitem;
+									info "Singleitemlist : " + singlestditem;
+									std_SKU = singlestditem.get("Product").get("display_value");
+									V_Notes_std_item = ifnull(singlestditem.get("Notes_to_Vendor"),"");
+									// 							info prosku + "==" + Custom_SKU + "::" + V_Notes;
+									if(prosku == std_SKU && V_Notes_std_item != "")
+									{
+										notestovendor.add(std_SKU + ": " + V_Notes_std_item + "\n");
+									}
+								}
+							}
+							if(customitem.size() > 0)
+							{
+								for each  singlecustitem in customitem
+								{
+									//info "Singlecusto: " + singlecustitem;
+									Custom_SKU = singlecustitem.get("Custom_SKU.Vendor_SKU");
+									V_Notes = ifnull(singlecustitem.get("Notes_to_Vendor"),"");
+									criteria_sku = singlecustitem.get("Custom_SKU").get("display_value");
+									//info "Criteria SKU : "+ criteria_sku ;
+									info prosku + "==" + Custom_SKU + "::" + V_Notes;
+									if(prosku == criteria_sku && V_Notes != "")
+									{
+										notestovendor.add(Custom_SKU + ": " + V_Notes + "\n");
+									}
+								}
+							}
+						}
+						// 				info "Vid : " + vidM;
+						product = vidM.get(v);
+						//info vidM.get(v);
+						break;
+					}
+				}
+				// 		info "notestovendor:" + notestovendor;
+				// info "product" + product;
+				temp = product.toMap();
+				temp2 = temp_product_list;
+				// 	info "Cost Price = " + crmresp.get("Cost_Price");
+				// 	temp.put("list_price",crmresp.get("Cost_Price").toLong());
+				// 		drop.put("Adjustment",saleorderDetail.get("Adjustment"));
+				// 	drop.put("adjustment",saleorderDetail.get("Tax"));
+				// 	drop.put("adjustment_description","Tax");
+				// 		drop.put("Owner",saleorderDetail.get("Owner").get("id"));
+				account = null;
+				new_description = '';
+				description = '';
+				// 		if(notestovendor.size() > 0 || saleorderDetail.get("Description") != null) /// Commentd by T wring validation
+				if(notestovendor.size() > 0)
+				{
+					description = ifnull(saleorderDetail.get("Description"),"") + notestovendor.toString();
+					new_description = saleorderDetail.get("Customer_Notes");
+					if(new_description != null)
+					{
+						if(new_description.contains("Additional Delivery Instructions:"))
+						{
+							finalStr = new_description.getsuffix("--");
+							midStr = new_description.getsuffix("Additional Delivery Instructions:").getprefix("--");
+							midStrList = midStr.tolist("\n");
+							collectedMidStr = "";
+							for each  eachStr in midStrList
+							{
+								collectedMidStr = collectedMidStr + eachStr.getprefix(" + ") + "\n";
+							}
+							new_description = "Customer notes: Additional Delivery Instructions: " + collectedMidStr + "--" + finalStr;
+						}
+					}
+				}
+				else
+				{
+					// Added By Ezhil on 16th Feb 2021
+					// To sync BC customer comment to DSO
+					description = ifnull(saleorderDetail.get("Description"),"") + notestovendor.toString();
+					new_description = saleorderDetail.get("Customer_Notes");
+					if(new_description != null)
+					{
+						if(new_description.contains("Additional Delivery Instructions:"))
+						{
+							info "Quote Order Customer Notes : " + new_description;
+							finalStr = new_description.getsuffix("--");
+							midStr = new_description.getsuffix("Additional Delivery Instructions:").getprefix("--");
+							midStrList = midStr.tolist("\n");
+							collectedMidStr = "";
+							for each  eachStr in midStrList
+							{
+								info eachStr.getprefix(" + ");
+								collectedMidStr = collectedMidStr + eachStr.getprefix(" + ") + "\n";
+							}
+							new_description = "Customer notes: Additional Delivery Instructions: " + collectedMidStr;
+						}
+						else if(new_description.contains("Customer notes:"))
+						{
+							info "Stor Front Order Customer Notes : " + new_description;
+							// Added By Ezhil on 16th Feb 2021
+							// To sync BC customer comment to DSO
+							new_description = saleorderDetail.get("Customer_Notes");
+						}
+						info "TEST : " + new_description;
+					}
+				}
+				if(saleorderDetail.get("Account_Name") != null)
+				{
+					account = saleorderDetail.get("Account_Name").get("id");
+				}
+				createDropshipOrder = true;
+				drop.put("Subject",subject);
+				drop.put("Account_Name",account);
+				drop.put("Store",store_id);
+				drop.put("BC_Unique_Id",saleorderDetail.get("BigCommerce_Unique_ID"));
+				drop.put("Vendor_Name",m);
+				drop.put("Owner",Salesorderowner);
+				drop.put("Order_Date",orderDate);
+				// Layout parameter Added By Dhanapal
+				/** Dropship Order Assigning New Layout Template -  Order Management Layout */
+				drop.put("Layout","3106252000068263001");
+				// 	drop.put("Status",saleorderDetail.get("Status"));
+				if(saleorderDetail.get("Status").equals("Shipped") || saleorderDetail.get("Status").equals("Completed"))
+				{
+					drop.put("Status","Shipped");
+				}
+				else
+				{
+					drop.put("Status","created");
+				}
+				fullFillment = saleorderDetail.get("Fullfillment");
+				saleOrderSource = saleorderDetail.get("Source");
+				if(saleOrderSource != null && saleOrderSource.contains("Amazon") && fullFillment != null && fullFillment.equals("Amazon"))
+				{
+					createDropshipOrder = false;
+				}
+				drop.put("Sales_Commission",saleorderDetail.get("Sales_Commission"));
+				drop.put("Sales_Order",saleorderDetail.get("id"));
+				drop.put("Due_Date",saleorderDetail.get("Due_Date"));
+				drop.put("Contact_Name",saleorderDetail.get("Contact_Name").get("id"));
+				if(get_store != null)
+				{
+					drop.put("Billing_First_Name",get_store.get("First_Name"));
+					drop.put("Billing_Last_Name",get_store.get("Last_Name"));
+					drop.put("Billing_Street",get_store.get("Street"));
+					drop.put("Billing_City",get_store.get("City"));
+					drop.put("Billing_Code",get_store.get("Code"));
+					drop.put("Billing_State",get_store.get("State"));
+					drop.put("Billing_Country",get_store.get("Country"));
+					drop.put("Billing_Phone",get_store.get("Phone"));
+					drop.put("Billing_Email",get_store.get("Email"));
+				}
+				drop.put("Shipping_First_Name",saleorderDetail.get("Shipping_First_Name"));
+				drop.put("Shipping_Last_Name",saleorderDetail.get("Shipping_Last_Name"));
+				drop.put("Shipping_Street",saleorderDetail.get("Shipping_Street"));
+				drop.put("Shipping_Company",saleorderDetail.get("Shipping_Company"));
+				drop.put("Shipping_Street_2",saleorderDetail.get("Shipping_Street_2"));
+				drop.put("Shipping_City",saleorderDetail.get("Shipping_City"));
+				drop.put("Shipping_Code",saleorderDetail.get("Shipping_Code"));
+				drop.put("Shipping_Country",saleorderDetail.get("Shipping_Country"));
+				drop.put("Shipping_State",saleorderDetail.get("Shipping_State"));
+				drop.put("Shipping_Phone",saleorderDetail.get("Shipping_Phone"));
+				drop.put("Shipping_Email",saleorderDetail.get("Shipping_Email"));
+				drop.put("Currency",saleorderDetail.get("Currency"));
+				drop.put("Product_Details",temp2.toJSONList());
+				// 	info "After Product Assign: " + temp2;
+				drop.put("Terms_and_Conditions",saleorderDetail.get("Terms_and_Conditions"));
+				drop.put("Description",description);
+				//entries
+				drop.put("Staff_Notes",saleorderDetail.get("Staff_Notes"));
+				drop.put("Order_Notes",new_description);
+				drop.put("Confirmation_Number","ACN");
+				drop.put("Ship_Method",saleorderDetail.get("Ship_Method"));
+				drop.put("Source",saleorderDetail.get("Source"));
+				drop.put("Amazon_Store_Region",ifnull(saleorderDetail.get("Amazon_Store_Region"),""));
+				/* Amazon Ship By & Delivery By Date */
+				drop.put("Delivery_By_Date",ifnull(saleorderDetail.get("Delivery_By_Date"),""));
+				drop.put("Ship_By_Date",ifnull(saleorderDetail.get("Ship_By_Date"),""));
+				workflow = Map();
+				workflow.put("trigger",{"workflow"});
+				info "drop" + drop;
+				if(createDropshipOrder)
+				{
+					createDrop = zoho.crm.createRecord("Purchase_Orders",drop,workflow);
+					info "createDrop" + createDrop;
+					//Adding Log for Dropship Order Creation
+					// 			logMap = Map();
+					// 			logMap.put("Workflow_Name","Create Dropship Order");
+					// 			logMap.put("Name","Dropship Orders");
+					// 			// 			logMap.put("Dropship_Order_Number",Get_PO_num);
+					// 			// 			logMap.put("Dropship_Order_Record_ID",PO_Id.toString());
+					// 			logMap.put("Vendor_Name",m);
+					// 									logMap.put("Created_Edited_By",Get_Owner);
+					// 						logMap.put("PO_response",createDrop);
+					// 						logMap.put("Function_Name","rk_createDropshipOrder");
+					// 						Create_log = zoho.crm.createRecord("Sales_Order_PO_Log",logMap);
+					logMap = Map();
+					logMap.put("Workflow_Name","Create Dropship Order");
+					logMap.put("SalesOrder_Record_ID",saleorderDetail.get("id").toString());
+					logMap.put("Name","Dropship Orders");
+					logMap.put("Created_Edited_By",Salesorderowner);
+					logMap.put("PO_Request",drop.toString());
+					logMap.put("PO_response",createDrop.toString());
+					logMap.put("Function_Name","rk_createDropshipOrder / rpr");
+					end_time = now.toLong();
+					logMap.put("Start_Time",start_time.toString());
+					logMap.put("End_Time",end_time.toString());
+					Create_log = zoho.crm.createRecord("Sales_Order_PO_Log",logMap);
+					info "createlog" + Create_log;
+					//test
+					getrecentDrop = zoho.crm.getRecordById("Purchase_Orders",createDrop.get("id"));
+					Dropship_Number = getrecentDrop.get("Dropship_Number");
+					//info "getrecentDrop" + getrecentDrop;
+					staffnotemap = Map();
+					if(getrecentDrop.get("Vendor_Name").get("name").contains("@"))
+					{
+						vendor_name = getrecentDrop.get("Vendor_Name").get("name").getPrefix("@");
+					}
+					else
+					{
+						vendor_name = getrecentDrop.get("Vendor_Name").get("name");
+					}
+					notes = getrecentDrop.get("Dropship_Number") + " - " + vendor_name;
+					staffnotemap.put("Staff_Notes",notes);
+					// 		info "staffnotemap" + staffnotemap;
+					updatestaff = zoho.crm.updateRecord("Purchase_Orders",createDrop.get("id"),staffnotemap);
+					info "updatestaff" + updatestaff;
+				}
+			}
+			if(createDrop.size() > 0)
+			{
+				//info "dropshiporderdeltionid" + dropshiporderdeltionid;
+				counter = 0;
+				for each  deletedropshi in dropshiporderdeltionid
+				{
+					deleteRecordMap = Map();
+					deleteRecordMap.put("module","Purchase_Orders");
+					deleteRecordMap.put("id",deletedropshi.getJSON("id"));
+					deleteResp = zoho.crm.invokeConnector("crm.delete",deleteRecordMap);
+					info "\ndeleteResp" + deleteResp;
+					getpoinbooks = zoho.books.getRecords("Purchaseorders",OrganizationID,"CRM_Rec_Id=" + deletedropshi.getJSON("id"));
+					if(getpoinbooks.getJSON("purchaseorders").size() > 0)
+					{
+						bookpo_id = getpoinbooks.getJSON("purchaseorders").getJSON("purchaseorder_id");
+						info "\ngetpoinbooks" + bookpo_id;
+						header = Map();
+						header.put("Authorization","62821be1f52aaa5a1e3c658edba059cf");
+						header.put("Content-Type","application/x-www-form-urlencoded;charset=UTF-8");
+						deletepo = invokeurl
+						[
+							url :"https://www.zohoapis.com/books/v3/purchaseorders/" + bookpo_id + "?organization_id=" + OrganizationID
+							type :DELETE
+							headers:header
+						];
+						info "\n:::deletepo::::" + deletepo;
+					}
+					counter = counter + 1;
+				}
+				info "Delete counter" + counter;
+			}
+			getdrop = zoho.crm.getRelatedRecords("Dropship_Orders","Sales_Orders",id);
+			statulist = List();
+			for each  dropshipdata in getdrop
+			{
+				statulist.add("\n" + dropshipdata.get("Staff_Notes"));
+			}
+			quotenopre = "";
+			quotenosuf = "";
+			if(saleorderDetail.get("Staff_Notes") != null)
+			{
+				if(saleorderDetail.get("Staff_Notes").contains("Notes to Vendor"))
+				{
+					quotenopre = saleorderDetail.get("Staff_Notes").getPrefix("**");
+					quotenosuf = "\n\n**" + saleorderDetail.get("Staff_Notes").getSuffix("**");
+				}
+				else
+				{
+					quotenopre = saleorderDetail.get("Staff_Notes");
+				}
+			}
+			Staff_Notes = quotenopre + statulist.toString() + quotenosuf;
+			if(orderSource != "Amazon Store")
+			{
+				updatenotes = Map();
+				updatenotes.put("Staff_Notes",Staff_Notes);
+				updatesalesorder = zoho.crm.updateRecord("Sales_Orders",id,updatenotes);
+				updatenotes.put("store_name",storename);
+				updatenotes.put("bc_unique_id",BigCommerce_Unique_ID);
+				// 		info updatenotes;
+				senddata = postUrl(base_url + "/api/zcrm/updateStaffnotes",updatenotes);
+				info "senddata" + senddata;
+			}
+		}
+		else
+		{
+			BADAuthorization = zoho.crm.getOrgVariable("OAuthHashCode");
+			header_map = Map();
+			header_map.put("Content-Type","application/json");
+			header_map.put("BADAuthorization",BADAuthorization);
+			// 			info "Please check the Salesorder lineitem Sku " +defualvendor.toString()+ " have Vendor Name as 'default'. please change and try again.";
+			if(Vendor_Validation_count > 0)
+			{
+				productidmap = '';
+				for each  productid in defaultvendoritemid
+				{
+					productidmap = productidmap + "<li><a href=\"https://crm.zoho.com/crm/org663942562/tab/Products/" + productid + "\" target=\"_blank\" ><b>" + productid + "</b></a></li>";
+				}
+				orderid = saleorderDetail.get("Subject");
+				boady = "<br> Hello Orders Team, <br><br>BigCommerce Product Name:<b>" + defualvendor + "</b> Order <b>" + orderid + "</b> has synced to Zoho with a new product. <br>In order for  <b>" + orderid + "</b>  to appear on the Dropship order,<br><br>Please follow these 2 steps: <br><br> <b>Step #1)</b><br> Please visit below link and update both the <b>Vendor Name</b> and <b>Cost Price</b><br> " + productidmap + " <br><b>Step #2)</b><br> Once saved, Please visit <a href=\"https://crm.zoho.com/crm/org663942562/tab/SalesOrders/" + id + "\" target=\"_blank\" > <b>" + orderid + "</b> </a> and click <b> 'Regenerate Dropship Order'</b><br><br> Thanks, <br><b>Best Access Doors</b><br><br>";
+				mailmap = Map();
+				mailmap.put("to",{"po@bestaccessdoors.com"});
+				mailmap.put("cc",{"anthony@bestaccessdoors.com","citrigno@bestaccessdoors.com"});
+				mailmap.put("bcc",{"tharmendheran@bizappln.com","balaji@bizappln.com"});
+				mailmap.put("scope","Droship Notify");
+				mailmap.put("subject","New Product from BC Store " + storename.replaceAll("_"," ") + " Added to Zoho for Order " + orderid);
+				mailmap.put("body",boady);
+				// 	info mailmap;
+				mailres = postURL("https://1.door-pay.com/api/Office360Mail/sendreq",mailmap,header_map);
+				info "mailres:" + mailres;
+			}
+			else if(Vendor_Validation_count < 1 && Vendor_costprice_validation > 0)
+			{
+				productidmap = '';
+				for each  productid in NullCostPriceProductid
+				{
+					productidmap = productidmap + "<li><a href=\"https://crm.zoho.com/crm/org663942562/tab/Products/" + productid + "\" target=\"_blank\" ><b>" + productid + "</b></a></li>";
+				}
+				orderid = saleorderDetail.get("Subject");
+				boady = "<br> Hello Orders Team, <br><br>Product Name:<b>" + NullCostPriceName + "</b> Order <b>" + orderid + "</b> has 0 or no vendor cost. <br>In order for  <b>" + orderid + "</b>  to appear on the Dropship order,<br><br>Please follow these 2 steps: <br><br> <b>Step #1)</b><br> Please visit below link and update the <b>Cost Price</b><br> " + productidmap + " <br><b>Step #2)</b><br> Once saved, Please visit <a href=\"https://crm.zoho.com/crm/org663942562/tab/SalesOrders/" + id + "\" target=\"_blank\" > <b>" + orderid + "</b> </a> and click <b> 'Regenerate Dropship Order'</b><br><br> Thanks, <br><b>Best Access Doors</b><br><br>";
+				mailmap = Map();
+				mailmap.put("to",{"po@bestaccessdoors.com"});
+				mailmap.put("cc",{"anthony@bestaccessdoors.com","citrigno@bestaccessdoors.com"});
+				mailmap.put("bcc",{"tharmendheran@bizappln.com","balaji@bizappln.com"});
+				mailmap.put("scope","Droship Notify");
+				mailmap.put("subject","Add vendor cost and regenerate the Dropship Order for  SalesOrder " + orderid);
+				mailmap.put("body",boady);
+				// 	info mailmap;
+				mailres = postURL("https://1.door-pay.com/api/Office360Mail/sendreq",mailmap,header_map);
+				info "mailres:" + mailres;
+			}
+		}
+	}
+	else
+	{
+		info "Please check the Salesorder Contact and update manually then try again.";
+	}
+}
+}

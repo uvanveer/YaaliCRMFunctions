@@ -1,0 +1,32 @@
+string standalone.update_confirmation_no_in_dropship_orders(String crmAPIRequest)
+{
+crm_api_map = crmAPIRequest.toMap();
+params = crm_api_map.get("body");
+// info params;
+ds_no = ifnull(params.get("dropship_number"),"");
+confirmation_no = ifnull(params.get("confirmation_number"),"");
+if(ds_no != "" && confirmation_no != "")
+{
+	// 	drop_ship_orders = zoho.crm.searchRecords("Purchase_Orders","(Dropship_Number:equals:" + ds_no + ")");
+	drop_ship_orders = zoho.crm.searchRecords("Purchase_Orders","(Dropship_Number:equals:" + ds_no + ")",1,200,Map(),"mailparserzoho");
+	for each  drop_ship_order in drop_ship_orders
+	{
+		if(drop_ship_order.get("Vendor_Name") != null && drop_ship_order.get("Vendor_Name").get("name").containsIgnoreCase("Cendrex"))
+		{
+			// 			info zoho.crm.updateRecord("Purchase_Orders",drop_ship_order.get("id"),{"Confirmation_Number":confirmation_no},{"trigger":{"workflow"}});
+			upd_resp = zoho.crm.updateRecord("Purchase_Orders",drop_ship_order.get("id"),{"Confirmation_Number":confirmation_no,"Confirmed_and_Verified":true},{"trigger":{"workflow"}},"mailparserzoho");
+			if(upd_resp.get("code") != null)
+			{
+				sendmail
+				[
+					from :zoho.loginuserid
+					to :"hello@bestaccessdoors.com, zyarina@bestaccessdoors.com"
+					subject :"MailParser Automation Error"
+					message :"<p>Hi,&nbsp;</p><p>Received error for automation for order confirmations/tracking in MailParser:</p><p>Error Code: " + upd_resp.get("code") + " </p><p>Error Message: " + upd_resp.get("message") + " </p><p>Date and Time of error: " + now.toString("yyyy-MM-dd HH:mm:ss") + " </p><p>Dropship Order ID : " + drop_ship_order.get("id") + " </p><p>Please check this and re-test for all vendors.&nbsp;</p><p>Thank you!</p>"
+				]
+			}
+		}
+	}
+}
+return "";
+}

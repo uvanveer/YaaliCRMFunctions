@@ -1,0 +1,20 @@
+void automation.Update_Issued_Books(Int Po_Id)
+{
+/* Get_data = zoho.crm.getRecordById("Purchase_Orders",Po_Id);
+if(Get_data.get("Status") == "Sent to Dropshippers")
+{
+	OrganizationID = "666840843";
+	getPO = zoho.books.getRecords("Purchaseorders",OrganizationID,"cf_crm_rec_id=" + Po_Id.toText());
+	if(getPO.getJSON("purchaseorders").size() > 0)
+	{
+		Books_po_id = getPO.getJSON("purchaseorders").getJSON("purchaseorder_id");
+		response = invokeurl
+		[
+			url :"https://books.zoho.com/api/v3/purchaseorders/" + Books_po_id + "/status/open?organization_id=666840843"
+			type :POST
+			connection:"zohobooks_crmaccounts"
+		];
+		info response;
+	}
+} */
+}

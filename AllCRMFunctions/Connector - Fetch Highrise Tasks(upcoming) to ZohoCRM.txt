@@ -1,0 +1,97 @@
+void automation.Fetch_Highrise_Tasks_to_ZohoCRM_Connector(String taskType,String user)
+{
+/* Created By prashanth on feb-2020 */
+/* Data Sync from highrise to zoho  */
+// currently not in use
+//---------------------------------------------
+// 	if(user == "Fern Citrigno")
+// 	{
+// 		owner = "1082383";
+// 	}
+// 	else if(user == "Rheanne Trottier")
+// 	{
+// 		owner = "1382762";
+// 	}
+// 	else if(user == "Kristopher Clark")
+// 	{
+// 		owner = "1414362";
+// 	}
+// 	else if(user == "Marko Savic")
+// 	{
+// 		owner = "1406845";
+// 	}
+// 	else if(user == "Deborah Warner")
+// 	{
+// 		owner = "1411870";
+// 	}
+//Fern : "1082383";
+// owner = 3106252000000152052;
+// Rheanne = "1382762";
+// owner = 3106252000024509019;
+// Kristopher = "1414362";
+// owner = 3106252000058241283;
+// markov = "1406845";
+// owner = 3106252000037668001;
+// Deborah = "1411870";
+// owner = 3106252000045664001;
+if(user != "")
+{
+	userlist = List();
+	userlist.add({"name":"Fern Citrigno","crm_id":3106252000000152052,"hr_id":"1082383"});
+	userlist.add({"name":"Rheanne Trottier","crm_id":3106252000024509019,"hr_id":"1382762"});
+	userlist.add({"name":"Kristopher Clark","crm_id":3106252000058241283,"hr_id":"1414362"});
+	userlist.add({"name":"Marko Savic","crm_id":3106252000037668001,"hr_id":"1406845"});
+	userlist.add({"name":"Deborah Warner","crm_id":3106252000045664001,"hr_id":"1411870"});
+	for each  userrec in userlist
+	{
+		if(user == userrec.get("name"))
+		{
+			hr_id = userrec.get("hr_id");
+			owner = userrec.get("crm_id");
+			info " owner  " + owner.toLong() + " hr id " + hr_id;
+		}
+	}
+}
+highriseAuth = "Basic OWZiYjY1ODg2NWY5MTUyODlmN2U5ZDNiM2E3MWNkYmI6WA==";
+// tasks
+highriseTasks = geturl("https://bestaccessdoors.highrisehq.com/tasks/" + taskType + ".xml",{"Authorization":highriseAuth});
+hrTasks = highriseTasks.executeXPath("tasks/task").toXmlList();
+// task categories
+highriseTask_Category = geturl("https://bestaccessdoors.highrisehq.com/task_categories.xml",{"Authorization":highriseAuth});
+hrCategory = highriseTask_Category.executeXPath("task-categories/task-category").toXmlList();
+processCount = 0;
+categoryName = "";
+info "highriseTasks " + hrTasks.size();
+for each  singletask in hrTasks
+{
+	if(singletask.executeXPath("task/owner-id/text()") == owner)
+	{
+		processCount = processCount + 1;
+		info "--" + processCount + "-----" + singletask.executeXPath("task/id/text()") + "----" + singletask.executeXPath("task/owner-id/text()") + "----" + singletask.executeXPath("task/subject-id/text()") + "----";
+		for each  singleTasks in hrCategory
+		{
+			if(singleTasks.executeXPath("task-category/id/text()") == singletask.executeXPath("task/category-id/text()").toString())
+			{
+				info "cateogry found" + singleTasks.executeXPath("task-category/name/text()");
+				categoryName = singleTasks.executeXPath("task-category/name/text()");
+			}
+		}
+		info categoryName + " ;  " + singletask.executeXPath("task/category-id/text()");
+		// 		if(singletask.executeXPath("task/id/text()") == "79383554" || singletask.executeXPath("task/id/text()") == "79346732" || singletask.executeXPath("task/id/text()") == "79088472")
+		// 		{
+		check_highrise = zoho.crm.searchRecords("Highrise_Data","(Highrise_ID:equals:" + singletask.executeXPath("task/id/text()") + ")");
+		if(check_highrise.size() == 0)
+		{
+			if(categoryName == "")
+			{
+				categoryName = "Follow-up";
+			}
+			createResp = zoho.crm.createRecord("Highrise_Data",{"Highrise_ID":singletask.executeXPath("task/id/text()"),"Module":"Tasks","Highrise_Created_Time":singletask.executeXPath("task/created-at/text()"),"Highrise_Modified_Time":singletask.executeXPath("task/updated-at/text()"),"Task_Created_For":singletask.executeXPath("task/subject-id/text()"),"Task_Owner_ID":singletask.executeXPath("task/owner-id/text()"),"Task_Category_ID":singletask.executeXPath("task/category-id/text()"),"Task_Category_Name":categoryName},{"trigger":{"workflow"}});
+			info "schec " + singletask.executeXPath("task/id/text()") + " _------- " + createResp;
+		}
+		// }
+	}
+}
+updateprocessCount = zoho.crm.updateRecord("Highrise_Connector",3106252000065101001,{"Overall_Count	":processCount});
+info processCount;
+}

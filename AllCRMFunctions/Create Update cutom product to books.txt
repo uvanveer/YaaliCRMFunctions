@@ -1,0 +1,102 @@
+void automation.Untitled_Function43(Int ProductID)
+{
+//coded by  Tharma
+// ProductID = 3106252000023122007;
+crmData = zoho.crm.getRecordById("Products",ProductID);
+getcrmid = crmData.get("id");
+Product_Type = ifnull(crmData.get("Product_type"),"");
+SKU = crmData.get("Product_Code");
+item_Namesrt = crmData.get("Product_Name");
+Vendor_Name = crmData.get("Vendor_Name").get("name");
+srorename = getSuffix(Vendor_Name,"@");
+item_Name = item_Namesrt + "@" + srorename;
+Manufacturer = ifnull(crmData.get("Manufacturer"),"");
+Sales_Rate = crmData.get("Unit_Price");
+// Image1 = crmData.get("Image1");
+Vendor_SKU = crmData.get("Vendor_SKU");
+Unit_Price = crmData.get("Unit_Price");
+Cost_Price = crmData.get("Cost_Price");
+Sales_Price = crmData.get("Sale_Price");
+Retail_Price = crmData.get("Retail_Price");
+Tax = crmData.get("Tax");
+Total_Profit = crmData.get("Total_Profit");
+Height = ifnull(crmData.get("Height"),"");
+Width = ifnull(crmData.get("Width"),"");
+Image1 = ifnull(crmData.get("Image1"),"");
+Dropship_Print = ifnull(crmData.get("Dropship_Print"),"");
+// info "Dropship_Print" + Dropship_Print;
+//Product_Currency = crmData.get("Product_Currency");
+//  fetching data finished
+//  forming map for books
+dataMapForBooks = Map();
+dataMapForBooks.put("sku",SKU + "-CustomBC");
+dataMapForBooks.put("name",item_Name + "-CustomBC");
+// dataMapForBooks.put.("sales_rate",Sales_Rate.toString());
+dataMapForBooks.put("rate",Sales_Rate);
+dataMapForBooks.put("purchase_rate",Retail_Price);
+// dataMapForBooks.put("image_name",Image1);
+//dataMapForBooks.put("cf_crmrecorid",getcrmid);
+Customfield_list = List();
+customFieldMap1 = Map();
+customFieldMap1.put("customfield_id","1324986000001962057");
+customFieldMap1.put("value",Vendor_Name);
+customFieldMap2 = Map();
+customFieldMap2.put("customfield_id","1324986000001998003");
+customFieldMap2.put("value",Height);
+customFieldMap3 = Map();
+customFieldMap3.put("customfield_id","1324986000001962039");
+customFieldMap3.put("value",Unit_Price.toString());
+customFieldMap4 = Map();
+customFieldMap4.put("customfield_id","1324986000005418953");
+customFieldMap4.put("value",getcrmid);
+customFieldMap5 = Map();
+customFieldMap5.put("customfield_id","1324986000002765027");
+customFieldMap5.put("value",Retail_Price);
+customFieldMap6 = Map();
+customFieldMap6.put("customfield_id","1324986000001959117");
+customFieldMap6.put("value",Manufacturer);
+customFieldMap7 = Map();
+customFieldMap7.put("customfield_id","1324986000001998021");
+customFieldMap7.put("value",Width);
+customFieldMap8 = Map();
+customFieldMap8.put("customfield_id","1324986000006783912");
+customFieldMap8.put("value",Product_Type);
+customFieldMap9 = Map();
+customFieldMap9.put("customfield_id","1324986000004750066");
+customFieldMap9.put("value",item_Namesrt);
+Customfield_list.add(customFieldMap1);
+Customfield_list.add(customFieldMap2);
+Customfield_list.add(customFieldMap3);
+Customfield_list.add(customFieldMap4);
+Customfield_list.add(customFieldMap5);
+Customfield_list.add(customFieldMap6);
+Customfield_list.add(customFieldMap7);
+Customfield_list.add(customFieldMap8);
+Customfield_list.add(customFieldMap9);
+dataMapForBooks.put("custom_fields",Customfield_list);
+info "map=" + dataMapForBooks;
+getCRMdata = zoho.books.getRecords("Items","666840843","cf_crmrecorid=" + getcrmid);
+info "getCRMdata-----" + getCRMdata;
+// bookcrmid = getCRMdata.get("items").get(0).get("cf_crmrecorid");
+// info "book crm id-----" + bookcrmid;
+books_response = "Not Working";
+if(getCRMdata.get("items").size() != 0)
+{
+	bookcrmid = getCRMdata.get("items").get(0).get("cf_crmrecorid");
+	bookrecordid = getCRMdata.get("items").get(0).get("item_id");
+	if(getcrmid == bookcrmid)
+	{
+		info "---------------------Update----------";
+		updateres = zoho.books.updateRecord("Items","666840843",bookrecordid,dataMapForBooks);
+		info "updateresponse---" + updateres;
+		books_response = updateres;
+	}
+}
+else
+{
+	info "---------------------create----------";
+	cretbookres = zoho.books.createRecord("Items","666840843",dataMapForBooks);
+	info cretbookres;
+	books_response = cretbookres;
+}
+}

@@ -1,0 +1,25 @@
+map validation_rule.Do_Not_Add_More_Record(String crmAPIRequest)
+{
+/* The snippet below shows you how to get a list of fields, their values from a MAP object. The fields’ values can be obtained from the same MAP object.                                                  */
+entityMap = crmAPIRequest.toMap().get("record");
+Name = entityMap.get("Name");
+response = Map();
+getallrecords = zoho.crm.getRecords("On_Off_Controller");
+recorlist = getallrecords.toList();
+size = recorlist.size();
+info size;
+if(size > 1)
+{
+	response.put('status','error');
+	response.put('message','Hi, No more record allowed...  Please edit existing record...' + size.toText());
+}
+else if(size == 1)
+{
+	response.put('status','success');
+}
+else
+{
+	response.put('status','success');
+}
+return response;
+}

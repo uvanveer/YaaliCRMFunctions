@@ -1,0 +1,28 @@
+void automation.Delete_junk_contact_account(String contId)
+{
+contactDetails = zoho.crm.getRecordById("Contacts",contId);
+firstName = contactDetails.get("First_Name");
+lastName = contactDetails.get("Last_Name");
+fullName = contactDetails.get("Full_Name");
+phone = contactDetails.get("Phone");
+leadSource = contactDetails.get("Lead_Source");
+account_name = "";
+account = contactDetails.get("Account_Name");
+if(account != null)
+{
+	account_name = account.get("name");
+	acct_id = account.get("id");
+}
+notifyList = {"debbie@bestaccessdoors.com"};
+if(firstName == lastName || account_name.equalsIgnoreCase("google") || fullName.contains("sexy"))
+{
+	sendmail
+	[
+		from :zoho.adminuserid
+		to :notifyList
+		subject :"Junk CRM Contact/Account deleted - Check Recycle Bin"
+		message :"A new CRM Contact and Account was automatically deleted due to the following criteria:<div><ul><li>First Name = Last Name<br>OR</li><li>Contact name contains 'sexy'</li></ul></div><div>If you think this might be a mistake, you can restore the record by checking under Setup > Data Administration > Recycle Bin.<div><br></div><div>First Name:&nbsp;" + firstName + "</div><div>Last Name:&nbsp;" + lastName + "</div><div>Account Name:&nbsp;" + account_name + "</div></div><div>Lead Source:&nbsp;" + leadSource + "</div>"
+	]
+	delResp = zoho.crm.invokeConnector("crm.delete",Map:String({"module":"Accounts","id":acct_id}));
+}
+}

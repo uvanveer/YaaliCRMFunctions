@@ -1,0 +1,301 @@
+void automation.php_scheduler2_delete_duplicates_view()
+{
+HRmaillist = zoho.crm.getRecords("Contacts",2,15,{"cvid":3106252000070653003});
+//3106252000070653003 3106252000064969083
+maillist = List();
+processCount = 0;
+uniqueCount = 0;
+deleteCount = 0;
+createCount = 0;
+try 
+{
+	for each  hrcontact in HRmaillist
+	{
+		// if(hrcontact.get("id") == 3106252000058979921){
+		processCount = processCount + 1;
+		crmID = hrcontact.get("id");
+		email = hrcontact.get("Email");
+		url = "https://www.zohoapis.com/crm/v2/Contacts/" + crmID + "/Attachments";
+		attachmentlist = invokeurl
+		[
+			url :url
+			type :GET
+			connection:"crm_connection"
+		];
+		// 	info " attac "+ attachmentlist;
+		info "--process " + processCount + " --------- att " + attachmentlist.get("data").size();
+		if(!attachmentlist.get("data").size() > 0)
+		{
+			info "---- Delete ----";
+			getconatc = zoho.crm.searchRecords("Contacts","Email:equals:" + email);
+			masterFound = false;
+			if(getconatc.size() == 1)
+			{
+				uniqueCount = uniqueCount + 1;
+				updateDuplicate = zoho.crm.updateRecord("Contacts",crmID,{"Master":true,"Is_Duplicate_Merge":"No"});
+				info "updateDuplicate " + updateDuplicate;
+			}
+			else if(getconatc.size() == 0)
+			{
+				createCount = createCount + 1;
+			}
+			else if(getconatc.size() > 1)
+			{
+				deleteCount = deleteCount + 1;
+				info "== more than 1 records found == " + crmID + " email " + email;
+				for each  masterD in getconatc
+				{
+					if(masterD.get("Master") == true)
+					{
+						masterFound = true;
+						masterID = masterD.get("id");
+						info "master found " + masterID;
+					}
+				}
+				if(masterFound == true)
+				{
+					info "---starts--master found-----" + crmID + " master  " + masterID + "--------------end---";
+					Deleted_contact_Map = Map();
+					Deleted_contact_Map.put("Access_Doors_And_Panels",hrcontact.get("Access_Doors_And_Panels"));
+					Deleted_contact_Map.put("Access_Doors_Canada",hrcontact.get("Access_Doors_Canada"));
+					Deleted_contact_Map.put("Acudor_Access_Panels",hrcontact.get("Acudor_Access_Panels"));
+					Deleted_contact_Map.put("Best_Access_Doors",hrcontact.get("Best_Access_Doors"));
+					Deleted_contact_Map.put("Best_Access_Doors_Canada",hrcontact.get("Best_Access_Doors_Canada"));
+					Deleted_contact_Map.put("California_Access_Doors",hrcontact.get("California_Access_Doors"));
+					Deleted_contact_Map.put("Public_Furniture",hrcontact.get("Public_Furniture"));
+					// 				Deleted_contact_Map.put("Deleted_Time", zoho.currenttime.replaceAll(" ","T"));
+					Deleted_contact_Map.put("Highrise_CRM_Owner",hrcontact.get("Highrise_CRM_Owner"));
+					Deleted_contact_Map.put("Contact_ID",hrcontact.get("id"));
+					Deleted_contact_Map.put("Name",hrcontact.get("First_Name") + " " + hrcontact.get("Last_Name"));
+					Deleted_contact_Map.put("Bigcommerce_Unique_ID",hrcontact.get("Bigcommerce_Unique_ID"));
+					Deleted_contact_Map.put("Email",hrcontact.get("Email"));
+					accountid = ifnull(hrcontact.get("Account_Name"),null);
+					if(accountid != null)
+					{
+						Deleted_contact_Map.put("Account_Name",hrcontact.get("Account_Name").get("id"));
+					}
+					else
+					{
+					}
+					Deleted_contact_Map.put("Phone",hrcontact.get("Phone"));
+					Deleted_contact_Map.put("Merged_Phone",hrcontact.get("Phone_Number_Merge"));
+					Deleted_contact_Map.put("MasterID",masterID);
+					Deleted_contact_Map.put("HighriseID",hrcontact.get("HighriseID"));
+					info "time " + zoho.currenttime.replaceAll(" ","T") + " --- " + zoho.currenttime + " fr " + zoho.currentdate.toString("yyyy-MM-dd HH:mm:ss");
+					// deals
+					deals_ID = "";
+					getDealsreletedrecords = zoho.crm.getRelatedRecords("Deals","Contacts",hrcontact.get("id"));
+					// 	info "getDealsreletedrecords" + getDealsreletedrecords;
+					if(getDealsreletedrecords.size() > 0)
+					{
+						for each  getDealsreltrcd in getDealsreletedrecords
+						{
+							datamap = Map();
+							attchment = Map();
+							attchment.put("id",masterID);
+							datamap.put("Who_Id",attchment);
+							datamap.put("$se_module",getDealsreltrcd.getJSON("$se_module"));
+							updateDeals = zoho.crm.updateRecord("Deals",getDealsreltrcd.getJSON("id"),datamap);
+							info "Deals" + updateDeals;
+							deals_ID = deals_ID + "," + getDealsreltrcd.get("id");
+						}
+						info "DealID " + deals_ID;
+					}
+					// 	Notes
+					notes_ID = "";
+					getreletednotes = zoho.crm.getRelatedRecords("Notes","Contacts",hrcontact.get("id"));
+					// info "getreletedrecords" + getreletedrecords;
+					if(getreletednotes.size() > 0)
+					{
+						for each  getreltrcd in getreletednotes
+						{
+							datamap = Map();
+							attchment = Map();
+							attchment.put("id",masterID);
+							datamap.put("Parent_Id",attchment);
+							datamap.put("$se_module",getreltrcd.getJSON("$se_module"));
+							updatenotes = zoho.crm.updateRelatedRecord("Notes",getreltrcd.getJSON("id"),"Contacts",masterID,datamap);
+							notes_ID = notes_ID + "," + getreltrcd.get("id");
+						}
+					}
+					// 	saleorder
+					saleorder_ID = "";
+					getsalorders = zoho.crm.searchRecords("Sales_Orders","(Contact_Name:equals:" + hrcontact.get("id") + ")");
+					if(getsalorders.size() > 0)
+					{
+						salorderidslist = List();
+						for each  saleorderid in getsalorders
+						{
+							salorderids = Map();
+							if(saleorderid.get("id") != null)
+							{
+								salorderids.put("saleordid",saleorderid.get("id"));
+								saleorder_ID = saleorder_ID + "," + saleorderid.get("id");
+							}
+							salorderidslist.add(salorderids);
+						}
+						if(salorderidslist.size() > 0)
+						{
+							info "formed saleorder list " + salorderidslist;
+							for each  saleorderids in salorderidslist
+							{
+								saleorder_id = saleorderids.get('saleordid').toLong();
+								salorderupdate = Map();
+								salorderupdate.put("Contact_Name",masterID);
+								updatesalorder = zoho.crm.updateRecord("Sales_Orders",saleorder_id,salorderupdate);
+								info "----updatesalorder--------" + updatesalorder;
+							}
+							info "--------------saleorder update finished --------------------------------------\n";
+						}
+					}
+					// 				getsalorders = zoho.crm.searchRecords("Sales_Orders","(Contact_Name:equals:" + hrcontact.get("id") + ")");
+					// 				if(getsalorders.size() > 0)
+					// 				{
+					// 					for each  saleorderid in getsalorders
+					// 					{
+					// 						if(saleorderid.get("id") != null)
+					// 						{
+					// 							saleorder_ID = saleorder_ID + ","+saleorderid.get("id");
+					// 						}
+					// 					}
+					// 				}
+					// 	purchase order / dropship order
+					purchaseorder_ID = "";
+					getPOreletedrecords = zoho.crm.getRelatedRecords("PurchaseOrders","Contacts",hrcontact.get("id"));
+					info "po " + getPOreletedrecords.size();
+					if(getPOreletedrecords.size() > 0)
+					{
+						for each  getporeltrcd in getPOreletedrecords
+						{
+							datamap = Map();
+							datamap.put("Contact_Name",masterID);
+							updatepo = zoho.crm.updateRecord("Purchase_Orders",getporeltrcd.get("id"),datamap);
+							purchaseorder_ID = purchaseorder_ID + "," + getporeltrcd.get("id");
+						}
+					}
+					// 	call
+					calls_ID = "";
+					geCallsreletedrecords = zoho.crm.getRelatedRecords("Calls","Contacts",hrcontact.get("id"));
+					if(geCallsreletedrecords.size() > 0)
+					{
+						for each  getcallreltrcd in geCallsreletedrecords
+						{
+							datamap = Map();
+							attchment = Map();
+							attchment.put("id",masterID);
+							datamap.put("Who_Id",attchment);
+							datamap.put("$se_module",getcallreltrcd.getJSON("$se_module"));
+							updateCalls = zoho.crm.updateRecord("Calls",getcallreltrcd.getJSON("id"),datamap);
+							// 						info "Calls" + updateCalls;
+							calls_ID = calls_ID + "," + getcallreltrcd.get("id");
+						}
+					}
+					// 	tasks
+					tasks_ID = "";
+					gettaskreletedrecords = zoho.crm.getRelatedRecords("Tasks","Contacts",hrcontact.get("id"));
+					if(gettaskreletedrecords.size() > 0)
+					{
+						for each  gettaskreltrcd in gettaskreletedrecords
+						{
+							datamap = Map();
+							attchment = Map();
+							attchment.put("id",masterID);
+							datamap.put("Who_Id",attchment);
+							datamap.put("$se_module",gettaskreltrcd.getJSON("$se_module"));
+							updatetask = zoho.crm.updateRecord("Tasks",gettaskreltrcd.getJSON("id"),datamap);
+							// 						info "task " + updatetask;
+							tasks_ID = tasks_ID + "," + gettaskreltrcd.get("id");
+						}
+					}
+					// 	case
+					cases_ID = "";
+					getCasesreletedrecords = zoho.crm.getRelatedRecords("Cases","Contacts",hrcontact.get("id"));
+					if(getCasesreletedrecords.size() > 0)
+					{
+						for each  getCasesreltrcd in getCasesreletedrecords
+						{
+							datamap = Map();
+							attchment = Map();
+							attchment.put("id",masterID);
+							datamap.put("Who_Id",attchment);
+							datamap.put("$se_module",getCasesreltrcd.getJSON("$se_module"));
+							updateCases = zoho.crm.updateRecord("Cases",getCasesreltrcd.getJSON("id"),datamap);
+							cases_ID = cases_ID + getCasesreltrcd.get("id");
+						}
+					}
+					Deleted_contact_Map.put("SaleorderID",saleorder_ID);
+					Deleted_contact_Map.put("DropshiporderID",purchaseorder_ID);
+					Deleted_contact_Map.put("Cases_ID",cases_ID);
+					Deleted_contact_Map.put("Deals_ID",deals_ID);
+					Deleted_contact_Map.put("Notes_ID",notes_ID);
+					Deleted_contact_Map.put("Calls_ID",calls_ID);
+					Deleted_contact_Map.put("tasks_ID",tasks_ID);
+					Deleted_contact_Map.put("Attachments_ID","");
+					Deleted_contact_Map.put("Available_Attachments",false);
+					info "map " + Deleted_contact_Map;
+					// add details to another module before deleting --- Deleted_Duplicate_Contact
+					createResp = zoho.crm.createRecord("Deleted_Duplicate_Contact",Deleted_contact_Map);
+					info "to be deleted record detailed res " + createResp;
+					//delete duplicate record
+					deleteRecordMap = Map();
+					deleteRecordMap.put("module","Contacts");
+					deleteRecordMap.put("id",crmID);
+					info "delete contact res " + deleteRecordMap;
+					deleteResp = zoho.crm.invokeConnector("crm.delete",deleteRecordMap);
+					info " delete contact res " + deleteResp;
+				}
+				else
+				{
+					info "master not found";
+				}
+			}
+		}
+		else
+		{
+			// 		info "with attachment: not to delete: " + crmID;
+			getconatc = zoho.crm.searchRecords("Contacts","Email:equals:" + email);
+			masterFound = false;
+			if(getconatc.size() == 1)
+			{
+				uniqueCount = uniqueCount + 1;
+			}
+			else if(getconatc.size() == 0)
+			{
+				createCount = createCount + 1;
+			}
+			else if(getconatc.size() > 1)
+			{
+				deleteCount = deleteCount + 1;
+				info "== more than 1 records found == " + crmID + " email " + email;
+				for each  masterD in getconatc
+				{
+					if(masterD.get("Master") == true)
+					{
+						masterFound = true;
+						masterID = masterD.get("id");
+						info "master found " + masterID;
+						updateDuplicate = zoho.crm.updateRecord("Contacts",crmID,{"Attachment":true,"MasterID":masterID});
+					}
+					else
+					{
+						updateDuplicate = zoho.crm.updateRecord("Contacts",crmID,{"Attachment":true});
+					}
+				}
+			}
+		}
+	}
+	// 	}
+	info "processed " + processCount;
+}
+ catch (e)
+{	info "*************error********** " + e;
+	sendmail
+	[
+		from :zoho.loginuserid
+		to :"prashanth@bizappln.com"
+		subject :"delete duplicates view error"
+		message :"error : " + e
+	]
+}
+// return "completed";
+}

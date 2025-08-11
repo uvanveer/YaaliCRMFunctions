@@ -1,0 +1,4 @@
+void automation.updatedropshipnumber()
+{
+response = zoho.crm.searchRecords("CustomModule1","(Email:equals:john@zylker.com)");
+}

@@ -1,0 +1,53 @@
+void automation.Fetch_Highrise_Accounts_To_ZohoCRM(String date)
+{
+/* Created By prashanth on feb-2020 */
+/* Data Sync from highrise to zoho  */
+// currently not in use
+//---------------------------------------------
+highriseAuth = "Basic OWZiYjY1ODg2NWY5MTUyODlmN2U5ZDNiM2E3MWNkYmI6WA==";
+getData = zoho.crm.getRecordById("Highrise_Connector",3106252000065101001);
+date = getData.get("Date");
+info date;
+fetchdate = date.subString(0,19);
+fetchdate = fetchdate.replaceAll("[-:T]","");
+info 'no ' + fetchdate;
+fromDate = fetchdate;
+highriseCompanies = geturl("https://bestaccessdoors.highrisehq.com/companies.xml?since=" + fetchdate,{"Authorization":highriseAuth});
+highriseCompanies = highriseCompanies.executeXPath("companies/company").toXmlList();
+info "highriseCompanies " + highriseCompanies.size();
+if(highriseCompanies.size() > 0)
+{
+	sendmail
+	[
+		from :zoho.loginuserid
+		to :"prabhu@bizappln.com"
+		subject :"1. fetching for date modified time " + date + " - index - 0" + fetchdate
+		message :"create HR data " + date
+	]
+	processCount = 0;
+	for each  company in highriseCompanies
+	{
+		processCount = processCount + 1;
+		getContact = zoho.crm.searchRecords("Highrise_Data","((Highrise_ID:equals:" + company.executeXPath("company/id/text()") + "))");
+		if(getContact.size() == 0)
+		{
+			createResp = zoho.crm.createRecord("Highrise_Data",{"Highrise_ID":company.executeXPath("company/id/text()"),"Module":"Accounts","Highrise_Created_Time":company.executeXPath("company/created-at/text()"),"Highrise_Modified_Time":company.executeXPath("company/updated-at/text()"),"Date_String":fetchdate},{"trigger":{"workflow"}});
+		}
+	}
+	if(processCount == 500)
+	{
+		getaccountindex = zoho.crm.getRecordById("Highrise_Connector",3106252000065101001);
+		updatedCount = getaccountindex.get("Account_Start_Index").toNumber() + 500;
+		updateprocessCount = zoho.crm.updateRecord("Highrise_Connector",3106252000065101001,{"Account_Start_Index":updatedCount});
+		createPagination = zoho.crm.createRecord("Highrise_Pagination",{"Index":updatedCount.toString(),"Module":"Accounts","Date":fetchdate,"Pagination_DateTime":date},{"trigger":{"workflow"}});
+		info "update " + updateprocessCount;
+		sendmail
+		[
+			from :zoho.loginuserid
+			to :"prabhu@bizappln.com"
+			subject :"2.created HR_Data module data for last record while fetching for date modified time " + fetchdate + " - index - " + processCount
+			message :"create HR pagination " + createPagination + " - update index " + updatedCount
+		]
+	}
+}
+}

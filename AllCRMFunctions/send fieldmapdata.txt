@@ -1,0 +1,16 @@
+void automation.Untitled_Function36(Int crmid,String booksfield,String bcfield,String crmfield,String storename,String creatorfield)
+{
+get_domain = zoho.crm.getRecordById("Domain_Settings",3106252000056886136);
+base_url = get_domain.get("Domain_Name");
+url = base_url + "/api/fieldmap/createdit";
+mymap = Map();
+mymap.put("crm_id",crmid);
+mymap.put("store_name",storename);
+mymap.put("crm_field",crmfield);
+mymap.put("bc_field",bcfield);
+mymap.put("books_field",booksfield);
+mymap.put("creator_field",creatorfield);
+s = postUrl(url,mymap);
+// info mymap ;
+// info s;
+}

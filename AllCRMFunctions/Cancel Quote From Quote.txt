@@ -1,0 +1,30 @@
+string button.Cancel_Quote_FromQoute(String quote_id)
+{
+Quote = zoho.crm.getRecordById("Quotes",quote_id);
+Quote_Id_in_Creator = ifnull(Quote.get("Creator_Record_ID"),"");
+Quote_Number = Quote.get("Subject");
+if(Quote_Id_in_Creator != "")
+{
+	Quote_in_Creator = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Quotes","ID == " + Quote_Id_in_Creator,1,200,"zcreator_connecction");
+	QuoteMap = Quote_in_Creator.get(0);
+	QuoteStatus = ifnull(QuoteMap.get("Quote_Status"),"");
+	if(QuoteStatus != "Confirmed" && QuoteStatus != "Delivered" && QuoteStatus != "Paid" && QuoteStatus != "Won" && QuoteStatus != "Cancelled" && QuoteStatus != "")
+	{
+		tempdata = Map();
+		updateMap = Map();
+		updateMap.put("Quote_Status","Cancelled");
+		creator_response = zoho.creator.updateRecord("zoho_zoho1502","quotes","Create_Quote",Quote_Id_in_Creator,updateMap,tempdata,"zcreator_connecction");
+		info creator_response;
+		response = "The Quote " + Quote_Number + " was cancelled successfully";
+	}
+	else if(QuoteStatus == "Cancelled")
+	{
+		response = "You have already cancelled the Quote " + Quote_Number;
+	}
+	else
+	{
+		response = "You can not cancel the Quote " + Quote_Number + ". Because the Quote have the Status " + QuoteStatus;
+	}
+}
+return response;
+}

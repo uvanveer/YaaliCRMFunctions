@@ -1,0 +1,4 @@
+string standalone.GetDropShipOrder(Int id)
+{
+return zoho.crm.getRecordById("Purchase_Orders",id);
+}

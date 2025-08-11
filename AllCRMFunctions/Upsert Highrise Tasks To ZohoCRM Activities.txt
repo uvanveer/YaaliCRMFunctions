@@ -1,0 +1,293 @@
+void automation.Upsert_Highrise_Tasks_To_ZohoCRM_Activities(String highriseID,Int crmRecordID,String category,String taskownerID,String Task_Created_For)
+{
+/* Created By prashanth on feb-2020 */
+/* Data Sync from highrise to zoho  */
+// currently not in use
+//---------------------------------------------
+Tlist = zoho.crm.getRecords("Highrise_Data",2,1,{"cvid":3106252000070102177});
+processcount = 0;
+// for each  rec1 in Tlist
+// {
+// if(highriseID == "123445")
+// {
+// 		processcount = processcount + 1;
+// 		info "\\\\\\\\\\\\\\\\\\\\\\count " + processcount + "\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\-";
+// 	highriseID = rec1.get("Highrise_ID");
+// 	crmRecordID = rec1.get("id");
+// 	category = rec1.get("Task_Category_Name");
+// 	taskownerID = rec1.get("Task_Owner_ID");
+// 	Task_Created_For = rec1.get("Task_Created_For");
+// highriseID = "79513294";
+// crmRecordID = 3106252000071560090;
+// category = "Follow-up";
+// taskownerID = "1382762";
+// Task_Created_For = "314022092";
+highriseAuth = "Basic OWZiYjY1ODg2NWY5MTUyODlmN2U5ZDNiM2E3MWNkYmI6WA==";
+userlist = List();
+userlist.add({"name":"Fern Citrigno","crm_id":3106252000000152052,"hr_id":"1082383"});
+userlist.add({"name":"Rheanne Trottier","crm_id":3106252000024509019,"hr_id":"1382762"});
+userlist.add({"name":"Kristopher Clark","crm_id":3106252000058241283,"hr_id":"1414362"});
+userlist.add({"name":"Marko Savic","crm_id":3106252000037668001,"hr_id":"1406845"});
+userlist.add({"name":"Deborah Warner","crm_id":3106252000045664001,"hr_id":"1411870"});
+for each  userrec in userlist
+{
+	if(taskownerID == userrec.get("hr_id"))
+	{
+		hr_id = userrec.get("hr_id");
+		owner = userrec.get("crm_id");
+		info " owner  " + owner.toLong() + " hr id " + hr_id;
+	}
+}
+if(category == "Call")
+{
+	category = "Call";
+}
+else
+{
+	category = "Follow-up";
+}
+info " hr taskid " + highriseID + " people id " + Task_Created_For + " " + category + " recid " + crmRecordID;
+highriseID = highriseID;
+crmRecordID = crmRecordID;
+// category = "Follow-up";
+//---------------------------------------------------------------
+highriseTask = geturl("https://bestaccessdoors.highrisehq.com/tasks/" + highriseID + ".xml",{"Authorization":highriseAuth});
+subjectBody = ifnull(highriseTask.executeXPath("task/body/text()"),"");
+if(subjectBody == "")
+{
+	info "subject is null " + category;
+	subjectBody = "No Subject - " + category;
+}
+criteria = "(Highrise_ID:equals:" + highriseTask.executeXPath("task/subject-id/text()") + ")";
+searchRes_highrise = zoho.crm.searchRecords("Highrise_Data",criteria);
+info "-------------------" + subjectBody + "-------" + category + "----------------";
+info "search highrise data module res " + searchRes_highrise;
+info "------------------------------------------";
+if(searchRes_highrise.size() == 0)
+{
+	info "no record found in HRData module in crm " + highriseTask.executeXPath("task/subject-id/text()");
+	highrisePeople = geturl("https://bestaccessdoors.highrisehq.com/people/" + highriseTask.executeXPath("task/subject-id/text()") + ".xml",{"Authorization":highriseAuth});
+	primaryEmail = ifnull(highrisePeople.executeXPath("person/contact-data/email-addresses/email-address[1]/address/text()"),"");
+	email = primaryEmail;
+	criteria = "(Email:equals:" + email + ")";
+	duplicateRecords = zoho.crm.searchRecords("Contacts",criteria,1,200,{"Created_Time":"sort_by with desc"});
+	if(duplicateRecords.size() > 1)
+	{
+		info " crm contacts multiple record found " + email + " people id " + highriseTask.executeXPath("task/subject-id/text()");
+		for each  singleTasks in duplicateRecords
+		{
+			if(singleTasks.get("Master") == true)
+			{
+				info "inside crm multiple " + singleTasks.get("id") + " master " + singleTasks.get("Master");
+				masterFound = true;
+				contactRecId = singleTasks.get("id");
+			}
+		}
+		if(masterFound == true)
+		{
+			info " contacts master record found " + email + " : " + contactRecId + " highrise id " + highriseTask.executeXPath("task/subject-id/text()");
+			updateDuplicate = zoho.crm.updateRecord("Contacts",contactRecId,{"HighriseID":highriseTask.executeXPath("task/subject-id/text()")});
+			info "update contact with highrise id " + updateDuplicate;
+			info "due date for task " + highriseTask.executeXPath("task/due-at/text()") + " after removing T " + highriseTask.executeXPath("task/due-at/text()").getPrefix("T");
+			duedate = highriseTask.executeXPath("task/due-at/text()").getPrefix("T");
+			if(category == "Call")
+			{
+				ctTime = highriseTask.executeXPath("task/due-at/text()").toString("yyyy-MM-dd'T'HH:mm:ss'+03:00'");
+				info " HR data is empty : call create: date " + duedate + " - " + highriseTask.executeXPath("task/due-at/text()") + " id " + duplicateRecords.get(0).get("id") + " subject " + highriseTask.executeXPath("task/body/text()");
+				out_call_log_obj = Map();
+				out_call_log_obj.put("Subject",subjectBody);
+				out_call_log_obj.put("Owner",owner);
+				out_call_log_obj.put("Who_Id",contactRecId);
+				out_call_log_obj.put("Call_Type","Outbound");
+				out_call_log_obj.put("$se_module","Contacts");
+				out_call_log_obj.put("Call_Start_Time",ctTime);
+				out_call_log_obj.put("Due_Date",duedate);
+				out_call_log_obj.put("Call_Duration","0:00");
+				out_call_log_obj.put("$which_call","ScheduleCall");
+				out_call_log_obj.put("Sub_Category",category);
+				add_out_resp = zoho.crm.createRecord("Calls",out_call_log_obj);
+				AccountRecordID = add_out_resp.get("id");
+				info "call response " + add_out_resp;
+			}
+			else
+			{
+				info "HR data empty:  task create: date " + duedate + " - " + highriseTask.executeXPath("task/due-at/text()") + " id " + duplicateRecords.get(0).get("id");
+				paramMap = Map();
+				paramMap.put("$se_module","Contacts");
+				paramMap.put("Who_Id",{"id":contactRecId});
+				paramMap.put("Owner",owner);
+				paramMap.put("Priority","High");
+				paramMap.put("Subject",subjectBody);
+				paramMap.put("Sub_Category",category);
+				dueDate = duedate;
+				paramMap.put("Due_Date",dueDate);
+				// 		reminderTime = dueDate.toTime().addHour(9);
+				// 		paramMap.put("Remind_At",{"ALARM":"FREQ=NONE;ACTION=EMAIL;TRIGGER=DATE-TIME:" + reminderTime.toString("yyyy-MM-dd'T'HH:mm:ss'+05:30'")});
+				response = zoho.crm.createRecord("Tasks",paramMap);
+				AccountRecordID = response.get("id");
+				info "HR data epty: task response " + response + " " + AccountRecordID;
+			}
+			if(AccountRecordID != "")
+			{
+				objMap = {"Status":"Created Newly","Zoho_CRM_ID":AccountRecordID,"Conflict_Message":"","Email":email};
+				HighriseData_Updation = zoho.crm.updateRecord("Highrise_Data",crmRecordID,objMap);
+				info "highrise success res " + HighriseData_Updation;
+			}
+			else
+			{
+				objMap = {"Status":"Error","Zoho_CRM_ID":"","Conflict_Message":response.toString(),"Email":email};
+				HighriseData_Updation = zoho.crm.updateRecord("Highrise_Data",crmRecordID,objMap);
+				info "highrise error res " + HighriseData_Updation;
+			}
+		}
+	}
+	else if(duplicateRecords.size() == 1)
+	{
+		info " crm contacts 1 record found " + email + " : " + duplicateRecords.get(0).get("id") + " highrise id " + highriseID;
+		updateDuplicate = zoho.crm.updateRecord("Contacts",duplicateRecords.get(0).get("id").toLong(),{"HighriseID":Task_Created_For});
+		info updateDuplicate;
+		// 			owner = 3106252000000152052;
+		//fern
+		duedate = highriseTask.executeXPath("task/due-at/text()").getPrefix("T");
+		contactRecId = null;
+		contactRecId = duplicateRecords.get(0).get("id");
+		if(category == "Call")
+		{
+			ctTime = highriseTask.executeXPath("task/due-at/text()").toString("yyyy-MM-dd'T'HH:mm:ss'+03:00'");
+			info " HR data is empty : call create: date " + duedate + " - " + highriseTask.executeXPath("task/due-at/text()") + " id " + duplicateRecords.get(0).get("id") + " contactId checking " + contactRecId;
+			out_call_log_obj = Map();
+			out_call_log_obj.put("Subject",subjectBody);
+			out_call_log_obj.put("Owner",owner);
+			out_call_log_obj.put("Who_Id",contactRecId);
+			out_call_log_obj.put("Call_Type","Outbound");
+			out_call_log_obj.put("$se_module","Contacts");
+			out_call_log_obj.put("Call_Start_Time",ctTime);
+			out_call_log_obj.put("Due_Date",duedate);
+			out_call_log_obj.put("Call_Duration","0:00");
+			out_call_log_obj.put("$which_call","ScheduleCall");
+			out_call_log_obj.put("Sub_Category",category);
+			add_out_resp = zoho.crm.createRecord("Calls",out_call_log_obj);
+			AccountRecordID = null;
+			AccountRecordID = add_out_resp.get("id");
+			info "call response " + add_out_resp + " created rec id " + AccountRecordID;
+		}
+		else
+		{
+			info "HR data empty:  task create: date " + duedate + " - " + highriseTask.executeXPath("task/due-at/text()") + " id " + duplicateRecords.get(0).get("id");
+			paramMap = Map();
+			paramMap.put("$se_module","Contacts");
+			paramMap.put("Who_Id",{"id":contactRecId});
+			paramMap.put("Owner",owner);
+			paramMap.put("Priority","High");
+			paramMap.put("Subject",subjectBody);
+			paramMap.put("Sub_Category",category);
+			dueDate = duedate;
+			paramMap.put("Due_Date",dueDate);
+			// 		reminderTime = dueDate.toTime().addHour(9);
+			// 		paramMap.put("Remind_At",{"ALARM":"FREQ=NONE;ACTION=EMAIL;TRIGGER=DATE-TIME:" + reminderTime.toString("yyyy-MM-dd'T'HH:mm:ss'+05:30'")});
+			response = zoho.crm.createRecord("Tasks",paramMap);
+			AccountRecordID = response.get("id");
+			info "HR data epty: task response " + response + " " + AccountRecordID;
+		}
+		if(AccountRecordID != "")
+		{
+			objMap = {"Status":"Created Newly","Zoho_CRM_ID":AccountRecordID,"Conflict_Message":"","Email":email};
+		}
+		else
+		{
+			info "Error ";
+			objMap = {"Status":"Error","Zoho_CRM_ID":"","Conflict_Message":response.toString(),"Email":email};
+		}
+		HighriseData_Updation = zoho.crm.updateRecord("Highrise_Data",crmRecordID,objMap);
+		info "HR data epty: highrise res " + HighriseData_Updation;
+	}
+	else if(duplicateRecords.size() == 0)
+	{
+		info "Error: crm contacts 0 record found " + email;
+		objMap = {"Status":"Error","Zoho_CRM_ID":"","Conflict_Message":"No records found while search in crm for " + email,"Email":email};
+		HighriseData_Updation = zoho.crm.updateRecord("Highrise_Data",crmRecordID,objMap);
+		info "no crm records found with email search: highrise res " + HighriseData_Updation;
+	}
+}
+else if(searchRes_highrise.size() > 1)
+{
+	objMap = {"Status":"Error","Zoho_CRM_ID":"","Conflict_Message":"More than 1 record was found with given highriseID " + highriseTask.executeXPath("task/subject-id/text()")};
+	HighriseData_Updation = zoho.crm.updateRecord("Highrise_Data",crmRecordID,objMap);
+	info "Error: more than one record found";
+}
+else if(searchRes_highrise.size() == 1)
+{
+	info "---1 crm record found-------" + subjectBody + "-----" + highriseTask.executeXPath("task/subject-id/text()") + "---------------------------";
+	// 		owner = 3106252000000152052;
+	duedate = highriseTask.executeXPath("task/due-at/text()").getPrefix("T");
+	contactRecId = ifnull(searchRes_highrise.get(0).get("Zoho_CRM_ID"),"");
+	if(contactRecId != "")
+	{
+		if(category == "Call")
+		{
+			ctTime = highriseTask.executeXPath("task/due-at/text()").toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'");
+			info "call create: date " + duedate + " - " + highriseTask.executeXPath("task/due-at/text()") + " id " + searchRes_highrise.get(0).get("Zoho_CRM_ID");
+			out_call_log_obj = Map();
+			out_call_log_obj.put("Subject",subjectBody);
+			out_call_log_obj.put("Owner",owner);
+			out_call_log_obj.put("Who_Id",contactRecId);
+			out_call_log_obj.put("Call_Type","Outbound");
+			out_call_log_obj.put("$se_module","Contacts");
+			out_call_log_obj.put("Call_Start_Time",ctTime);
+			out_call_log_obj.put("Due_Date",duedate);
+			out_call_log_obj.put("Call_Duration","0:00");
+			out_call_log_obj.put("$which_call","ScheduleCall");
+			out_call_log_obj.put("Sub_Category",category);
+			add_out_resp = zoho.crm.createRecord("Calls",out_call_log_obj);
+			AccountRecordID = add_out_resp.get("id");
+			info "call response " + out_call_log_obj;
+		}
+		else
+		{
+			info "task create: date " + duedate + " - " + highriseTask.executeXPath("task/due-at/text()") + " id " + searchRes_highrise.get(0).get("Zoho_CRM_ID");
+			paramMap = Map();
+			paramMap.put("$se_module","Contacts");
+			paramMap.put("Who_Id",{"id":contactRecId});
+			paramMap.put("Owner",owner);
+			paramMap.put("Priority","High");
+			paramMap.put("Subject",subjectBody);
+			paramMap.put("Sub_Category",category);
+			dueDate = duedate;
+			paramMap.put("Due_Date",dueDate);
+			// 		reminderTime = dueDate.toTime().addHour(9);
+			// 		paramMap.put("Remind_At",{"ALARM":"FREQ=NONE;ACTION=EMAIL;TRIGGER=DATE-TIME:" + reminderTime.toString("yyyy-MM-dd'T'HH:mm:ss'+05:30'")});
+			response = zoho.crm.createRecord("Tasks",paramMap);
+			AccountRecordID = response.get("id");
+			info "task response " + response + " " + AccountRecordID;
+		}
+		if(AccountRecordID != "")
+		{
+			objMap = {"Status":"Created Newly","Zoho_CRM_ID":AccountRecordID,"Conflict_Message":""};
+		}
+		else
+		{
+			info "Error";
+			objMap = {"Status":"Error","Zoho_CRM_ID":"","Conflict_Message":response.toString()};
+			sendmail
+			[
+				from :zoho.loginuserid
+				to :"prabhu@bizappln.com"
+				subject :"error creating task / call for " + highriseID
+				message :"res " + response
+			]
+		}
+		HighriseData_Updation = zoho.crm.updateRecord("Highrise_Data",crmRecordID,objMap);
+		info "highrise res " + HighriseData_Updation;
+	}
+	else
+	{
+		objMap = {"Status":"Error","Zoho_CRM_ID":"","Conflict_Message":"No crm record id found in HR_data module for highrise contact " + Task_Created_For};
+		HighriseData_Updation = zoho.crm.updateRecord("Highrise_Data",crmRecordID,objMap);
+		info "Error: No crm record id found in HR_data module for highrise contact " + HighriseData_Updation;
+	}
+}
+info "paras " + paramMap;
+// 	info " con "+ searchRes_highrise;
+// }
+// }
+}

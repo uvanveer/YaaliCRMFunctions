@@ -1,0 +1,28 @@
+void automation.Create_Amazon_Shipment(Int dropShipOrderRecordID)
+{
+// recordId = "3106252000082315608";
+//code commented for Adding new amazon carriers development process by barani 21/11/2022
+sendmail
+[
+	from :zoho.adminuserid
+	to :"barani@bizappln.com"
+	subject :"Amazon Create Shipment"
+	message :"Workflow Triggered"
+]
+body = Map();
+postURL = "https://13.59.38.45:8443/createShipment/createamazonshipment?crmRecordId=" + dropShipOrderRecordID;
+createShipmentResponse = postUrl(postURL,body,false);
+sendmail
+[
+	from :zoho.adminuserid
+	to :"barani@bizappln.com"
+	subject :"Amazon Create Shipment Response"
+	message :"Hi Ezhil,<div><br></div><div>Amazon create shipment response for drop-ship order ID :" + dropShipOrderRecordID + "<br><br>Response : " + createShipmentResponse + "</div>"
+]
+info createShipmentResponse;
+if(createShipmentResponse.getJSON("status") == "success")
+{
+	data = createShipmentResponse.getJson("data");
+	info data;
+}
+}

@@ -1,0 +1,23 @@
+void automation.SalesIQChatContactNameFix(Int contact_id)
+{
+contact_details = zoho.crm.getRecordById("Contacts",contact_id);
+current_first_name = contact_details.get("First_Name");
+Account_Name = contact_details.get("Account_Name");
+if(current_first_name == null)
+{
+	current_last_name = contact_details.get("Last_Name");
+	new_first_name = current_last_name;
+	new_last_name = ".";
+	mp = Map();
+	mp.put("First_Name",new_first_name);
+	mp.put("Last_Name",new_last_name);
+	update = zoho.crm.updateRecord("Contacts",contact_id,mp);
+}
+else if(Account_Name == null || Account_Name == "")
+{
+	data = Map();
+	new_account = 3106252001050009002;
+	data.put("Account_Name",new_account);
+	update = zoho.crm.updateRecord("Contacts",contact_id,data);
+}
+}

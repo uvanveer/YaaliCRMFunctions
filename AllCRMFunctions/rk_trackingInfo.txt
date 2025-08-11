@@ -1,0 +1,66 @@
+void automation.rk_trackingInfo(Int pid)
+{
+resp = zoho.crm.getRecordById("Purchase_Orders",pid);
+updated = zoho.crm.updateRecord("Purchase_Orders",pid,{"Status":"Shipped"});
+// resp = zoho.crm.getRecordById("Purchase_Orders",pid.toLong());
+// info resp;
+so_lookupdata = resp.get("Sales_Order");
+so_text = resp.get("Sales_Order_Amz");
+inv_so_id = resp.get("Books_PO_ID");
+if(so_lookupdata != null)
+{
+	info "inside lookup loop";
+}
+else
+{
+	query_param = Map();
+	query_param.put("cf_amazon_order_id",so_text);
+	sosearchresp = zoho.inventory.getRecords("SalesOrders","666840843",query_param,"zoho_inventory_oauth");
+	if(sosearchresp.size() > 0)
+	{
+		sodet = sosearchresp.get("salesorders").get("0");
+		soid = sodet.get("salesorder_id");
+		search_resp = zoho.crm.searchRecords("Purchase_Orders","(Sales_Order_Amz:equals:" + so_text + ")");
+		if(search_resp.size() > 0)
+		{
+			info search_resp.size();
+			totpocnt = search_resp.size();
+			shippocnt = 0;
+			shipdat = List:date();
+			for each  rec in search_resp
+			{
+				status = rec.get("Status");
+				s_date = rec.get("Ship_Date");
+				info "status = " + status;
+				if(status == "Shipped" || status == "Cancelled")
+				{
+					shipdat.add(s_date);
+					shippocnt = shippocnt + 1;
+				}
+			}
+			highest_date = shipdat.sort(false).get(0);
+			if(totpocnt == shippocnt)
+			{
+				invmap = Map();
+				Customfield_list = List();
+				customFieldMap1 = Map();
+				customFieldMap1.put("customfield_id","1324986000002128389");
+				customFieldMap1.put("value","Shipped");
+				customFieldMap2 = Map();
+				customFieldMap2.put("customfield_id","1324986000093775927");
+				customFieldMap2.put("value",highest_date);
+				Customfield_list.add(customFieldMap1);
+				Customfield_list.add(customFieldMap2);
+				invmap.put("custom_fields",Customfield_list);
+				info invmap;
+				//invmap.put("status","Confirmed");
+				if(soid != null && soid != "")
+				{
+					update_resp = zoho.inventory.updateRecord("SalesOrders","666840843",soid.toLong(),invmap,"zoho_inventory_oauth");
+					//info update_resp;
+				}
+			}
+		}
+	}
+}
+}

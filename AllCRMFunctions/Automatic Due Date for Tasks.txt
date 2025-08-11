@@ -1,0 +1,29 @@
+void automation.automatic_due_date(Int task_id)
+{
+//Contact Us Form CS/SA
+task_details = zoho.crm.getRecordById("Tasks",task_id);
+subjects = task_details.get("Subject");
+if(subjects == "Order cancellation" || subjects == "Where is my stuff" || subjects == "Damage or Defective" || subjects == "Retrun" || subjects == "Others" || subjects == "Return" || subjects == "Damage" || subjects == "Missing" || subjects == "Incorrect Product" || subjects == "Defective" || subjects == "Order Cancellation")
+{
+	if(!isnull(task_details.get("What_Id")))
+	{
+		lead_id = task_details.get("What_Id").get("id");
+		Owner_id = task_details.get("Owner").get("id");
+		deleteRecordMap = Map();
+		deleteRecordMap = {"module":"Tasks","id":task_id};
+		deleteResp = zoho.crm.invokeConnector("crm.delete",deleteRecordMap);
+		info deleteResp;
+		/*if(task_details.get("Owner").get("id") == 3106252000382644001)
+		{
+			update_record = zoho.crm.updateRecord("Leads",lead_id,{"Owner":Owner_id},{"trigger":{}});
+		}*/
+	}
+}
+else
+{
+	due_date = today;
+	mp = Map();
+	mp.put("Due_Date",due_date);
+	update = zoho.crm.updateRecord("Tasks",task_id,mp);
+}
+}

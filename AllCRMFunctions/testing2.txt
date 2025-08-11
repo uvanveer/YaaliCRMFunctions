@@ -1,0 +1,21 @@
+void automation.testing()
+{
+// getmsts = zoho.crm.getRecords("MSTS"); 
+// for each singrec in getmsts
+// {
+// 	if(singrec.get("Tax_Identification_Number") != null){ 
+// 		update = Map();
+// 		update.put("Tax_Identification_Numbers", singrec.get("Tax_Identification_Number"));
+// 		info update;
+// 		updateres = zoho.crm.updateRecord("MSTS", singrec.get("id"), update);
+// 		info updateres;
+// 	}
+// }
+// mapvalue = Map();
+// mapvalue.put("BC_Unique_Id","1014_73d62");
+// val = Map();
+// response = zoho.creator.updateRecords("zoho_zoho1502","quotes","Items_In_Quote_Report",3767260000048871227,mapvalue,val,"zcreator_connecction");
+// info response;
+var = randomNumber(10000,100000);
+info var;
+}

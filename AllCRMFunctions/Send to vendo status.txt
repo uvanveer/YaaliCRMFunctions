@@ -1,0 +1,5 @@
+string standalone.send_to_vendor_status(String id)
+{
+get_rec = zoho.crm.getRecordById("Purchase_Orders",id.toLong());
+return get_rec.get("sendtovendor");
+}

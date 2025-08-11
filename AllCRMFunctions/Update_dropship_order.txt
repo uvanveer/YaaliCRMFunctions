@@ -1,0 +1,97 @@
+void automation.Update_dropship_order(Int Incorrect,Int Correct,Int parent)
+{
+if(Correct != null && Incorrect != null)
+{
+	incorrect_data = zoho.crm.getRecordById("Purchase_Orders",Incorrect);
+	correct_data = zoho.crm.getRecordById("Purchase_Orders",Correct);
+	workflow = Map();
+	workflow.put("trigger",{"workflow"});
+	Incorrect_collection = incorrect_data.get("Product_Details");
+	product_list = {};
+	product_list = correct_data.get("Product_Details");
+	for each  each_collection in Incorrect_collection
+	{
+		temp_map = Map();
+		temp_map.put("product",each_collection.get("product"));
+		temp_map.put("quantity",each_collection.get("quantity"));
+		temp_map.put("Discount",each_collection.get("Discount"));
+		temp_map.put("total_after_discount",each_collection.get("total_after_discount"));
+		temp_map.put("net_total",each_collection.get("net_total"));
+		temp_map.put("book",each_collection.get("book"));
+		temp_map.put("Tax",each_collection.get("Tax"));
+		temp_map.put("list_price",each_collection.get("list_price"));
+		temp_map.put("unit_price",each_collection.get("unit_price"));
+		temp_map.put("quantity_in_stock",each_collection.get("quantity_in_stock"));
+		temp_map.put("total",each_collection.get("total"));
+		temp_map.put("product_description",each_collection.get("product_description"));
+		temp_map.put("line_tax",each_collection.get("line_tax"));
+		product_list.add(temp_map);
+	}
+	correct_data.put("Product_Details",product_list);
+	response = zoho.crm.updateRecord("Purchase_Orders",Correct,correct_data,workflow);
+	// 	deleteRecordMap = Map();
+	// 	deleteRecordMap.put("module","Purchase_Orders");
+	// 	deleteRecordMap.put("id",Incorrect);
+	// 	delete_response = zoho.crm.invokeConnector("crm.delete",deleteRecordMap);
+	Del_response = invokeurl
+	[
+		url :"https://www.zohoapis.com/crm/v2/Purchase_Orders/" + Incorrect + "?wf_trigger=true"
+		type :DELETE
+		connection:"crm_connection"
+	];
+	info Del_response;
+	// 	info delete_response;
+	//Update Sales_Order_Status
+	get_order_key = correct_data.get("Sales_Order");
+	get_order_no = get_order_key.get("name");
+	get_order_id = get_order_key.get("id");
+	get_sales_order_status = zoho.crm.getRecordById("Sales_Orders",get_order_id);
+	get_all_records = zoho.crm.searchRecords("Purchase_Orders","Sales_Order:equals:" + get_order_id);
+	record_count = get_all_records.size();
+	// info "record_count" + record_count;
+	list_count = 0;
+	send_vendor_count = 0;
+	for each  item in get_all_records
+	{
+		map_status = item.get("Status");
+		info "map_status " + map_status;
+		if(map_status.toString() == "Shipped")
+		{
+			list_count = list_count + 1;
+		}
+		if(map_status == "Sent to Dropshippers" || map_status == "Send to Dropshippers")
+		{
+			send_vendor_count = send_vendor_count + 1;
+			info "ven:" + send_vendor_count;
+		}
+	}
+	info "\nlist_count" + list_count + "==" + record_count + "==" + send_vendor_count;
+	// info get_sales_order_status;
+	workflow = Map();
+	workflow.put("trigger",{"workflow"});
+	updatemap = Map();
+	if(record_count == list_count)
+	{
+		info "enter same";
+		updatemap.put("Status","Completed");
+		update_saleorder = zoho.crm.updateRecord("Sales_Orders",get_order_id,updatemap,workflow);
+		info "update_saleorder" + update_saleorder;
+		get_sales_order_status.update("Status","Completed");
+	}
+	else if(record_count == send_vendor_count)
+	{
+		info "not same";
+		updatemap.put("Status","Awaiting Shipment");
+		update_saleorder = zoho.crm.updateRecord("Sales_Orders",get_order_id,updatemap,workflow);
+		info update_saleorder;
+	}
+	else if(list_count > 0)
+	{
+		info "not same";
+		updatemap.put("Status","Partially Shipped");
+		update_saleorder = zoho.crm.updateRecord("Sales_Orders",get_order_id,updatemap,workflow);
+		info update_saleorder;
+		get_sales_order_status.update("Status","Partially Shipped");
+	}
+}
+}
