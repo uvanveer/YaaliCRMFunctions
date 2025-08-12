@@ -1,0 +1,327 @@
+void schedule.Ezhil_test_temp()
+{
+// info zoho.crm.getRecordById("Purchase_Orders",3106252000113912019);
+// info zoho.crm.getRecordById("Sales_Orders",3106252000125686819);
+// saleorderDetail = zoho.crm.getRecordById("Sales_Orders",3106252000125686819);
+// if(saleorderDetail.get("Order_Date") == null)
+// {
+// 	orderDate = zoho.currentdate;
+// }
+// else
+// {
+// 	orderDate = saleorderDetail.get("Order_Date").toDate();
+// }
+// info orderDate;
+// coql_map = Map();
+// coql_map.put("select_query","select Subject, Source, Status, Is_Synced_To_Books from Sales_Orders where (((Is_Synced_To_Books = false) and (Source = 'Amazon Store')) and (Status != 'Canceled'))");
+// recordsList = invokeurl
+// [
+// 	url :"https://www.zohoapis.com/crm/v2/coql"
+// 	type :POST
+// 	parameters:coql_map.tostring()
+// 	connection:"crm_connection"
+// ];
+// for each  saleOrderInfo in recordsList.get("data")
+// {
+// 	crmSaleOrderId = saleOrderInfo.get("id");
+// 	amazonOrderId = saleOrderInfo.get("Subject");
+// 	requestheader = Map();
+// 	requestheader.put("Authorization","62821be1f52aaa5a1e3c658edba059cf");
+// 	requestheader.put("Content-Type","application/x-www-form-urlencoded;charset=UTF-8");
+// 	// getItemURL = "https://books.zoho.com/api/v3/salesorders?organization_id=666840843&cf_crm_salesorder_id=" + crmSaleOrderId;
+// 	getItemURL = "https://books.zoho.com/api/v3/salesorders?organization_id=666840843&cf_amazon_order_id=" + amazonOrderId;
+// 	info getItemURL;
+// 	booksSaleOrderInfo = getUrl(getItemURL,requestheader);
+// 	info booksSaleOrderInfo;
+// 	if(booksSaleOrderInfo.get("code"))
+// 	{
+// 		bookSalesOrderList = booksSaleOrderInfo.get("salesorders");
+// 		if(bookSalesOrderList.size() > 0)
+// 		{
+// 			info "Exist";
+// 			Record_Update_map = Map();
+// 			Record_Update_map.put("Is_Synced_To_Books",true);
+// 			zoho.crm.updateRecord("Sales_Orders",crmSaleOrderId,Record_Update_map);
+// 		}
+// 		else
+// 		{
+// 			response = invokeurl
+// 			[
+// 				url :"https://www.1.door-pay.com/api/zohocrm/updateOrder"
+// 				type :POST
+// 				parameters:crmSaleOrderId
+// 				detailed:true
+// 			];
+// 		}
+// 	}
+// }
+//info zoho.crm.getRecordById("Sales_Orders",3106252000152487219);
+// saleOrderInfo = zoho.crm.getRecordById("Sales_Orders",3106252000152487219);
+// info saleOrderInfo.get("Created_Time");
+// info zoho.crm.getRecordById("Contacts",3106252000198512316);
+// dueDate = zoho.currentdate;
+// info dueDate;
+// headerMap = map();
+// response = getUrl("https://www.1.door-pay.com/api/msts/getfile?quoteNumber=00PR3212", headerMap, true);
+// info response.get("info");
+// updateMap = Map();
+// updateMap.put("Available_Balance","10000");
+// zoho.crm.updateRecord("Contacts",3106252000155058661,updateMap);
+// updateMap = Map();
+// updateMap.put("Status","Created");
+// zoho.crm.updateRecord("Purchase_Orders",3106252000187681239,updateMap);
+// taskInfo = {"Owner":{"id":"3106252000090081001"},"Subject":"Test","Description":"TEST","$se_module":"Contact","What_Id":"3106252000155058661"};
+// response = zoho.crm.createRecord("Tasks",taskInfo);
+// info response;
+// info zoho.crm.getRecordById("Purchase_Orders",3106252000167741722);
+// currentDate = zoho.currentdate;
+// currentDate = '01-Jan-2021';
+// after2WorkingDay = currentDate.workday(2);
+// info "Starting Date : " + currentDate;
+// info "Ending Date : " + after2WorkingDay;
+// currentDateStr = currentDate.toString("yyyy-MM-dd");
+// after2WorkingDayStr = after2WorkingDay.toString("yyyy-MM-dd");
+// currentDate = currentDate.toString("yyyy-MM-dd'T'HH:mm:ss","IST");
+// currentDate = currentDate.toTime("yyyy-MM-dd'T'HH:mm:ss").toString("yyyy-MM-dd");
+// coqlMap = Map();
+// coqlMap.put("select_query","select Date from Holiday where Date >= '" + currentDate + "' order by Date ASC");
+// holidayList = invokeurl
+// [
+// 	url :"https://www.zohoapis.com/crm/v2/coql"
+// 	type :POST
+// 	parameters:coqlMap.tostring()
+// 	connection:"crm_connection"
+// ];
+// // info "Total Orders : " + holidayList;
+// addDateCount = 0;
+// for each  holidayObj in holidayList.get("data")
+// {
+// 	holidayDate = holidayObj.get("Date").toString("dd-MMM-yyyy");
+// 	dayDiff = days360(holidayDate,after2WorkingDay);
+// 	info holidayDate + " <-> " + after2WorkingDay + " Diff : " + dayDiff;
+// 	if(dayDiff == 1 || dayDiff == 0)
+// 	{
+// 		after2WorkingDay = after2WorkingDay.workday(1);
+// 	}
+// 	else if(dayDiff < 0)
+// 	{
+// 		break;
+// 	}
+// }
+// info after2WorkingDay;
+// info zoho.currentdate.addDay(2);
+// info zoho.crm.searchRecords("Holiday");
+// info newDate;
+// info getYear(zoho.currentdate);
+// info getMonth(zoho.currentdate);
+// info zoho.currentdate.toText("MMMM");
+////////////////////////////////////////////////////////////////////////////////////////////
+////////// ************ To Get Additional Delivery Instuctions ************ ///////////////
+////////////////////////////////////////////////////////////////////////////////////////////
+// salesOrderInfo = zoho.crm.getRecordById("Sales_Orders",3106252000171066101);
+// customerNotes = salesOrderInfo.get("Customer_Notes");
+// if(customerNotes.contains("Additional Delivery Instructions:"))
+// {
+// 	finalStr = customerNotes.getsuffix("--");
+// 	midStr = customerNotes.getsuffix("Additional Delivery Instructions:").getprefix("--");
+// 	midStr = midStr.replaceAll("\+ ","").toString();
+// 	midStrList = midStr.replaceAll("\n",",").toList(",");
+// 	correctMidStr = "";
+// 	for each  eachElement in midStrList
+// 	{
+// 		split = "";
+// 		split = eachElement.replaceAll(" ",",").toList(",");
+// 		for each  eachSplit in split
+// 		{
+// 			if(!eachSplit.contains("$"))
+// 			{
+// 				correctMidStr = correctMidStr + eachSplit + " ";
+// 			}
+// 		}
+// 		correctMidStr = correctMidStr + "\n";
+// 	}
+// 	additionalIns = "Additional Delivery Instructions:" + correctMidStr;
+// 	info additionalIns;
+// }
+////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////
+////////// ************ To Get Bigcommerce Auth Tokens ************ ///////////////
+////////////////////////////////////////////////////////////////////////////////////////////
+// storeMap = Map();
+// storeMap.put("storename","Best_Access_Doors");
+// bcStoreTokenInfo = invokeurl
+// [
+// 	url :"https://www.zohoapis.com/crm/v2/functions/get_bigcommerce_authorization/actions/execute?auth_type=oauth"
+// 	type :GET
+// 	parameters:storeMap
+// 	connection:"crm_connection"
+// ];
+// if(!isNull(bcStoreTokenInfo))
+// {
+// 	bcStoreTokenInfo = bcStoreTokenInfo.get("details").get("output");
+// 	bcStoreTokenInfo = bcStoreTokenInfo.toMap();
+// 	info bcStoreTokenInfo;
+// 	storeHash = bcStoreTokenInfo.get("Store_hash");
+// 	Get_store_client = bcStoreTokenInfo.get("client secret");
+// 	Get_store_auth = bcStoreTokenInfo.get("Auth token");
+// }
+// saleorderDetail = zoho.crm.getRecordById("Sales_Orders",3106252000172002058);
+// new_description = saleorderDetail.get("Customer_Notes");
+// if(new_description.contains("Customer notes: Additional Delivery Instructions:"))
+// {
+// 	finalStr = new_description.getsuffix("--");
+// 	midStr = new_description.getsuffix("Additional Delivery Instructions:").getprefix("--");
+// 	midStrList = midStr.tolist("\n");
+// 	collectedMidStr = "";
+// 	for each  eachStr in midStrList
+// 	{
+// 		collectedMidStr = collectedMidStr + eachStr.getprefix(" + ") + "\n";
+// 	}
+// 	new_description = "Additional Delivery Instructions:" + collectedMidStr;
+// }
+// info new_description;
+// currentTime = zoho.currenttime;
+// info zoho.currentdate.addDay(2);
+// currentTime = currentTime.toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'");
+// info currentTime;
+// Record_Update_map = Map();
+// Record_Update_map.put("EDI_Verified_Date_Time",currentTime);
+// info zoho.crm.updateRecord("Purchase_Orders",3106252000172015169,Record_Update_map);
+// bill_map = Map();
+// bill_map.put("vendor_id","1234");
+// bill_map.put("purchaseorder_ids",{"1234"});
+// info bill_map;
+// attachment_link = "https://api.docparser.com/v1/document/media/JyDwVVaEpkgwLnVHLWm_ktaXCi3fBvxCKGjvzq1aIOoz5ClngU65oCykp1Mujhu91zPd4kBj_MXzRdczjTkrlZW1qrytm46Un_Nsyv3oPPc/original";
+// info attachment_link;
+// if(attachment_link != "")
+// {
+// 	attachment_link = attachment_link.replaceAll("\\","");
+// 	attach_file = invokeurl
+// 	[
+// 		url :attachment_link
+// 	];
+// 	info attach_file;
+// 	attach_file.setParamName("attachment");
+// 	info "Attach File : " + attach_file;
+// 	//str = "testing;value".toMap();
+// 	//info str.get('testing') ;
+// }
+// info zoho.crm.searchRecords("Admin_Pace_Report","(((Select_Employee:equals:3106252000014929001)and(Report_For_The_Month:equals:February))and(Report_For_The_Year:equals:2021))");
+// info zoho.crm.searchRecords("Admin_Pace_Report","(((Select_Employee:equals:3106252000014929001)and(Report_For_The_Month:equals:February)) and(Report_For_The_Year:equals:2021))");
+// purchaseOrderList = zoho.crm.getRelatedRecords("Dropship_Orders","Sales_Orders", 3106252000176433663);
+// info purchaseOrderList;
+// mstsBuyerList = zoho.crm.getRelatedRecords("Contact1","Contacts",3106252000155058661);
+// if(mstsBuyerList.size() > 0)
+// {
+// 	for each  mstsBuyerObj in mstsBuyerList
+// 	{
+// 		info "MSTS Obj : " + mstsBuyerObj;
+// 	}
+// }
+// profileList = list();
+// profileInfo = Map();
+// profileInfo.put("email","barani@bizappln.com");
+// profileInfo.put("MSTS Status","TEST");
+// profileList.add(profileInfo);
+// dataMap = Map();
+// dataMap.put("api_key","pk_f99d92429b009385d879612f795f73963f");
+// dataMap.put("profiles",profileList);
+// headerMap = Map();
+// headerMap.put("Content-Type","application/json");
+// subscribeUrl = "https://a.klaviyo.com/api/v2/list/Vy84yw/subscribe";
+// subscribeResponse = invokeurl
+// [
+// 	url :subscribeUrl
+// 	type :POST
+// 	parameters:dataMap.tostring()
+// 	headers:headerMap
+// 	detailed:true
+// ];
+// // info "Response : " + subscribeResponse;
+// subscribeResponse = subscribeResponse.toMap();
+// info " \n Response : " + subscribeResponse;
+// info " \n Response : " + subscribeResponse.get("responseText").size();
+// if(subscribeResponse.containKey("responseText"))
+// {
+// 	info " \n" + subscribeResponse.get("responseText");
+// }
+/* Created By Ezhil on 07 July 2020 */
+/* Daily CheckList - Check Dropship Orders Are Created For Amazon Order */
+// coql_map = Map();
+// date = "2021-02-01T00:00:00-04:00";
+// coql_map.put("select_query","select Subject, Shipping_First_Name, Shipping_Last_Name, Contact_Name, Store from Sales_Orders where (((Source != 'Amazon Store') and (Order_Date >='" + date + "')) and (Contact_Name.id = '3106252000155058661')) order by Created_Time ASC");
+// orderList = invokeurl
+// [
+// 	url :"https://www.zohoapis.com/crm/v2/coql"
+// 	type :POST
+// 	parameters:coql_map.tostring()
+// 	connection:"crm_connection"
+// ];
+// info "Total Orders : " + orderList.get("data").size();
+// for each  orderObj in orderList.get("data")
+// {
+// 	purchaseOrderList = zoho.crm.getRelatedRecords("Dropship_Orders","Sales_Orders",orderObj.get("id"));
+// 	if(purchaseOrderList.size() > 1)
+// 	{
+// 		info "\n" + orderObj.get("Subject");
+// 	}
+// }
+// quotenumber = " LR0294";
+// quoteResponse = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Quotes","Quote_Number==\"" + quotenumber + "\"",1,200,"zcreator_connecction");
+// info quoteResponse;
+// vendorId = "3106252000028031047";
+// bcUniqueId = "65407_73d62";
+// searchStr = "(Source:equals:Amazon Store)";
+// searchOrderRes = zoho.crm.searchRecords("Purchase_Orders",searchStr,1,5);
+// info searchOrderRes;
+// entered_crm_recordId = 3106252000112300614;
+// salesOrderList = zoho.crm.getRelatedRecords("SalesOrders","Contacts",entered_crm_recordId);
+// info salesOrderList.size();
+// purchaseOrderList = zoho.crm.getRelatedRecords("PurchaseOrders","Contacts",entered_crm_recordId);
+// info purchaseOrderList.size();
+/*
+dataMap = Map();
+dataMap.put("Owner",{"id":"3106252000053002001"});
+activityList = zoho.crm.getRelatedRecords("Activities","Contacts",3106252000112300614);
+info activityList.size();
+for each  activityObj in activityList
+{
+	if(activityObj.get("Owner").get("id") == 3106252000053002001)
+	{
+		if(activityObj.get("Status") != "Completed")
+		{
+			info activityObj.get("Status");
+			break;
+		}
+	}
+}
+*/
+Get_Sales_Order = zoho.crm.getRecordById("Sales_Orders",3106252000256083811);
+new_description = Get_Sales_Order.get("Customer_Notes");
+if(new_description != null)
+{
+	if(new_description.contains("Additional notes:"))
+	{
+		prefixStr = new_description.getprefix("--");
+		new_description = prefixStr + new_description.getsuffix("--").getsuffix("--");
+	}
+	else if(new_description.contains("Additional Delivery Instructions:"))
+	{
+		finalStr = new_description.getsuffix("--");
+		midStr = new_description.getsuffix("Additional Delivery Instructions:").getprefix("--");
+		midStrList = midStr.tolist("\n");
+		collectedMidStr = "";
+		for each  eachStr in midStrList
+		{
+			collectedMidStr = collectedMidStr + eachStr.getprefix(" + ") + "\n";
+		}
+		new_description = "Customer notes: Additional Delivery Instructions: " + collectedMidStr + "--" + finalStr;
+	}
+	else if(new_description.contains("Customer notes:"))
+	{
+		info "Stor Front Order Customer Notes : " + new_description;
+		new_description = Get_Sales_Order.get("Customer_Notes");
+	}
+}
+info "Final Desc : " + new_description;
+}

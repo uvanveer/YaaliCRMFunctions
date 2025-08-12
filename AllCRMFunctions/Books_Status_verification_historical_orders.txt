@@ -1,0 +1,177 @@
+string standalone.Testinggg()
+{
+// This workflow is used to update the Zoho Books Vednor ID to Zoho CRM Vendor - Sankar
+// vendor_records = zoho.crm.getRecords("Vendors");
+// OrganizationID = "666840843";
+// // info vendor_records;
+// vendor_list = List();
+// for each vendor in vendor_records
+// {
+// 	if(vendor.get("Master_Vendor") == true)
+// 	{
+// 		info vendor.get("Vendor_Name");
+// 		info vendor.get("id");
+// 		get_books_vendor = zoho.books.getRecords("Contacts",OrganizationID,"cf_crm_contact_id=" + vendor.get("id"));
+// 		info get_books_vendor;
+// 		//update ZCRM vendor
+// 		if(get_books_vendor.get("code") == 0)
+// 		{
+// 			if(get_books_vendor.get("contacts").size() > 0)
+// 			{
+// 				books_vendor_id = get_books_vendor.get("contacts").get(0).get("contact_id");
+// 				update_map = Map();
+// 				update_map.put("ZBooksRecId", books_vendor_id);
+// 				update_zcrm_vendor_res = zoho.crm.updateRecord("Vendors", vendor.get("id"), update_map);
+// 				info update_zcrm_vendor_res;
+// 			}
+// 			else 
+//             {
+// 				vendor_list.add(vendor.get("Vendor_Name"));
+// 				info "No Matching contacts";
+//             }
+// 		}
+// 		else 
+//         {
+// 			info "ZBooks Error Response.";
+//         }
+// // 		break;
+// 	}
+// 	info vendor_list;
+// }
+// End Of script - Sankar
+//
+//
+//
+//
+// Get_Order_currency = "USD";
+// OrganizationID = "666840843";
+// account_id = "1324986000002423515";
+// Page_Count = 1;
+// Record_count = 10;
+// Get_all_trans = getUrl("https://books.zoho.com/api/v3/chartofaccounts/transactions?account_id=" + account_id + "&page=" + Page_Count + "&per_page=" + Record_count + "&organization_id=666840843",{"Authorization":"Zoho-authtoken 62821be1f52aaa5a1e3c658edba059cf"});
+// info Get_all_trans;
+// Get_bills = Get_all_trans.get("transactions");
+// for each  rec_bill in Get_bills
+// {
+// 	Bill_map = rec_bill.toMap();
+// 	Bill_update_flag = 0;
+// 	Bill_line_items = List();
+// 	Get_Bill_id = Bill_map.get("transaction_id");
+// 	Get_trans_type = Bill_map.get("transaction_type");
+// 	if(Get_trans_type == "vendor_credit")
+// 	{
+// 		Get_Bills_data = getUrl("https://books.zoho.com/api/v3/vendorcredits/" + Get_Bill_id + "?organization_id=666840843",{"Authorization":"Zoho-authtoken 62821be1f52aaa5a1e3c658edba059cf"});
+// 		info Get_Bills_data;
+// 		Get_bill_details = Get_Bills_data.get("vendor_credit");
+// 		Get_lineitems = Get_bill_details.get("line_items");
+// 		for each  Bill_lineitem in Get_lineitems
+// 		{
+// 			Bill_lineitem_map = Bill_lineitem.toMap();
+// 			Get_account_id = "";
+// 			Get_lineitem_id = Bill_lineitem_map.get("line_item_id");
+// 			Get_account_id = Bill_lineitem_map.get("account_id");
+// 			Get_Quantity = Bill_lineitem_map.get("quantity");
+// 			Get_rate = Bill_lineitem_map.get("rate");
+// 			if(Get_account_id == "1324986000002423515")
+// 			{
+// 				Books_Bill_Map = Map();
+// 				Books_Bill_Map.put("line_item_id",Get_lineitem_id);
+// 				Books_Bill_Map.put("quantity",Get_Quantity);
+// 				Books_Bill_Map.put("rate",Get_rate);
+// 				Books_Bill_Map.put("line_item_id",Get_lineitem_id);
+// 				Books_Bill_Map.put("account_id",1324986000025149419);
+// 				Bill_line_items.add(Books_Bill_Map);
+// 				Bill_update_flag = 1;
+// 			}
+// 			else
+// 			{
+// 				Books_Bill_Map = Map();
+// 				Books_Bill_Map.put("line_item_id",Get_lineitem_id);
+// 				Books_Bill_Map.put("quantity",Get_Quantity);
+// 				Books_Bill_Map.put("rate",Get_rate);
+// 				Books_Bill_Map.put("account_id",Get_account_id);
+// 				Bill_line_items.add(Books_Bill_Map);
+// 			}
+// 		}
+// 		// 		if(Bill_update_flag == 1)
+// 		// 		{
+// 		info Bill_line_items;
+// 		updateBill = Map();
+// 		updateBill.put("discount_account_id",1324986000025149419);
+// 		UpdatedBillInfo = zoho.books.updateRecord("vendorcredits",OrganizationID,Get_Bill_id,updateBill);
+// 		info UpdatedBillInfo;
+// 		// 			if(UpdatedBillInfo.size() > 0)
+// 		// 			{
+// 		// 				UpdatedBillInfoCode = UpdatedBillInfo.get("code");
+// 		// 				if(UpdatedBillInfoCode == "11016")
+// 		// 				{
+// 		// 					updateBill.put("reason","Updating the Chart Of accounts in Bills Products");
+// 		// 					UpdatedBillInfo = zoho.books.updateRecord("Bills",OrganizationID,Get_Bill_id,updateBill);
+// 		// 					info UpdatedBillInfo;
+// 		// 				}
+// 		// 			}
+// 		logMap = Map();
+// 		logMap.put("Name","Update Books Bills COA");
+// 		logMap.put("SalesOrder_Record_ID",Get_Bill_id.toString());
+// 		logMap.put("SalesOrder_Request",updateBill);
+// 		logMap.put("SO_Workflow_Name","Update COA in Bills Aug");
+// 		logMap.put("SalesOrder_Response",UpdatedBillInfo);
+// 		end_time = now.toLong();
+// 		logMap.put("Start_Time",end_time.toString());
+// 		logMap.put("End_Time",end_time.toString());
+// 		Create_log = zoho.crm.createRecord("Sales_Order_PO_Log",logMap);
+// 		info Create_log;
+// 	}
+// 	// 	}
+// }
+Get_list = {3106252000152225029,3106252000151842049,3106252000151790920,3106252000151786288,3106252000151785174,3106252000151784805,3106252000151783978,3106252000151783873,3106252000151783512,3106252000151771257,3106252000151731234,3106252000151719361,3106252000151710412,3106252000151640889,3106252000151636241,3106252000151614266,3106252000151593903,3106252000149873562,3106252000149817630,3106252000149678160};
+for each  rec in Get_list
+{
+	getting_purchase_orders = zoho.crm.getRelatedRecords("Dropship_Orders","Sales_Orders",rec);
+	info "getting_purchase_orders" + getting_purchase_orders;
+	Get_po_id = getting_purchase_orders.get(0).get("id");
+	Status_update_map = Map();
+	Status_update_map.put("id",Get_po_id);
+	Update_SalesOrder_Status = invokeurl
+	[
+		url :"https://www.zohoapis.com/crm/v2/functions/update_sales_status_historical/actions/execute?auth_type=oauth"
+		type :GET
+		parameters:Status_update_map
+		connection:"crm_connection"
+	];
+	info "Update_SalesOrder_Status" + Update_SalesOrder_Status;
+}
+//Getting function
+// Org_Id = "666840843";
+// count = 3;
+// Invoice_list = LIST();
+// getting_sales_orders = zoho.crm.getRecords("Sales_Orders",count,200,{"cvid":3106252000098117372});
+// if(getting_sales_orders.size() > 0)
+// {
+// 	for each  each_sales_order in getting_sales_orders
+// 	{
+// 		sales_order_status = each_sales_order.get("Status");
+// 		sales_order_id = each_sales_order.get("id");
+// 		Get_books_So = zoho.books.getRecords("salesorders",Org_Id,"cf_crm_salesorder_id=" + sales_order_id);
+// 		// 			info "Get_books_So" + Get_books_So;
+// 		Get_Books_salesorders = Get_books_So.get("salesorders");
+// 		get_SO_size = Get_Books_salesorders.size();
+// 		if(get_SO_size > 0 && Get_books_So.get("code") == 0)
+// 		{
+// 			Get_books_salesorder_status = Get_Books_salesorders.get(0).get("cf_status");
+// 			info "Get_books_salesorder_status" + Get_books_salesorder_status;
+// 			info "sales_order_status" + sales_order_status;
+// 			if(Get_books_salesorder_status != "Shipped")
+// 			{
+// 				if(Get_books_salesorder_status != sales_order_status)
+// 				{
+// 					info "Success";
+// 					Invoice_list.add(sales_order_id);
+// 				}
+// 			}
+// 		}
+// 	}
+// }
+// info "Invoice_list" + Invoice_list;
+return "";
+}

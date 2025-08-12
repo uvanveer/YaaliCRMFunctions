@@ -1,0 +1,87 @@
+string button.shippingChargeUpdate()
+{
+scheduleRecordID = 3106252000061961343;
+pageIndexRec = zoho.crm.getRecordById("Merger_Schedule",scheduleRecordID);
+lastpageIndex = ifnull(pageIndexRec.get("Last_Import_2_ID"),"");
+if(lastpageIndex != "")
+{
+	Page_count = lastpageIndex + 1;
+	info "Page_count " + Page_count;
+	Record_count = 10;
+	orgId = "666840843";
+	Get_data = invokeurl
+	[
+		url :"https://www.zohoapis.com/books/v3/invoices?page=" + Page_count + "&per_page=" + Record_count + "&organization_id=" + orgId + "&filter_by=Status.Draft&sort_column=created_time&sort_order=A"
+		type :GET
+		connection:"zohobooks_crmaccounts"
+	];
+	Invoice_list = List();
+	info "Get_data " + Get_data;
+	Get_Invoices = Get_data.get("invoices");
+	//info "Get_Invoices "+Get_Invoices;
+	//below code added by Pooja - Yaali
+	//Purpose: Updates shipping as line item in zoho books Invoice
+	for each  invoice in Get_Invoices
+	{
+		Invoice_Id = invoice.get("invoice_id");
+		info " Invoice_Id " + Invoice_Id;
+		updateMap = Map();
+		//Invoice_Id = 1324986000026414704;
+		shipItemUSInc = 1324986000026491965;
+		shipItemCADInc = 1324986000026491995;
+		lineItemList = list();
+		Get_Invoice_data = zoho.books.getRecordsByID("Invoices",orgId,Invoice_Id);
+		info "Get_Invoice_data " + Get_Invoice_data;
+		invoiceInfo = Get_Invoice_data.get("invoice");
+		//shipping charge
+		shippingCharge = ifnull(invoiceInfo.get("shipping_charge"),0);
+		//check invoice currency
+		if(invoiceInfo != null && invoiceInfo != "")
+		{
+			if(shippingCharge > 0)
+			{
+				lineItemInfo = invoiceInfo.get("line_items");
+				for each  rec_lineitem in lineItemInfo
+				{
+					lineItemMap = Map();
+					lineItemId = rec_lineitem.get("line_item_id");
+					itemId = rec_lineitem.get("item_id");
+					//bcyRate=rec_lineitem.get("bcy_rate");
+					//rate=rec_lineitem.get("rate");
+					//qty=rec_lineitem.get("quantity");
+					lineItemMap.put("line_item_id",lineItemId);
+					lineItemMap.put("item_id",itemId);
+					//lineItemMap.put("bcy_rate", bcyRate);
+					//lineItemMap.put("rate", rate);
+					//lineItemMap.put("quantity", qty);
+					lineItemList.add(lineItemMap);
+				}
+				if(invoiceInfo.get("currency_code").equalsIgnoreCase("USD"))
+				{
+					shippingChargeUSD = Map();
+					shippingChargeUSD.put("item_id",shipItemUSInc);
+					shippingChargeUSD.put("rate",shippingCharge);
+					shippingChargeUSD.put("quantity",1);
+					lineItemList.add(shippingChargeUSD);
+				}
+				else if(invoiceInfo.get("currency_code").equalsIgnoreCase("CAD"))
+				{
+					shippingChargeCAD = Map();
+					shippingChargeCAD.put("item_id",shipItemCADInc);
+					shippingChargeCAD.put("rate",shippingCharge);
+					shippingChargeCAD.put("quantity",1);
+					lineItemList.add(shippingChargeCAD);
+				}
+				updateMap.put("line_items",lineItemList);
+				updateMap.put("shipping_charge",0);
+				updateMap.put("reason","In order to update shipping charge as line item");
+				updateInvoice = zoho.books.updateRecord("invoices",orgId,Invoice_Id,updateMap);
+				info "updateInvoice " + updateInvoice;
+			}
+		}
+	}
+	updatePageIndex = zoho.crm.updateRecord("Merger_Schedule",scheduleRecordID,{"Last_Import_2_ID":Page_count});
+	info "updatePageIndex" + updatePageIndex;
+}
+return "";
+}

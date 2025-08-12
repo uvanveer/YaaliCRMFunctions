@@ -1,0 +1,4 @@
+string standalone.docparser_data_invoice_with_pdf(String crmAPIRequest)
+{
+return "";
+}

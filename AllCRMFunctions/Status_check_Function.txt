@@ -1,0 +1,57 @@
+string standalone.Status_check_Function()
+{
+// Get_all_SalesOrders = zoho.crm.getRecords("Identified_Duplicate_SO",2,100);
+// // info Get_all_SalesOrders;
+// for each CRM_Sales_Order in Get_all_SalesOrders
+// {
+// 	BC_unique_Id = CRM_Sales_Order.get("Bigcommerce_Unique_Id");
+// 		Get_Sales_Orderid = CRM_Sales_Order.get("Sales_Order_ID");
+// 		Get_id = CRM_Sales_Order.get("id");
+// // 		Get_custommodule_id = Salesordermap.get("id");
+// 		Search_Books = zoho.books.getRecords("salesorders","666840843","cf_crm_salesorder_id=" + Get_Sales_Orderid);
+// 		Books_Get_Sales_Order_Map = Search_Books.get("salesorders");
+// // 		info Books_Get_Sales_Order_Map;
+// 		Itd_Flag = 0;
+// 		if(!isempty(Books_Get_Sales_Order_Map))
+// 		{
+// 			info Get_Sales_Orderid;
+// 			info Get_id;
+// 			info "In";
+// 		}
+// }
+Get_all_SalesOrders = zoho.crm.getRecords("Identified_Duplicate_SO",7,200);
+// info Get_all_SalesOrders;
+for each  CRM_Sales_Order in Get_all_SalesOrders
+{
+	BC_unique_Id = CRM_Sales_Order.get("Bigcommerce_Unique_Id");
+	// 	info BC_unique_Id;
+	Get_Sales_Orderid = CRM_Sales_Order.get("Sales_Order_ID");
+	Get_processed_data = CRM_Sales_Order.get("Processed");
+	flag = 0;
+	Get_idenified_Salesorders = zoho.crm.searchRecords("Identified_Duplicate_SO","(Sales_Order_ID:equals:" + Get_Sales_Orderid + ")");
+	info Get_idenified_Salesorders.size();
+	if(Get_idenified_Salesorders.size() >= 2)
+	{
+		// 			info Get_idenified_Salesorders;
+		for each  log_record in Get_idenified_Salesorders
+		{
+			flag = flag + 1;
+			if(flag > 1)
+			{
+				Get_salesorderid = log_record.get("id");
+				deleteRecordMap = Map();
+				deleteRecordMap = {"module":"Identified_Duplicate_SO","id":Get_salesorderid};
+				info deleteRecordMap;
+				deleteResp = zoho.crm.invokeConnector("crm.delete",deleteRecordMap);
+				info deleteResp;
+			}
+		}
+	}
+	// 		for each  rec in Get_idenified_Salesorders
+	// 		{
+	// 			Salesordermap = rec.toMap();
+	// 			Get_custommodule_id = Salesordermap.get("id");
+	// 		}
+}
+return "";
+}

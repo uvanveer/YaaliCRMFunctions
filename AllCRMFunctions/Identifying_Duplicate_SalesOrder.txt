@@ -1,0 +1,68 @@
+string standalone.Identifying_Duplicate_SalesOrder()
+{
+Get_records = zoho.crm.getRecordById("BooksCOAUpdate","3106252000105078095");
+// info Get_records;
+Get_Page_count = Get_records.get("Page_Count");
+Page_count = Get_Page_count.toLong();
+Updated_Page_count = Page_count + 1;
+Update_map = Map();
+Update_map.put("Page_Count",Updated_Page_count.toString());
+Update_record = zoho.crm.updateRecord("BooksCOAUpdate",3106252000105078095,Update_map);
+// info Update_record;
+Get_Salesorders = zoho.crm.getRecords("Sales_Orders",Page_count,200);
+// info Get_Salesorders;
+for each  rec_so in Get_Salesorders
+{
+	so_map = rec_so.toMap();
+	Get_Bigcommerce_UniqueId = so_map.get("BigCommerce_Unique_ID");
+	if(!isNull(Get_Bigcommerce_UniqueId))
+	{
+		// 	info Get_Bigcommerce_UniqueId;
+		Search_records = zoho.crm.searchRecords("Sales_Orders","(BigCommerce_Unique_ID:equals:" + Get_Bigcommerce_UniqueId + ")");
+		// 	info Search_records;
+		Get_size = Search_records.size();
+		if(Get_size > 1)
+		{
+			Updated_flag = 0;
+			for each  sales in Search_records
+			{
+				Sales_map = sales.toMap();
+				Get_sales_orderid = Sales_map.get("id");
+				Get_sales_orderstatus = Sales_map.get("Status");
+				// 				info Get_sales_orderid;
+				// 				info Get_sales_orderstatus;
+				create_map = Map();
+				if(Get_sales_orderstatus == "Awaiting Fulfillment" || Get_sales_orderstatus == "Incomplete" || Get_sales_orderstatus == "Cancelled")
+				{
+					Flag = 0;
+					Get_related_records = zoho.crm.getRelatedRecords("Dropship_Orders","Sales_Orders",Get_sales_orderid);
+					// 					/info "related_records" + Get_related_records;
+					for each  Dropship_order in Get_related_records
+					{
+						Dropship_order_map = Dropship_order.toMap();
+						Get_DO_status = Dropship_order_map.get("Status");
+						info Get_DO_status;
+						if(Get_DO_status != "created" || Get_DO_status != "Cancelled")
+						{
+							Flag = 1;
+						}
+					}
+				}
+				create_map = Map();
+				create_map.put("Sales_Order_ID",Get_sales_orderid);
+				create_map.put("Status",Get_sales_orderstatus);
+				create_map.put("Bigcommerce_Unique_Id",Get_Bigcommerce_UniqueId);
+				create_map.put("Name","Duplicate Sales Orders");
+				if(Flag == 0 && Updated_flag == 0)
+				{
+					create_map.put("Duplicate",true);
+					Updated_flag = 1;
+				}
+				Create_record = zoho.crm.createRecord("Identified_Duplicate_SO",create_map);
+				info Create_record;
+			}
+		}
+	}
+}
+return "";
+}

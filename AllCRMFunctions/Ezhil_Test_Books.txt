@@ -1,0 +1,78 @@
+string standalone.Ezhil_Test_Books()
+{
+response = Map();
+info zoho.crm.getRecordById("Quotes",3106252000248003045);
+// response.put("code", 200);
+// info zoho.crm.getRecordById("Sales_Orders",3106252000027992293);
+// info zoho.books.getRecordsByID("salesorders","666840843",1324986000029508608);
+// info zoho.crm.getRecordById("Purchase_Orders",3106252000178563038);
+// deskOrgId = 665802770;
+// searchContact = Map();
+// searchContact.put("email","prabhu@bizappln.com");
+// contactRes = zoho.desk.searchRecords(deskOrgId,"contacts",searchContact);
+// response.put("code",200);
+// response.put("message","success");
+// response.put("data",contactRes);
+/*
+booksOrgId = 666840843;
+billItemId = "1324986000019297646";
+billId = "1324986000026639047";
+// booksProductInfo = zoho.books.getRecordsByID("Items",booksOrgId,billItemId);
+booksProductInfo = zoho.books.getRecordsByID("Bills",booksOrgId,billId);
+// info booksProductInfo;
+recordsList = zoho.crm.searchRecords("Products","((Source:equals:Amazon Store) and  (Is_Processed:equals:false))",1,50);
+for each  productRecord in recordsList
+{
+	crmProductId = productRecord.get("id");
+	info crmProductId + "\n";
+}
+*/
+// searchStr = "(Source:equals:BigCommerce)";
+// searchOrderRes = zoho.crm.searchRecords("Sales_Orders",searchStr);
+// info searchOrderRes.size();
+/*
+deskOrgId = 665802770;
+ticketId = 272635000014345001;
+info zoho.desk.getRecordById(deskOrgId,"tickets",ticketId);
+*/
+// info zoho.crm.getRecordById("Sales_Orders",3106252000027992293);
+/* Updated By Ezhil on 17 September 2020 */
+/* One Time */
+/* Check Amazon Order Total With Books Order Total - Delete Books Records and update if total mismatched */
+// booksOrgId = 666840843;
+// recordCount = 200;
+// pageCount = 2;
+// coql_map = Map();
+// coql_map.put("select_query","select Status, Grand_Total, Source, Is_Synced_To_Books from Sales_Orders where ((Is_Synced_To_Books = false) and (Source = 'Amazon Store')) LIMIT " + recordCount + " OFFSET " + pageCount);
+// recordsList = invokeurl
+// [
+// 	url :"https://www.zohoapis.com/crm/v2/coql"
+// 	type :POST
+// 	parameters:coql_map.tostring()
+// 	connection:"crm_connection"
+// ];
+// for each  saleOrderInfo in recordsList.get("data")
+// {
+// 	crmOrderTotal = saleOrderInfo.get("Grand_Total").round(2);
+// 	crmSaleOrderId = saleOrderInfo.get("id");
+// 	// Serach Order in books
+// 	requestheader = Map();
+// 	requestheader.put("Authorization","62821be1f52aaa5a1e3c658edba059cf");
+// 	requestheader.put("Content-Type","application/x-www-form-urlencoded;charset=UTF-8");
+// 	getItemURL = "https://books.zoho.com/api/v3/salesorders?organization_id=" + booksOrgId + "&cf_crm_salesorder_id=" + crmSaleOrderId;
+// 	booksSaleOrderInfo = getUrl(getItemURL,requestheader);
+// 	if(booksSaleOrderInfo.get("message") == "success")
+// 	{
+// 		bookSalesOrderList = booksSaleOrderInfo.get("salesorders");
+// 		if(bookSalesOrderList.size() > 1)
+// 		{
+// 			info "Duplicate Sale Order : " + crmSaleOrderId;
+// 		}
+// 	}
+// }
+// prodList = list();
+// prodList.add("Test1");
+// prodList.add("Test2");
+// info prodList.toString();
+return response;
+}

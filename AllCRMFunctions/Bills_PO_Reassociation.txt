@@ -1,0 +1,206 @@
+string standalone.Bills_PO_Reassociation()
+{
+/*organizationID = "666840843";
+zbAuthToken = "Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2";
+//code modified by Pooja L
+//Last modified date 03/July/2020
+//******
+oldVendorIdList = {1324986000018787313,1324986000017773075,1324986000017773109,1324986000017773143,1324986000006764401,1324986000018794068,1324986000017773160,1324986000017687033};
+newVendorIdMap = Map();
+//Castle
+//newVendorIdMap.put(1324986000017773041,1324986000028298396);
+//Cendrex
+newVendorIdMap.put(1324986000018787313,1324986000027709657);
+//Elmdor USA
+newVendorIdMap.put(1324986000017773075,1324986000027709579);
+//FF Systems Canada
+newVendorIdMap.put(1324986000018787330,1324986000028298377);
+//FF Systems Inc USA
+newVendorIdMap.put(1324986000017773109,1324986000027709605);
+//JL Industries
+newVendorIdMap.put(1324986000017773143,1324986000027709631);
+//Karp Associates
+newVendorIdMap.put(1324986000017773092,1324986000027709592);
+//MIFAB Canada
+newVendorIdMap.put(1324986000006764401,1324986000028999681);
+//MIFAB USA
+newVendorIdMap.put(1324986000017773126,1324986000027709618);
+//Milcor
+newVendorIdMap.put(1324986000018794068,1324986000028298487);
+//StrikeFirst
+newVendorIdMap.put(1324986000006764248,1324986000028298502);
+//Bilco
+newVendorIdMap.put(1324986000018794175,1324986000028999627);
+//Acudor USA
+newVendorIdMap.put(1324986000017773160,1324986000027709644);
+//Acudor Canada
+newVendorIdMap.put(1324986000017687033,1324986000027709553);
+//******
+//fetch vendor po
+Get_data = getUrl("https://books.zoho.com/api/v3/purchaseorders?page=1&per_page=100&vendor_id=" + oldVendorIdList.get(0) + "&organization_id=" + organizationID + "&sort_order=A&sort_column=created_time",{"Authorization":zbAuthToken});
+updateMergerSchedule = zoho.crm.updateRecord("Merger_Schedule",3106252000061961343,{"OLD_Vendor_ID":oldVendorIdList.get(0)},{"trigger":{}});
+if(Get_data.get("page_context") != null && Get_data.get("page_context") != "")
+{
+	if(Get_data.get("page_context").get("has_more_page") || Get_data.get("page_context").get("has_more_page") == "true")
+	{
+		info "(More records are there. Rerun for next batch PO)";
+		updateMergerSchedule = zoho.crm.updateRecord("Merger_Schedule",3106252000061961343,{"OLD_Vendor_ID":oldVendorIdList.get(0).toLong(),"More_records":true},{"trigger":{}});
+		info "updateMergerSchedule response" + updateMergerSchedule;
+	}
+}
+Vendor_map = Map();
+Vendor_map.put("vendor_id",newVendorIdMap.get(oldVendorIdList.get(0)));
+info "Vendor ID " + oldVendorIdList.get(0);
+Get_Purchase_orders = Get_data.get("purchaseorders");
+for each  rec_po in Get_Purchase_orders
+{
+	Purchase_Order_map = rec_po.tomap();
+	Purchase_Order_Id = Purchase_Order_map.get("purchaseorder_id");
+	info "***************************PO ID" + Purchase_Order_Id + "*********************************";
+	Get_purchase_order = zoho.books.getRecordsByID("purchaseorders",organizationID,Purchase_Order_Id);
+	podetails = Get_purchase_order.get("purchaseorder");
+	updatePo = false;
+	if(podetails.get("bills").size() > 0)
+	{
+		//check PO has Bill
+		billDetails = podetails.get("bills");
+		if(billDetails != null && billDetails != "")
+		{
+			//iterate all bills
+			for each  bill in billDetails
+			{
+				billID = bill.get("bill_id");
+				//fetch bill details
+				Get_Bills_data = zoho.books.getRecordsByID("bills",organizationID,billID);
+				//check this bill has any payment
+				if(Get_Bills_data.get("bill").get("payments").size() == 0)
+				{
+					Update_Bill = zoho.books.updateRecord("bills",organizationID,billID,Vendor_map);
+					info "bill update " + Update_Bill;
+					updatePo = true;
+				}
+			}
+		}
+	}
+	else
+	{
+		updatePo = true;
+	}
+	//testing 
+	//updatePo=true;
+	if(updatePo)
+	{
+		Update_Purchase_order = zoho.books.updateRecord("purchaseorders",organizationID,Purchase_Order_Id,Vendor_map);
+		//update vendor for PO
+		info "###po update " + Update_Purchase_order;
+	}
+}
+getDirectBill = getUrl("https://books.zoho.com/api/v3/bills?page=1&per_page=100&vendor_id=" + oldVendorIdList.get(0) + "&organization_id=" + organizationID + "&sort_order=A&sort_column=created_time",{"Authorization":zbAuthToken});
+getDirectBills = getDirectBill.get("bills");
+for each  directBill in getDirectBills
+{
+	directBillID = directBill.get("bill_id");
+	info "***************************BILL ID" + directBillID + "*********************************";
+	Get_bill = zoho.books.getRecordsByID("bills",organizationID,directBillID);
+	if(Get_bill.get("bill").get("payments").size() == 0)
+	{
+		info "check vendor map " + Vendor_map;
+		Update_Bill2 = zoho.books.updateRecord("bills",organizationID,directBillID,Vendor_map);
+		info "bill update2 " + Update_Bill2;
+	}
+} */
+organizationID = "666840843";
+zbAuthToken = "Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2";
+//code modified by Pooja L
+//Last modified date 06/July/2020
+//******
+//oldVendorIdList = {1324986000017773160};
+//oldVendorIdList = {1324986000006764401};
+//oldVendorIdList = {1324986000017773092};
+oldVendorIdList = {1324986000018226636};
+newVendorIdMap = Map();
+//Acudor USA
+//newVendorIdMap.put(1324986000017773160,1324986000027709644);
+//newVendorIdMap.put(1324986000006764401,1324986000028999681);
+//newVendorIdMap.put(1324986000017773092,1324986000027709592);
+newVendorIdMap.put(1324986000018226636,1324986000019632599);
+//fetch vendor po
+Get_data = getUrl("https://www.zohoapis.com/books/v3/purchaseorders?page=1&per_page=100&vendor_id=" + oldVendorIdList.get(0) + "&organization_id=" + organizationID + "&sort_order=A&sort_column=created_time",{"Authorization":zbAuthToken});
+//updateMergerSchedule = zoho.crm.updateRecord("Merger_Schedule",3106252000061961343,{"OLD_Vendor_ID":oldVendorIdList.get(0)},{"trigger":{}});
+Vendor_map = Map();
+Vendor_map.put("vendor_id",newVendorIdMap.get(oldVendorIdList.get(0)));
+oldVendorNameMap = Map();
+updateList = list();
+info "Vendor ID " + oldVendorIdList.get(0);
+vendorName = "default";
+Get_Purchase_orders = Get_data.get("purchaseorders");
+for each  rec_po in Get_Purchase_orders
+{
+	Purchase_Order_map = rec_po.tomap();
+	Purchase_Order_Id = Purchase_Order_map.get("purchaseorder_id");
+	info "***************************PO ID" + Purchase_Order_Id + "*********************************";
+	Get_purchase_order = zoho.books.getRecordsByID("purchaseorders",organizationID,Purchase_Order_Id);
+	podetails = Get_purchase_order.get("purchaseorder");
+	vendorID = podetails.get("vendor_id");
+	updatePo = false;
+	if(podetails.get("bills").size() > 0)
+	{
+		//check PO has Bill
+		billDetails = podetails.get("bills");
+		if(billDetails != null && billDetails != "")
+		{
+			//iterate all bills
+			for each  bill in billDetails
+			{
+				billID = bill.get("bill_id");
+				//fetch bill details
+				Get_Bills_data = zoho.books.getRecordsByID("bills",organizationID,billID);
+				//check this bill has any payment
+				if(Get_Bills_data.get("bill").get("payments").size() == 0)
+				{
+					oldVendorNameMap.put("customfield_id",1324986000032811456);
+					oldVendorNameMap.put("value",vendorName);
+					updateList.add(oldVendorNameMap);
+					Vendor_map.put("custom_fields",updateList);
+					Update_Bill = zoho.books.updateRecord("bills",organizationID,billID,Vendor_map);
+					info "bill update " + Update_Bill;
+					updatePo = true;
+				}
+			}
+		}
+	}
+	else
+	{
+		updatePo = true;
+	}
+	if(updatePo)
+	{
+		oldVendorNameMap.put("customfield_id",1324986000032811101);
+		oldVendorNameMap.put("value",vendorName);
+		updateList.add(oldVendorNameMap);
+		Vendor_map.put("custom_fields",updateList);
+		Update_Purchase_order = zoho.books.updateRecord("purchaseorders",organizationID,Purchase_Order_Id,Vendor_map);
+		//update vendor for PO
+		info "###po update " + Update_Purchase_order;
+	}
+}
+getDirectBill = getUrl("https://www.zohoapis.com/books/v3/bills?page=3&per_page=100&vendor_id=" + oldVendorIdList.get(0) + "&organization_id=" + organizationID + "&sort_order=A&sort_column=created_time",{"Authorization":zbAuthToken});
+getDirectBills = getDirectBill.get("bills");
+for each  directBill in getDirectBills
+{
+	directBillID = directBill.get("bill_id");
+	info "***************************BILL ID" + directBillID + "*********************************";
+	Get_bill = zoho.books.getRecordsByID("bills",organizationID,directBillID);
+	if(Get_bill.get("bill").get("payments").size() == 0)
+	{
+		oldVendorNameMap.put("customfield_id",1324986000032811456);
+		oldVendorNameMap.put("value",vendorName);
+		updateList.add(oldVendorNameMap);
+		Vendor_map.put("custom_fields",updateList);
+		info "check vendor map " + Vendor_map;
+		Update_Bill2 = zoho.books.updateRecord("bills",organizationID,directBillID,Vendor_map);
+		info "bill update2 " + Update_Bill2;
+	}
+}
+return getDirectBill;
+}

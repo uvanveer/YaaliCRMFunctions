@@ -1,0 +1,175 @@
+string standalone.New_Bill_Creation()
+{
+//Create Bill
+organizationID = "666840843";
+// Bill_Details = Zoho.books.getRecords("Bills", organizationID,1,1);
+// info Bill_Details;
+Record_count = 20;
+Get_Pagination_details = zoho.crm.getRecordById("Tag_syncing_schedule","3106252000106962049");
+Page_Count = Get_Pagination_details.get("Function_Execution");
+Page_Count = Page_Count.toLong();
+Updated_Page_Count = Page_Count + 1;
+Update_log = Map();
+Update_log.put("Function_Execution",Updated_Page_Count.toString());
+Get_Updated_Page = zoho.crm.updateRecord("Tag_syncing_schedule","3106252000106962049",Update_log);
+info Get_Updated_Page;
+// Page_Count = 1;
+Get_data = getUrl("https://www.zohoapis.com/books/v3/bills?page=" + Page_Count + "&per_page=" + Record_count + "&sort_column=date&sort_order=A&date_start=2020-05-02&date_end=2020-07-01&organization_id=666840843",{"Authorization":"Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2"});
+info Get_data;
+Get_Bills = Get_data.get("bills");
+for each  rec in Get_Bills
+{
+	Bill_map = rec.toMap();
+	Bill_Id = Bill_map.get("bill_id");
+	info Bill_Id;
+	if(!isNull(Bill_Id))
+	{
+		booksBillInfo = zoho.books.getRecordsByID("Bills",organizationID,Bill_Id);
+		// 			info booksBillInfo;
+		Get_Purchase_orders = booksBillInfo.get("bill").get("purchaseorders");
+		Bill_number = booksBillInfo.get("bill").get("bill_number");
+		Bill_Reference_Number = booksBillInfo.get("bill").get("reference_number");
+		if(!isempty(Get_Purchase_orders))
+		{
+			PO_MAP = Get_Purchase_orders.toMAP();
+			Purchase_OrderId = PO_MAP.getJSON("purchaseorder_id");
+			// 		for each  po_order in Get_Purchase_orders
+			// 		{
+			// 			po_map = po_order.toMAP();
+			// 			Purchase_OrderId = po_map.getJSON("purchaseorder_id");
+			// 		}
+			// 		Purchase_Ordermap = Get_Purchase_orders.toMAP();
+			// 		Purchase_OrderId = Purchase_Ordermap.getJSON("purchaseorder_id");
+			// 		Purchase_OrderId = "1324986000028771506";
+			info "po" + Purchase_OrderId;
+			Purchase_orderdetails = zoho.books.getRecordsByID("purchaseorders",organizationID,Purchase_OrderId);
+			Get_purchase_lineitems = Purchase_orderdetails.get("purchaseorder").get("line_items");
+			Vendor_ID = Purchase_orderdetails.get("purchaseorder").get("vendor_id");
+			Purchase_ordernumber = Purchase_orderdetails.get("purchaseorder").get("purchaseorder_number");
+			Bill_line_items = LIST();
+			for each  po_lineitem in Get_purchase_lineitems
+			{
+				Line_item_map = po_lineitem.toMAP();
+				Bill_line_item = Map();
+				Bill_line_item.put("item_id",Line_item_map.get("item_id"));
+				Bill_line_item.put("quantity",Line_item_map.get("quantity"));
+				Bill_line_item.put("rate",Line_item_map.get("rate"));
+				Bill_line_items.add(Bill_line_item);
+			}
+			info Purchase_orderdetails;
+			Custom_field_list = LIST();
+			Custom_field_map = Map();
+			Custom_field_map.put("label","Old Bill Number");
+			Custom_field_map.put("value",Bill_number);
+			Custom_field_map1 = Map();
+			Custom_field_map1.put("label","Bill ID");
+			Custom_field_map1.put("value",Bill_Id);
+			Custom_field_list.add(Custom_field_map);
+			Custom_field_list.add(Custom_field_map1);
+			Create_bill = Map();
+			Create_bill.put("vendor_id",Vendor_ID);
+			Create_bill.put("bill_number","New-" + Bill_Id);
+			Create_bill.put("line_items",Bill_line_items);
+			Create_bill.put("custom_fields",Custom_field_list);
+			Create_Bill_res = zoho.books.createRecord("Bills",organizationID,Create_bill);
+			info Create_Bill_res;
+			logMap = Map();
+			logMap.put("Name","Regenerate Latest New Bills");
+			logMap.put("SalesOrder_Record_ID",Bill_Id.toString());
+			logMap.put("SalesOrder_Request",Create_bill);
+			logMap.put("SO_Workflow_Name","New Bill creation1");
+			logMap.put("SalesOrder_Response",Create_Bill_res);
+			end_time = now.toLong();
+			logMap.put("Start_Time",end_time.toString());
+			logMap.put("End_Time",end_time.toString());
+			Create_log = zoho.crm.createRecord("Sales_Order_PO_Log",logMap);
+		}
+		else
+		{
+			if(!isNull(Bill_Reference_Number))
+			{
+				Get_Books_POdata = getUrl("https://www.zohoapis.com/books/v3/purchaseorders?purchaseorder_number=" + Bill_Reference_Number + "&organization_id=666840843",{"Authorization":"Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2"});
+				Books_search_PurchaseOrder = Get_Books_POdata.get("purchaseorders");
+				info "Books_search_PurchaseOrder" + Books_search_PurchaseOrder.size();
+				if(Books_search_PurchaseOrder.size() == 1)
+				{
+					Books_search_map = Books_search_PurchaseOrder.toMap();
+					latest_Purchaseorder_Id = Books_search_map.get("purchaseorder_id");
+					Purchase_orderdetails = zoho.books.getRecordsByID("purchaseorders",organizationID,latest_Purchaseorder_Id);
+					Get_purchase_lineitems = Purchase_orderdetails.get("purchaseorder").get("line_items");
+					Vendor_ID = Purchase_orderdetails.get("purchaseorder").get("vendor_id");
+					Purchase_ordernumber = Purchase_orderdetails.get("purchaseorder").get("purchaseorder_number");
+					Bill_line_items = LIST();
+					for each  po_lineitem in Get_purchase_lineitems
+					{
+						Line_item_map = po_lineitem.toMAP();
+						Bill_line_item = Map();
+						Bill_line_item.put("item_id",Line_item_map.get("item_id"));
+						Bill_line_item.put("quantity",Line_item_map.get("quantity"));
+						Bill_line_item.put("rate",Line_item_map.get("rate"));
+						Bill_line_items.add(Bill_line_item);
+					}
+					info Purchase_orderdetails;
+					Custom_field_list = LIST();
+					Custom_field_map = Map();
+					Custom_field_map.put("label","Old Bill Number");
+					Custom_field_map.put("value",Bill_number);
+					Custom_field_map1 = Map();
+					Custom_field_map1.put("label","Bill ID");
+					Custom_field_map1.put("value",Bill_Id);
+					Custom_field_list.add(Custom_field_map);
+					Custom_field_list.add(Custom_field_map1);
+					Create_bill = Map();
+					Create_bill.put("vendor_id",Vendor_ID);
+					Create_bill.put("bill_number","New-" + Bill_Id);
+					Create_bill.put("line_items",Bill_line_items);
+					Create_bill.put("custom_fields",Custom_field_list);
+					Create_Bill_res = zoho.books.createRecord("Bills",organizationID,Create_bill);
+					info Create_Bill_res;
+					logMap = Map();
+					logMap.put("Name","Regenerate Latest New Bills");
+					logMap.put("SalesOrder_Record_ID",Bill_Id.toString());
+					logMap.put("SalesOrder_Request",Create_bill);
+					logMap.put("SO_Workflow_Name","New Bill creation1");
+					logMap.put("SalesOrder_Response",Create_Bill_res);
+					end_time = now.toLong();
+					logMap.put("Start_Time",end_time.toString());
+					logMap.put("End_Time",end_time.toString());
+					Create_log = zoho.crm.createRecord("Sales_Order_PO_Log",logMap);
+				}
+				else if(Books_search_PurchaseOrder.size() == 0)
+				{
+					Createmap_custom = Map();
+					Createmap_custom.put("Bill_Invoice_Record_ID",Bill_Id);
+					Createmap_custom.put("Name","Bills latest with PO Reference Number and No PO");
+					create_custom = zoho.crm.createRecord("IdentifiedInvoices_Bills",Createmap_custom);
+					info create_custom;
+				}
+				else
+				{
+					Createmap_custom = Map();
+					Createmap_custom.put("Bill_Invoice_Record_ID",Bill_Id);
+					Createmap_custom.put("Name","Bills latest with PO Reference Number and more than one PO");
+					create_custom = zoho.crm.createRecord("IdentifiedInvoices_Bills",Createmap_custom);
+					info create_custom;
+				}
+			}
+			else
+			{
+				Createmap_custom = Map();
+				Createmap_custom.put("Bill_Invoice_Record_ID",Bill_Id);
+				Createmap_custom.put("Name","Bills latest without PO Reference Number and PO details");
+				create_custom = zoho.crm.createRecord("IdentifiedInvoices_Bills",Createmap_custom);
+				info create_custom;
+			}
+		}
+	}
+}
+// Purchase_Order_list = LIST();
+// Purchase_Order_list.add("1324986000028771506");
+// Update_Map = Map();
+// Update_Map.put("purchaseorder_ids",Purchase_Order_list);
+// Update_Bill = zoho.books.updateRecord("bills",organizationID,"1324986000031737999",Update_Map);
+// info Update_Bill;
+return "";
+}

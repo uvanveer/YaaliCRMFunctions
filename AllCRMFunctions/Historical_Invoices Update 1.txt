@@ -1,0 +1,190 @@
+string standalone.Historical_Invoices_Update11()
+{
+Page_Count = 1;
+Record_count = 50;
+Get_Pagination_details = zoho.crm.getRecordById("Tag_syncing_schedule","3106252000106622035");
+Page_Count = Get_Pagination_details.get("Function_Execution");
+Page_Count = Page_Count.toLong();
+Updated_Page_Count = Page_Count + 1;
+Update_log = Map();
+Update_log.put("Function_Execution",Updated_Page_Count.toString());
+Get_Updated_Page = zoho.crm.updateRecord("Tag_syncing_schedule","3106252000106622035",Update_log);
+info Get_Updated_Page;
+// info Get_data;
+Get_data = zoho.crm.searchRecords("IdentifiedInvoices_Bills","(COA_Update:equals:true)",Page_Count,25);
+for each  rec_Inv in Get_data
+{
+	Flag = 0;
+	Line_item_flag = 0;
+	SO_flag = 0;
+	Inv_Map = rec_Inv.toMap();
+	Get_Inv_Id = Inv_Map.get("Bill_Invoice_Record_ID");
+	Get_custom_recid = Inv_Map.get("id");
+	Get_Invoices = zoho.books.getRecordsByID("invoices","666840843",Get_Inv_Id);
+	info "Inv_Id" + Get_Inv_Id;
+	if(Get_Invoices.containKey("invoice"))
+	{
+		Invoice_Details = Get_Invoices.get("invoice");
+		Get_Invoice_Lineitems = Invoice_Details.get("line_items");
+		Invoice_lineitems_size = Get_Invoice_Lineitems.size();
+		Get_Sales_Orders = Invoice_Details.get("salesorders");
+		Invoice_Line_items = LIST();
+		// 	info Get_Sales_Orders;
+		if(Get_Sales_Orders.size() > 0)
+		{
+			Salesorder_Map = Get_Sales_Orders.toMap();
+			Get_salesorder_Id = Salesorder_Map.get("salesorder_id");
+			Get_Sales_Orderdetails = zoho.books.getRecordsByID("salesorders","666840843",Get_salesorder_Id);
+			info Get_Sales_Orderdetails;
+			Get_Sales_Orders_Lineitems = Get_Sales_Orderdetails.get("salesorder").get("line_items");
+			Salesorder_lineitem_size = Get_Sales_Orders_Lineitems.size();
+			if(Invoice_lineitems_size == Salesorder_lineitem_size)
+			{
+				for each  rec_so in Get_Sales_Orders_Lineitems
+				{
+					rec_so_map = rec_so.toMAP();
+					Get_item_rate = rec_so_map.get("rate");
+					Get_item_Quantity = rec_so_map.get("quantity");
+					Get_line_item_sku = rec_so_map.get("sku");
+					SO_ItemId = rec_so_map.get("item_id");
+					SO_line_itemid = rec_so_map.get("line_item_id");
+					for each  Inv_rec in Get_Invoice_Lineitems
+					{
+						Inv_rec_map = Inv_rec.toMAP();
+						info "in_mp" + Inv_rec_map;
+						Get_Inv_itemrate = Inv_rec_map.get("rate");
+						Get_Inv_itemQuantity = Inv_rec_map.get("quantity");
+						Get_Inv_sku = Inv_rec_map.get("sku");
+						Get_Inv_accountId = Inv_rec_map.get("account_id");
+						Get_Inv_itemid = Inv_rec_map.get("item_id");
+						Get_Inv_lineitem_id = Inv_rec_map.get("line_item_id");
+						Get_Inv_solineitem_id = Inv_rec_map.get("salesorder_item_id");
+						if(SO_line_itemid == Get_Inv_solineitem_id)
+						{
+							Get_Booksproduct_data = zoho.crm.searchRecords("Books_Items","(Books_Item_Id:equals:" + Get_Inv_itemid + ")");
+							// 			info "temp" + Get_Booksproduct_data;
+							sales_account_id = "";
+							if(!isempty(Get_Booksproduct_data))
+							{
+								Books_product_map = Get_Booksproduct_data.tomap();
+								if(Books_product_map.containKey("Books_Account_Name"))
+								{
+									Get_product_salesaccount = Books_product_map.get("Books_Account_Name");
+									if(Get_product_salesaccount == "SALES - USD")
+									{
+										sales_account_id = "1324986000024553072";
+									}
+									else if(Get_product_salesaccount == "SALES - CAD")
+									{
+										sales_account_id = "1324986000024553062";
+									}
+									else if(Get_product_salesaccount == "Sales - USD")
+									{
+										sales_account_id = "1324986000000063207";
+									}
+									else if(Get_product_salesaccount == "Sales - CAD")
+									{
+										sales_account_id = "1324986000000000388";
+									}
+									else if(Get_product_salesaccount == "Shipping Income - USD")
+									{
+										sales_account_id = "1324986000002462003";
+									}
+									else if(Get_product_salesaccount == "Shipping Income - CAD")
+									{
+										sales_account_id = "1324986000000014001";
+									}
+								}
+							}
+							if(sales_account_id == "")
+							{
+								info "Item_id " + Get_Inv_itemid;
+								info "item_sku:" + Get_Inv_sku;
+								if(!isNull(Get_Inv_itemid))
+								{
+									Books_product = zoho.books.getRecordsByID("Items","666840843",Get_Inv_itemid);
+									// 					info Books_product;
+									Get_inv_item = Books_product.get("item");
+									if(!isempty(Get_inv_item))
+									{
+										if(Get_inv_item.containKey("account_id"))
+										{
+											sales_account_id = Books_product.get("item").get("account_id");
+										}
+									}
+								}
+							}
+							Books_item_map = Map();
+							Books_item_map.put("item_id",Get_Inv_itemid);
+							Books_item_map.put("line_item_id",Get_Inv_lineitem_id);
+							if(sales_account_id != "")
+							{
+								Books_item_map.put("account_id",sales_account_id);
+							}
+							Books_item_map.put("quantity",Get_item_Quantity);
+							Books_item_map.put("rate",Get_item_rate);
+							Invoice_Line_items.add(Books_item_map);
+						}
+					}
+				}
+				if(Invoice_Line_items.size() > 0)
+				{
+					Update_COA_invoice = Map();
+					Update_COA_invoice.put("line_items",Invoice_Line_items);
+					Update_invoice = zoho.books.updateRecord("Invoices","666840843",Get_Inv_Id,Update_COA_invoice);
+					info Update_invoice;
+					if(Update_invoice.size() > 0)
+					{
+						Get_updated_code = Update_invoice.get("code");
+						if(Get_updated_code == "110701")
+						{
+							Update_COA_invoice.put("reason","Updating the Chart Of accounts in Products Invoice");
+							Update_invoice = zoho.books.updateRecord("Invoices","666840843",Get_Inv_Id,Update_COA_invoice);
+							info Update_invoice;
+						}
+					}
+					logMap = Map();
+					logMap.put("Name","Books COA Latest Update Invoices");
+					logMap.put("SalesOrder_Record_ID",Get_Inv_Id.toString());
+					logMap.put("SalesOrder_Request",Update_COA_invoice);
+					logMap.put("SO_Workflow_Name","Update COA in Invoices");
+					logMap.put("SalesOrder_Response",Update_invoice);
+					end_time = now.toLong();
+					logMap.put("Start_Time",end_time.toString());
+					logMap.put("End_Time",end_time.toString());
+					Create_log = zoho.crm.createRecord("Sales_Order_PO_Log",logMap);
+				}
+				else
+				{
+					Update_custom = Map();
+					Update_custom.put("New_Create",true);
+					Update_custom_recmap = zoho.crm.updateRecord("IdentifiedInvoices_Bills",Get_custom_recid,Update_custom);
+					info Update_custom;
+				}
+			}
+			else
+			{
+				Update_custom = Map();
+				Update_custom.put("New_Create",true);
+				Update_custom_recmap = zoho.crm.updateRecord("IdentifiedInvoices_Bills",Get_custom_recid,Update_custom);
+				info Update_custom;
+			}
+		}
+		else
+		{
+			Update_custom = Map();
+			Update_custom.put("New_Create",true);
+			Update_custom_recmap = zoho.crm.updateRecord("IdentifiedInvoices_Bills",Get_custom_recid,Update_custom);
+			info Update_custom;
+		}
+	}
+	else
+	{
+		Update_custom = Map();
+		Update_custom.put("New_Create",true);
+		Update_custom_recmap = zoho.crm.updateRecord("IdentifiedInvoices_Bills",Get_custom_recid,Update_custom);
+		info Update_custom;
+	}
+}
+return "";
+}

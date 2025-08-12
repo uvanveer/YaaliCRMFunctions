@@ -1,0 +1,139 @@
+string standalone.Duplicate_Sales_Orders_Zoho_Books()
+{
+Page_Count = 1;
+Record_count = 50;
+Get_Pagination_details = zoho.crm.getRecordById("Tag_syncing_schedule","3106252000106745721");
+Page_Count = Get_Pagination_details.get("Function_Execution");
+Page_Count = Page_Count.toLong();
+Updated_Page_Count = Page_Count + 1;
+Update_log = Map();
+Update_log.put("Function_Execution",Updated_Page_Count.toString());
+Get_Updated_Page = zoho.crm.updateRecord("Tag_syncing_schedule","3106252000106745721",Update_log);
+info Get_Updated_Page;
+Get_all_SalesOrders = zoho.crm.getRecords("Identified_Duplicate_SO",12,100);
+info Get_all_SalesOrders;
+for each  CRM_Sales_Order in Get_all_SalesOrders
+{
+	Updated_flag = 0;
+	BC_unique_Id = CRM_Sales_Order.get("Bigcommerce_Unique_Id");
+	info BC_unique_Id;
+	Get_processed_data = CRM_Sales_Order.get("New_Processed");
+	if(Get_processed_data == false)
+	{
+		Get_idenified_Salesorders = zoho.crm.searchRecords("Identified_Duplicate_SO","(Bigcommerce_Unique_Id:equals:" + BC_unique_Id + ")");
+		info Get_idenified_Salesorders.size();
+		for each  rec in Get_idenified_Salesorders
+		{
+			Salesordermap = rec.toMap();
+			Get_Sales_Orderid = Salesordermap.get("Sales_Order_ID");
+			Get_Status = Salesordermap.get("Status");
+			Get_custommodule_id = Salesordermap.get("id");
+			Search_Books = zoho.books.getRecords("salesorders","666840843","cf_crm_salesorder_id=" + Get_Sales_Orderid);
+			Books_Get_Sales_Order_Map = Search_Books.get("salesorders");
+			// 		info Books_Get_Sales_Order_Map;
+			Itd_Flag = 0;
+			Books_Flag = 0;
+			if(isempty(Books_Get_Sales_Order_Map))
+			{
+				Books_Flag = 1;
+			}
+			getting_sales_orders = zoho.crm.getRecordById("Sales_Orders",Get_Sales_Orderid);
+			// 			info getting_sales_orders;
+			sales_order_status = getting_sales_orders.get("Status");
+			// 				info sales_order_status;
+			sales_order_line_Item_count = getting_sales_orders.get("Product_Details").size();
+			getting_purchase_orders = zoho.crm.getRelatedRecords("Dropship_Orders","Sales_Orders",getting_sales_orders.get("id"));
+			if(getting_purchase_orders.size() > 0)
+			{
+				created_count = 0;
+				shipped_count = 0;
+				sent_to_dropshippers_count = 0;
+				cancelled_count = 0;
+				Dropship_order_count = getting_purchase_orders.size();
+				purchase_order_line_item_count = 0;
+				for each  each_purchase_order in getting_purchase_orders
+				{
+					purchase_order_line_item_count = purchase_order_line_item_count + each_purchase_order.get("Product_Details").size();
+					if(each_purchase_order.get("Status") == "Sent to Dropshippers")
+					{
+						sent_to_dropshippers_count = sent_to_dropshippers_count + 1;
+					}
+					else if(each_purchase_order.get("Status") == "Shipped" || each_purchase_order.get("Status") == "Completed")
+					{
+						shipped_count = shipped_count + 1;
+					}
+					else if(each_purchase_order.get("Status") == "created")
+					{
+						created_count = created_count + 1;
+					}
+				}
+				if(Dropship_order_count == shipped_count)
+				{
+					if(sales_order_status != "Shipped" && sales_order_status != "Completed")
+					{
+						Itd_Flag = Itd_Flag + 1;
+					}
+				}
+				else if(Dropship_order_count == sent_to_dropshippers_count)
+				{
+					if(sales_order_status != "Awaiting Shipment")
+					{
+						Itd_Flag = Itd_Flag + 1;
+					}
+				}
+				else if(Dropship_order_count > shipped_count && shipped_count != 0)
+				{
+					if(sales_order_status != "Partially Shipped" && sales_order_status != "PartiallyShipped")
+					{
+						Itd_Flag = Itd_Flag + 1;
+					}
+				}
+				else
+				{
+					if(sales_order_status != "Awaiting Fulfillment")
+					{
+						Itd_Flag = Itd_Flag + 1;
+					}
+				}
+				if(purchase_order_line_item_count != sales_order_line_Item_count)
+				{
+					Itd_Flag = Itd_Flag + 1;
+				}
+			}
+			else
+			{
+				// 					Itd_Flag = 1;
+			}
+			Update_map_dup = Map();
+			Update_map_dup.put("New_Processed",true);
+			Updated_flag = Updated_flag + 1;
+			if(Books_Flag == 1 && Updated_flag >= 1)
+			{
+				Updated_flag = Updated_flag + 1;
+				if(Get_Status != "Shipped" && Get_Status != "Awaiting Shipment" && Get_Status != "Refunded" && Get_Status != "Partially Refunded" && Get_Status != "Partially Shipped" && Get_Status != "Completed")
+				{
+					Update_map_dup.put("Latest_Identified",true);
+					info "First:" + Get_Sales_Orderid;
+				}
+			}
+			info Update_map_dup;
+			Update_record = zoho.crm.updateRecord("Identified_Duplicate_SO",Get_custommodule_id,Update_map_dup);
+			info Update_record;
+		}
+		if(Updated_flag == 0 && Books_Flag == 1)
+		{
+			Id_map = Map();
+			Id_map.put("Latest_Identified",true);
+			info Get_Status;
+			if(Get_Status != "Shipped" && Get_Status != "Awaiting Shipment" && Get_Status != "Refunded" && Get_Status != "Partially Refunded" && Get_Status != "Completed" && Get_Status != "Partially Shipped")
+			{
+				info Get_Sales_Orderid;
+				info "Second:" + Get_Sales_Orderid;
+				Update_Idt_record = zoho.crm.updateRecord("Identified_Duplicate_SO",Get_custommodule_id,Id_map);
+				info Update_Idt_record;
+			}
+		}
+	}
+}
+return "";
+}

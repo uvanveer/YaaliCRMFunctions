@@ -1,0 +1,65 @@
+string standalone.test_function_emran(String crmAPIRequest)
+{
+crm_api_map = crmAPIRequest.toMap();
+params = crm_api_map.get("body");
+// info params;
+// params = {"id":"78f1bd9b3008b59a9f78ef74a1d3b7d9","received_at":"2020-10-20 16:40:45","processed_at":"2020-10-20 16:41:33","confirmation_number":"1046217","dropship_number":"443495","estimated_ship_date":"2020-10-19","attachment_url":[{"att_id":"vuVik8uLVPXAgKubidoBkg","att_name":"Sales_Order_1046217.PDF","att_url":"https:\/\/files.mailparser.io\/f\/vuVik8uLVPXAgKubidoBkg","att_size":"18870","att_mime":"application\/pdf"}]};
+params = {"id":"9a7c7f30a9aaa60b7babaf3542d03b08","document_id":"9af292ac1b0e58f81258f919115f1554","remote_id":"","file_name":"Milco Confirmation 1.pdf","attachment_url":{{"att_url":"https:\/\/api.docparser.com\/v1\/document\/media\/7SgrkhoXddpgw3BkNdHDYuWk5-v81njLXUHs7PtExImS81obOkt5fY3_BqIC-mVbkE61TVXpb6KEdYD2wwxdKHu4O7KpWGJmCOdNRxQi-rw","att_name":"Milco Confirmation 1.pdf"}},"media_link_original":"https:\/\/api.docparser.com\/v1\/document\/media\/7SgrkhoXddpgw3BkNdHDYuWk5-v81njLXUHs7PtExImS81obOkt5fY3_BqIC-mVbkE61TVXpb6KEdYD2wwxdKHu4O7KpWGJmCOdNRxQi-rw\/original","media_link_data":"https:\/\/api.docparser.com\/v1\/document\/media\/7SgrkhoXddpgw3BkNdHDYuWk5-v81njLXUHs7PtExImS81obOkt5fY3_BqIC-mVbkE61TVXpb6KEdYD2wwxdKHu4O7KpWGJmCOdNRxQi-rw\/data","uploaded_at":"2021-01-15T15:12:33+00:00","processed_at":"2021-01-15T15:25:11+00:00","confirmation_number":"1459498","dropship_number":"448759","estimated_ship_date":"2020-12-16"};
+ds_no = ifnull(params.get("dropship_number"),"");
+if(ds_no != "")
+{
+	ds_no = ds_no.getAlphaNumeric().removeAllAlpha();
+}
+confirmation_no = ifnull(params.get("confirmation_number"),"");
+estimated_ship_date = ifnull(params.get("estimated_ship_date"),today.toString("yyyy-MM-dd"));
+// estimated_ship_date = '2020-7-7';
+if(ds_no != "" && confirmation_no != "")
+{
+	// 	drop_ship_orders = zoho.crm.searchRecords("Purchase_Orders","(Dropship_Number:equals:" + ds_no + ")");
+	drop_ship_orders = zoho.crm.searchRecords("Purchase_Orders","(Dropship_Number:equals:" + ds_no + ")",1,200,Map(),"mailparserzoho");
+	for each  drop_ship_order in drop_ship_orders
+	{
+		conf_num = "C " + confirmation_no;
+		if(crm_api_map.get("params") != null && crm_api_map.get("params").get("skip_ship_date") == "1")
+		{
+			upd_resp = zoho.crm.updateRecord("Purchase_Orders",drop_ship_order.get("id"),{"Confirmation_Number":conf_num},{"trigger":{"workflow"}},"mailparserzoho");
+		}
+		else
+		{
+			upd_resp = zoho.crm.updateRecord("Purchase_Orders",drop_ship_order.get("id"),{"Confirmation_Number":conf_num,"Estimated_Ship_Date":estimated_ship_date},{"trigger":{"workflow"}},"mailparserzoho");
+		}
+		info upd_resp;
+		if(upd_resp.get("code") != null)
+		{
+			sendmail
+			[
+				from :zoho.loginuserid
+				to :"hello@bestaccessdoors.com, zyarina@bestaccessdoors.com"
+				subject :"MailParser Automation Error"
+				message :"<p>Hi,&nbsp;</p><p>Received error for automation for order confirmations/tracking in MailParser:</p><p>Error Code: " + upd_resp.get("code") + " </p><p>Error Message: " + upd_resp.get("message") + " </p><p>Date and Time of error: " + now.toString("yyyy-MM-dd HH:mm:ss") + " </p><p>Dropship Order ID : " + drop_ship_order.get("id") + " </p><p>Please check this and re-test for all vendors.&nbsp;</p><p>Thank you!</p>"
+			]
+		}
+		else
+		{
+			// Code updated successfully
+			// Upload the file
+			attachment_urls = ifnull(params.get("attachment_url"),list());
+			for each  attachment_url_map in attachment_urls
+			{
+				if(attachment_url_map.get("att_mime") != null && attachment_url_map.get("att_mime").containsIgnoreCase("pdf") || attachment_url_map.get("att_name").containsIgnoreCase("PDF") != null && attachment_url_map.get("att_name").containsIgnoreCase("PDF"))
+				{
+					attachment_url = attachment_url_map.get("att_url");
+					attachment_url = attachment_url.replaceAll("\\","");
+					file_stream = invokeurl
+					[
+						url :attachment_url
+						type :GET
+					];
+					info zoho.crm.attachFile("Purchase_Orders",drop_ship_order.get("id"),file_stream,"mailparserzoho");
+				}
+			}
+		}
+	}
+}
+return conf_num;
+}

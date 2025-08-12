@@ -1,0 +1,78 @@
+void automation.Update_data_to_admin_dashboard(String activityid)
+{
+// ownerID = 3106252000045664001;
+offset = 0;
+gettaks = zoho.crm.getRecordById("Activities",activityid.toLong());
+info gettaks;
+if(!gettaks.containKey("status"))
+{
+	owner_email = gettaks.get("Owner").get("email");
+	owner_name = gettaks.get("Owner").get("name");
+	ownerID = gettaks.get("Owner").get("id");
+	info "gettaks" + owner_email;
+	////// Current day
+	data = "select Who_Id,Status,Owner,Due_Date from Tasks where ((Status != 'Completed') and (Owner = '" + ownerID + "')) and Due_Date = '" + zoho.currentdate.toString("yyyy-MM-dd") + "' OFFSET " + offset + " LIMIT 200";
+	coql_map = Map();
+	coql_map.put("select_query",data);
+	maillist = invokeurl
+	[
+		url :"https://www.zohoapis.com/crm/v2/coql"
+		type :POST
+		parameters:coql_map.tostring()
+		connection:"crm_connection"
+	];
+	currentcount = ifnull(maillist.get("data").size(),0);
+	info " --- " + currentcount;
+	/////Tomorrow
+	data = "select Who_Id,Status,Owner,Due_Date from Tasks where ((Status != 'Completed') and (Owner = '" + ownerID + "')) and Due_Date = '" + zoho.currentdate.addDay(1).toString("yyyy-MM-dd") + "' OFFSET " + offset + " LIMIT 200";
+	// info " tomorrow tasks due req: " + data;
+	coql_map = Map();
+	coql_map.put("select_query",data);
+	maillist = invokeurl
+	[
+		url :"https://www.zohoapis.com/crm/v2/coql"
+		type :POST
+		parameters:coql_map.tostring()
+		connection:"crm_connection"
+	];
+	tomorrowcount = ifnull(maillist.get("data").size(),0);
+	info " --- " + tomorrowcount;
+	////Overdues
+	data = "select Who_Id,Status,Owner,Due_Date from Tasks where ((Status != 'Completed') and (Owner = '" + ownerID + "')) and Due_Date <= '" + zoho.currentdate.subDay(1).toString("yyyy-MM-dd") + "' OFFSET " + offset + " LIMIT 200";
+	// info " overdue tasks due req: " + data;
+	coql_map = Map();
+	coql_map.put("select_query",data);
+	maillist = invokeurl
+	[
+		url :"https://www.zohoapis.com/crm/v2/coql"
+		type :POST
+		parameters:coql_map.tostring()
+		connection:"crm_connection"
+	];
+	overduecount = ifnull(maillist.get("data").size(),0);
+	info " --- " + overduecount;
+	Updatemap = Map();
+	Updatemap.put("Task_Due_Today",currentcount);
+	Updatemap.put("Task_Due_Tomorrow",tomorrowcount);
+	Updatemap.put("Task_Overdue",overduecount);
+	Updatemap.put("Total_Tasks",currentcount + tomorrowcount + overduecount);
+	salesperson_data = zoho.crm.searchRecords("Salesperson_Dashboard_Rpt","(Email:equals:" + owner_email + ")");
+	info "salesperson_data:" + salesperson_data;
+	if(salesperson_data.isEmpty())
+	{
+		Updatemap.put("RecordID",ownerID);
+		Updatemap.put("Email",owner_email);
+		Updatemap.put("Name",owner_name);
+		createnewrec = zoho.crm.createRecord("Salesperson_Dashboard_Rpt",Updatemap);
+		info "Createresponse" + createnewrec;
+	}
+	else
+	{
+		salesperson_data = salesperson_data.sort(false);
+		saleperson_data = salesperson_data.get(0);
+		User_recordID = saleperson_data.get("id");
+		updateData = zoho.crm.updateRecord("Salesperson_Dashboard_Rpt",User_recordID,Updatemap);
+		info "Update_response" + updateData;
+	}
+}
+}

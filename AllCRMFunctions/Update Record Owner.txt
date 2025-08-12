@@ -1,0 +1,36 @@
+void automation.UpdateRecordOwner(Int recId)
+{
+EmpEva = zoho.crm.getRecordById("Employee_Evaluations",recId);
+AgentName = EmpEva.get("Agent_Name");
+// AgentMap = {"Deborah":"3106252000045664001","Fern":"3106252000000152052","Kristopher, Chris, Kris":"3106252000058241283","Marko":"3106252000037668001","Rheanne":"3106252000024509019","Emma":"3106252000025727001","Christie":"3106252000025726001","Zyarina":"3106252000026453004","Shah":"3106252000037644001","Chesia":"3106252000000152046","Nicole":"3106252000067155001","Lauren":"3106252000064218001","Anthony":"3106252000000147711","Other":"3106252000014929001"};
+AgentMap = Map();
+AgentMap.put("Deborah","deborah@bestaccessdoors.com");
+AgentMap.put("Fern","fern@bestaccessdoors.com");
+AgentMap.put("Kristopher, Chris, Kris","kristopher@bestaccessdoors.com");
+AgentMap.put("Marko","marko@bestaccessdoors.com");
+AgentMap.put("Rheanne","rheanne@bestaccessdoors.com");
+AgentMap.put("Emma","emma@bestaccessdoors.com");
+AgentMap.put("Christie","christie@bestaccessdoors.com");
+AgentMap.put("Zyarina","zyarina@bestaccessdoors.com");
+AgentMap.put("Shah","shah@bestaccessdoors.com");
+AgentMap.put("Chesia","chesia@bestaccessdoors.com");
+AgentMap.put("Nicole","nicole@bestaccessdoors.com");
+AgentMap.put("Lauren","lauren@bestaccessdoors.com");
+AgentMap.put("Other","dev@bestaccessdoors.com");
+if(AgentMap.containKey(AgentName))
+{
+	OwnerEmail = AgentMap.get(AgentName);
+	activeUserList = zoho.crm.invokeConnector("crm.getusers",{"type":"ActiveUsers"}).get("response").get("users");
+	correctUserId = "";
+	userSearch = zoho.crm.searchRecords("users","(email:equals:" + OwnerEmail + ")");
+	userList = userSearch.get("users");
+	for each  user in userList
+	{
+		if(user.get("status") == "active")
+		{
+			correctUserId = user.get("id");
+			updateOwner = zoho.crm.updateRecord("Employee_Evaluations",recId,{"Owner":correctUserId});
+		}
+	}
+}
+}

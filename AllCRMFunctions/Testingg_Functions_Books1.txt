@@ -1,0 +1,89 @@
+string standalone.Testingg_Functions_Books1()
+{
+Page_Count = 1;
+Record_count = 25;
+Get_Pagination_details = zoho.crm.getRecordById("Tag_syncing_schedule","3106252000106962049");
+Page_Count = Get_Pagination_details.get("Function_Execution");
+Page_Count = Page_Count.toLong();
+Updated_Page_Count = Page_Count + 1;
+// Page_Count = 50;
+Update_log = Map();
+Update_log.put("Function_Execution",Updated_Page_Count.toString());
+Get_Updated_Page = zoho.crm.updateRecord("Tag_syncing_schedule","3106252000106962049",Update_log);
+info Get_Updated_Page;
+Get_data = getUrl("https://books.zoho.com/api/v3/bills?page=" + Page_Count + "&per_page=" + Record_count + "&cf_bill_processed=true&sort_column=bill_number&sort_order=A&organization_id=666840843",{"Authorization":"Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2"});
+// info Get_data;
+Get_bills = Get_data.get("bills");
+// info Get_bills;
+for each  rec_bill in Get_bills
+{
+	rec_Bill_map = rec_bill.toMap();
+	Get_Bill_number = rec_Bill_map.get("bill_number");
+	Get_old_bill_id = rec_Bill_map.get("cf_bill_id");
+	New_Bill_id = rec_Bill_map.get("bill_id");
+	Get_new_Bill_details = getUrl("https://books.zoho.com/api/v3/bills/" + New_Bill_id + "?organization_id=666840843",{"Authorization":"Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2"});
+	New_bill_details = Get_new_Bill_details.get("bill");
+	Get_processed = New_bill_details.get("custom_field_hash").get("cf_bill_processed");
+	if(Get_processed == "true")
+	{
+		New_bill_linedetails = New_bill_details.get("line_items");
+		shipping_flag = 0;
+		if(!isNull(Get_old_bill_id))
+		{
+			Get_old_Billattachment = getUrl("https://books.zoho.com/api/v3/bills/" + Get_old_bill_id + "/attachment?organization_id=666840843",{"Authorization":"Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2"});
+			info "temp1:" + Get_old_Billattachment;
+			url = "https://books.zoho.com/api/v3/bills/" + New_Bill_id + "/attachment?organization_id=666840843";
+			Header_map = Map();
+			Header_map.put("Authorization","Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2");
+			if(isFile(Get_old_Billattachment))
+			{
+				Get_New_Billattachment = getUrl("https://books.zoho.com/api/v3/bills/" + New_Bill_id + "/attachment?organization_id=666840843",{"Authorization":"Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2"});
+				info "temp2:" + Get_New_Billattachment;
+				if(!isFile(Get_New_Billattachment))
+				{
+					info "success";
+					Get_old_Billattachment.setParamName("attachment");
+					add_attachment = invokeurl
+					[
+						url :url
+						type :POST
+						headers:Header_map
+						files:Get_old_Billattachment
+					];
+					info add_attachment;
+					logMap = Map();
+					logMap.put("Name","Update Attachment in Latest New Bills");
+					logMap.put("SalesOrder_Record_ID",New_Bill_id.toString());
+					logMap.put("SO_Workflow_Name","New Bill creation1");
+					end_time = now.toLong();
+					logMap.put("Start_Time",end_time.toString());
+					logMap.put("End_Time",end_time.toString());
+					Create_log = zoho.crm.createRecord("Sales_Order_PO_Log",logMap);
+				}
+				// 			Get_Old_BillsComments = getUrl("https://books.zoho.com/api/v3/bills/" + Get_old_bill_id + "/comments?organization_id=666840843",{"Authorization":"Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2"});
+				// 			info Get_Old_BillsComments;
+				// 			Get_all_comments = Get_Old_BillsComments.get("comments");
+				// 			for each  rec_comment in Get_all_comments
+				// 			{
+				// 				rec_comment_map = rec_comment.toMAP();
+				// 				comment_type = rec_comment_map.get("comment_type");
+				// 				if(comment_type == "internal")
+				// 				{
+				// 					Get_comment_description = rec_comment_map.get("description");
+				// 					Header_map = Map();
+				// 					Header_map.put("Authorization","Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2");
+				// 					comment_map = Map();
+				// 					comment_map.put("description",Get_comment_description);
+				// 					Jsonmap = Map();
+				// 					Jsonmap.put("JSONString",comment_map);
+				// 					comments_url = "https://books.zoho.com/api/v3/bills/" + New_Bill_id + "/comments?organization_id=666840843";
+				// 					Add_comments = postUrl(comments_url,Jsonmap,Header_map);
+				// 					info Add_comments;
+				// 				}
+				// 			}
+			}
+		}
+	}
+}
+return "";
+}

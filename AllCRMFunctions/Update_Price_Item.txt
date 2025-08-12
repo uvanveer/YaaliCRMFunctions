@@ -1,0 +1,102 @@
+string standalone.Update_Price_Item()
+{
+Page_Count = 1;
+Record_count = 20;
+Get_Pagination_details = zoho.crm.getRecordById("Tag_syncing_schedule","3106252000107238517");
+Page_Count = Get_Pagination_details.get("Function_Execution");
+Page_Count = Page_Count.toLong();
+Updated_Page_Count = Page_Count + 1;
+Update_log = Map();
+Update_log.put("Function_Execution",Updated_Page_Count.toString());
+Get_Updated_Page = zoho.crm.updateRecord("Tag_syncing_schedule","3106252000107238517",Update_log);
+info Get_Updated_Page;
+Get_data = getUrl("https://www.zohoapis.com/books/v3/bills?page=" + Page_Count + "&per_page=" + Record_count + "&cf_bill_processed=true&sort_column=bill_number&sort_order=A&organization_id=666840843",{"Authorization":"Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2"});
+info Get_data;
+Get_bills = Get_data.get("bills");
+// info Get_bills;
+for each  rec_bill in Get_bills
+{
+	rec_Bill_map = rec_bill.toMap();
+	Get_Bill_number = rec_Bill_map.get("bill_number");
+	Get_old_bill_id = rec_Bill_map.get("cf_bill_id");
+	New_Bill_id = rec_Bill_map.get("bill_id");
+	Bill_reference_number = rec_Bill_map.get("reference_number");
+	Get_new_Bill_details = getUrl("https://www.zohoapis.com/books/v3/bills/" + New_Bill_id + "?organization_id=666840843",{"Authorization":"Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2"});
+	New_bill_details = Get_new_Bill_details.get("bill");
+	Get_processed = New_bill_details.get("custom_field_hash").get("cf_bill_processed");
+	if(Get_processed == "true")
+	{
+		New_bill_linedetails = New_bill_details.get("line_items");
+		info "New_Bill:" + New_bill_linedetails;
+		Get_Old_Bill_details = getUrl("https://www.zohoapis.com/books/v3/bills/" + Get_old_bill_id + "?organization_id=666840843",{"Authorization":"Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2"});
+		Old_Bill_details = Get_Old_Bill_details.get("bill");
+		Old_Bill_lineitems = Old_Bill_details.get("line_items");
+		info "Old_Bill" + Old_Bill_lineitems;
+		Line_item_list = LIST();
+		for each  rec_New_Bill in New_bill_linedetails
+		{
+			Lineitemflag = 0;
+			New_Bill_Map = rec_New_Bill.toMap();
+			Get_newBill_Itemid = New_Bill_Map.get("item_id");
+			Get_newBill_Lineitemid = New_Bill_Map.get("line_item_id");
+			Get_newBill_Quantity = New_Bill_Map.get("quantity");
+			Get_newBill_rate = New_Bill_Map.get("rate");
+			for each  rec_Old_Bill in Old_Bill_lineitems
+			{
+				Old_Bill_Map = rec_Old_Bill.toMap();
+				Get_OldBill_Itemid = Old_Bill_Map.get("item_id");
+				Get_OldBill_Lineitemid = Old_Bill_Map.get("line_item_id");
+				Get_Old_Bill_rate = Old_Bill_Map.get("rate");
+				if(!isNull(Get_newBill_Itemid) && !isNull(Get_OldBill_Itemid))
+				{
+					if(Get_newBill_Itemid == Get_OldBill_Itemid)
+					{
+						Lineitemflag = 1;
+						Line_item_Map = Map();
+						Line_item_Map.put("line_item_id",Get_newBill_Lineitemid);
+						Line_item_Map.put("quantity",Get_newBill_Quantity);
+						Line_item_Map.put("rate",Get_Old_Bill_rate);
+						Line_item_list.add(Line_item_Map);
+					}
+				}
+			}
+			if(Lineitemflag == 0)
+			{
+				Line_item_Map = Map();
+				Line_item_Map.put("line_item_id",Get_newBill_Lineitemid);
+				Line_item_Map.put("quantity",Get_newBill_Quantity);
+				Line_item_Map.put("rate",Get_newBill_rate);
+				Line_item_list.add(Line_item_Map);
+			}
+		}
+		// 		Get_Books_POdata = getUrl("https://books.zoho.com/api/v3/purchaseorders?purchaseorder_number=" + Bill_reference_number + "&organization_id=666840843",{"Authorization":"Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2"});
+		// 		Books_search_PurchaseOrder = Get_Books_POdata.get("purchaseorders");
+		// 		info "Books_search_PurchaseOrder" + Books_search_PurchaseOrder.size();
+		// 		if(Books_search_PurchaseOrder.size() == 1)
+		// 		{
+		// 			Books_search_map = Books_search_PurchaseOrder.toMap();
+		// 			latest_Purchaseorder_Id = Books_search_map.get("purchaseorder_id");
+		// 			Purchase_Order_list = LIST();
+		// 			Purchase_Order_list.add(latest_Purchaseorder_Id);
+		// 		}
+		Update_map = Map();
+		Update_map.put("line_items",Line_item_list);
+		// 		Update_map.put("purchaseorder_ids",Purchase_Order_list);
+		info Update_map;
+		Update_Bill = zoho.books.updateRecord("bills","666840843",New_Bill_id,Update_map);
+		info Update_Bill;
+		logMap = Map();
+		logMap.put("Name","Update Price in Latest New Bills");
+		logMap.put("SalesOrder_Record_ID",New_Bill_id.toString());
+		logMap.put("SalesOrder_Request",Update_map);
+		logMap.put("SO_Workflow_Name","New Bill creation1");
+		logMap.put("SalesOrder_Response",Update_Bill);
+		end_time = now.toLong();
+		logMap.put("Start_Time",end_time.toString());
+		logMap.put("End_Time",end_time.toString());
+		Create_log = zoho.crm.createRecord("Sales_Order_PO_Log",logMap);
+		info Create_log;
+	}
+}
+return "";
+}

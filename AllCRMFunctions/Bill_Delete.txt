@@ -1,0 +1,35 @@
+string standalone.Bill_Delete()
+{
+// Page_Count = 14;
+Record_count = 15;
+// Record_count = 10;
+Get_Pagination_details = zoho.crm.getRecordById("Tag_syncing_schedule","3106252000107409099");
+Page_Count = Get_Pagination_details.get("Function_Execution");
+Page_Count = Page_Count.toLong();
+Updated_Page_Count = Page_Count + 1;
+Update_log = Map();
+Update_log.put("Function_Execution",Updated_Page_Count.toString());
+Get_Updated_Page = zoho.crm.updateRecord("Tag_syncing_schedule","3106252000107409099",Update_log);
+Get_data = getUrl("https://www.zohoapis.com/books/v3/bills?page=" + Page_Count + "&per_page=" + Record_count + "&sort_column=date&sort_order=A&date_start=2020-07-14&date_end=2020-07-14&organization_id=666840843",{"Authorization":"Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2"});
+info Get_data;
+for each  rec_bill in Get_data.get("bills")
+{
+	Bill_Map = rec_bill.toMap();
+	Get_Bill_Id = Bill_Map.get("bill_id");
+	Get_cf_Bill_Number = Bill_Map.get("cf_old_bill_number");
+	info Get_Bill_Id;
+	if(!isNull(Get_cf_Bill_Number))
+	{
+		header_data = Map();
+		header_data.put("Authorization","Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2");
+		delete_invoice = invokeurl
+		[
+			url :"https://www.zohoapis.com/books/v3/bills/" + Get_Bill_Id + "?organization_id=666840843"
+			type :DELETE
+			headers:header_data
+		];
+		info delete_invoice;
+	}
+}
+return "";
+}

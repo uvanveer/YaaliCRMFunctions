@@ -1,0 +1,4 @@
+string standalone.GetCallLogs()
+{
+return zoho.crm.getRecordById("Calls",3106252000108759979);
+}

@@ -1,0 +1,98 @@
+void automation.Order_Status_Mismatched_Notification(String saleOrderId,String saleOrderStatus)
+{
+/* Created By Ezhil on 13 August 2020 */
+/* Sales Order Status Changed But Not Based On PO Status - Sent alert email */
+if(saleOrderStatus != "Refunded" && saleOrderStatus != "Partially Shipped" && saleOrderStatus != "Partially Refunded" && saleOrderStatus != "Cancelled" && saleOrderStatus != "Canceled" && saleOrderStatus != "Awaiting Pickup")
+{
+	isStatusUpdated = false;
+	purchaseOrderList = zoho.crm.getRelatedRecords("Dropship_Orders","Sales_Orders",saleOrderId);
+	//saleOrderList = zoho.crm.getRelatedRecords("Dropship_Orders","Sales_Orders",saleOrderId);
+	tableData = "<div><br><table style='width: 100%; font-size: 10pt; font-family: Arial, Helvetica, sans-serif; border: 1px solid black; color: black;' border='1' cellspacing='2' cellpadding='2'> <tbody> <tr> <td style='width: 149px;' style='text-align:center';> <div>Excepted sale order status<br></div> </td> <td style='width: 149px;' style='text-align:center';> <div> Current sale order status<br></div> </td> </tr>";
+	if(purchaseOrderList.size() > 0)
+	{
+		for each  purchaseOrderInfo in purchaseOrderList
+		{
+			purchaseOrderId = purchaseOrderInfo.get("id");
+			poStatus = purchaseOrderInfo.get("Status");
+			//purchaseOrderUrl = "<a target='_blank' href='https://crm.zoho.com/crm/org663942562/tab/PurchaseOrders/" + purchaseOrderId + "'>" + purchaseOrderId + " </a>";
+			//tableData = tableData + "<tr> <td style='width: 149px;'>" + purchaseOrderUrl +"<br></td> <td style='width: 149px;'> <div>" + poStatus + "<br></div> </td> </tr>";
+			if(poStatus.equals("created"))
+			{
+				if(saleOrderStatus.equals("Unshipped") || saleOrderStatus.equals("Awaiting Fulfillment"))
+				{
+					isStatusUpdated = true;
+				}
+			}
+			else if(poStatus.equals("Sent to Dropshippers"))
+			{
+				if(saleOrderStatus != "Awaiting Shipment")
+				{
+					info saleOrderStatus;
+					except = "Awaiting shipment";
+				}
+				else if(saleOrderStatus.equals("Awaiting Shipment"))
+				{
+					isStatusUpdated = true;
+					//break;
+				}
+			}
+			else if(poStatus.equals("Shipped"))
+			{
+				if(saleOrderStatus != "Completed" && saleOrderStatus != "Shipped")
+				{
+					info saleOrderStatus;
+					except = "Completed";
+				}
+				else
+				{
+					isStatusUpdated = true;
+				}
+			}
+		}
+		tableData = tableData + "<tr> <td style='width: 149px;'>" + except + "<br></td> <td style='width: 149px;'> <div>" + saleOrderStatus + "<br></div> </td> </tr>";
+	}
+	tableData = tableData + "</tbody> </table><br><br> </div> <div><br></div>";
+	if(!isStatusUpdated)
+	{
+		emailSendUrl = "https://1.door-pay.com/api/Office360Mail/v2/sendreq";
+		emailList = list();
+		saleOrderUrl = "https://crm.zoho.com/crm/org663942562/tab/SalesOrders/" + saleOrderId;
+		emailSubject = "CRM Saleorder Status Mismatch";
+		//tableData = "<div><br><table style='width: 100%; font-size: 10pt; font-family: Arial, Helvetica, sans-serif; border: 1px solid black; color: black;' border='1' cellspacing='3' cellpadding='5'> <tbody> <tr> <td style='width: 149px;'>"+ except + "<div> <br></div> </td> <td style='width: 149px;'> <div>" + saleOrderStatus + 
+		//"<br></div> </td> </tr>";
+		emailBody = "<div>Hi,<br></div><div><br></div><div>We have identified a sales order status was updated with : " + saleOrderStatus + ". <br><br>Seems sales order status was not updated properly respect with dropship order status.<br><br>Sales Order URL :&nbsp;" + saleOrderUrl + "</div><div><br></div>" + tableData;
+		emailList.add("dinesh@bizappln.com");
+		emailList.add("ganesh@bizappln.com");
+		emailList.add("surya.k@bizappln.com");
+		emailList.add("ragul.r@bizappln.com");
+		emailList.add("vijay.vr@bizappln.com");
+		emailList.add("tharmendheran@bizappln.com");
+		emailList.add("pooja@bizappln.com");
+		emailList.add("balaji@bizappln.com");
+		emailList.add("notifications@bestaccessdoors.com");
+		emailList.add("dev@bestaccessdoors.com");
+		emailList.add("saher@bestaccessdoors.com");
+		emailList.add("anthony@bestaccessdoors.com");
+		emailList.add("citrigno@bestaccessdoors.com");
+		emailList.add("salih@bizappln.com");
+		mailArrayDataObject = Map();
+		mailArrayDataObject.put("to",emailList);
+		mailArrayDataObject.put("subject",emailSubject);
+		mailArrayDataObject.put("body",emailBody);
+		mailArrayDataObject.put("Scope","ZohoCRMSOStatusMismatched");
+		// Header
+		BADAuthorization = zoho.crm.getOrgVariable("OAuthHashCode");
+		emailHeader = Map();
+		emailHeader.put("content-type","application/json");
+		emailHeader.put("BADAuthorization",BADAuthorization);
+		response = invokeurl
+		[
+			url :emailSendUrl
+			type :POST
+			parameters:mailArrayDataObject.toString()
+			headers:emailHeader
+		];
+		info response;
+	}
+}
+}

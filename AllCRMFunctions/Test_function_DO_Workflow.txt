@@ -1,0 +1,128 @@
+string standalone.Test_function_DO_Workflow(Int PurchaseOrder_ID)
+{
+Get_PurchaseOrder = zoho.crm.getRecordById("Purchase_Orders",PurchaseOrder_ID);
+// info Get_PurchaseOrder;
+Get_tracking_No = Get_PurchaseOrder.get("Tracking_Number");
+Get_carrier = Get_PurchaseOrder.get("Carrier");
+Get_shipment_ID = Get_PurchaseOrder.get("Shipment_Id");
+Get_Source = Get_PurchaseOrder.get("Source");
+Get_current_time = zoho.currenttime.tolong();
+Get_Dropship_Number = Get_PurchaseOrder.get("Dropship_Number");
+Vendor_name = "";
+Get_vendor = Get_PurchaseOrder.get("Vendor_Name");
+if(Get_vendor.size() > 0)
+{
+	Vendor_name = Get_vendor.get("name");
+}
+if(!isNull(Get_tracking_No) && !isNull(Get_carrier) && isNull(Get_shipment_ID) && Get_Source != "Amazon Store")
+{
+	Books_Shipment_creation_map = Map();
+	Books_Shipment_creation_map.put("id",PurchaseOrder_ID);
+	Create_shipment_Books = invokeurl
+	[
+		url :"https://www.zohoapis.com/crm/v2/functions/rk_createshipment_zohobooks/actions/execute?auth_type=oauth"
+		type :GET
+		parameters:Books_Shipment_creation_map
+		connection:"crm_connection"
+	];
+	info Create_shipment_Books;
+	Get_current_time = zoho.currenttime.tolong();
+	logMap = Map();
+	logMap.put("Workflow_Name","Master Dropship Order Workflow");
+	logMap.put("Name","Dropship Orders");
+	logMap.put("Vendor_Name",Vendor_name);
+	logMap.put("Dropship_Order_Record_ID",PurchaseOrder_ID.toString());
+	logMap.put("PO_Request","rk_createshipment_zohobooks-function");
+	logMap.put("Dropship_Order_Number",Get_Dropship_Number);
+	logMap.put("Start_Time",Get_current_time.toString());
+	logMap.put("End_Time",Get_current_time.toString());
+	logMap.put("PO_response",Create_shipment_Books);
+	logMap.put("Function_Name","Master_DropshipOrder_Function");
+	Create_log = zoho.crm.createRecord("Sales_Order_PO_Log",logMap);
+	info Create_log;
+}
+// if(!isNull(Get_tracking_No) && !isNull(Get_carrier) && isNull(Get_shipment_ID) && Get_Source != "Amazon Store")
+// {
+// 	Shipment_creation_map = Map();
+// 	Shipment_creation_map.put("id",PurchaseOrder_ID);
+// 	Create_shipment = invokeurl
+// 	[
+// 		url :"https://www.zohoapis.com/crm/v2/functions/rk_createshipment/actions/execute?auth_type=oauth"
+// 		type :GET
+// 		parameters:Shipment_creation_map
+// 		connection:"crm_connection"
+// 	];
+// 	logMap = Map();
+// 	logMap.put("Workflow_Name","Master Dropship Order Workflow");
+// 	logMap.put("Name","Dropship Orders");
+// 	logMap.put("Vendor_Name",Vendor_name);
+// 	logMap.put("Dropship_Order_Number",Get_Dropship_Number);
+// 	logMap.put("Dropship_Order_Record_ID",PurchaseOrder_ID.toString());
+// 	logMap.put("PO_Request","rk_createshipment-function");
+// 	logMap.put("Start_Time",Get_current_time.toString());
+// 	logMap.put("End_Time",Get_current_time.toString());
+// 	logMap.put("PO_response",Create_shipment);
+// 	logMap.put("Function_Name","Master_DropshipOrder_Function");
+// 	Create_log = zoho.crm.createRecord("Sales_Order_PO_Log",logMap);
+// 	info Create_log;
+// 	info Create_shipment;
+// }
+// Get_sales_Order = Get_PurchaseOrder.get("Sales_Order");
+// Get_sales_Order_Id = Get_sales_Order.get("id");
+// Get_sales_Order_details = zoho.crm.getRecordById("Sales_Orders",Get_sales_Order_Id);
+// Get_sales_Order_Status = Get_sales_Order_details.get("Status");
+// if(Get_sales_Order_Status != "Cancelled")
+// {
+// 	Status_update_map = Map();
+// 	Status_update_map.put("id",PurchaseOrder_ID);
+// 	Update_SalesOrder_Status = invokeurl
+// 	[
+// 		url :"https://www.zohoapis.com/crm/v2/functions/update_sales_status_from_dropship/actions/execute?auth_type=oauth"
+// 		type :GET
+// 		parameters:Status_update_map
+// 		connection:"crm_connection"
+// 	];
+// 	info "status" + Update_SalesOrder_Status;
+// 	logMap = Map();
+// 	logMap.put("Workflow_Name","Master Dropship Order Workflow");
+// 	logMap.put("Name","Dropship Orders");
+// 	logMap.put("Vendor_Name",Vendor_name);
+// 	logMap.put("Dropship_Order_Record_ID",PurchaseOrder_ID.toString());
+// 	logMap.put("PO_Request","update_sales_status_from_dropship-function");
+// 	logMap.put("Dropship_Order_Number",Get_Dropship_Number);
+// 	logMap.put("Start_Time",Get_current_time.toString());
+// 	logMap.put("End_Time",Get_current_time.toString());
+// 	logMap.put("PO_response",Update_SalesOrder_Status);
+// 	logMap.put("Function_Name","Master_DropshipOrder_Function");
+// 	Create_log = zoho.crm.createRecord("Sales_Order_PO_Log",logMap);
+// 	info Create_log;
+// }
+// Get_PurchaseOrder_status = Get_PurchaseOrder.get("Status");
+// if(Get_PurchaseOrder_status == "Sent to Dropshippers" || Get_PurchaseOrder_status == "Send to Dropshippers")
+// {
+// 	Status_update_map = Map();
+// 	Status_update_map.put("Po_Id",PurchaseOrder_ID);
+// 	Update_Books_PO = invokeurl
+// 	[
+// 		url :"https://www.zohoapis.com/crm/v2/functions/update_issued_books/actions/execute?auth_type=oauth"
+// 		type :GET
+// 		parameters:Status_update_map
+// 		connection:"crm_connection"
+// 	];
+// 	info Update_Books_PO;
+// 	logMap = Map();
+// 	logMap.put("Workflow_Name","Master Dropship Order Workflow");
+// 	logMap.put("Name","Dropship Orders");
+// 	logMap.put("Vendor_Name",Vendor_name);
+// 	logMap.put("Dropship_Order_Record_ID",PurchaseOrder_ID.toString());
+// 	logMap.put("PO_Request","update_issued_books-function");
+// 	logMap.put("Dropship_Order_Number",Get_Dropship_Number);
+// 	logMap.put("Start_Time",Get_current_time.toString());
+// 	logMap.put("End_Time",Get_current_time.toString());
+// 	logMap.put("PO_response",Update_Books_PO);
+// 	logMap.put("Function_Name","Master_DropshipOrder_Function");
+// 	Create_log = zoho.crm.createRecord("Sales_Order_PO_Log",logMap);
+// 	info Create_log;
+// }
+return "";
+}

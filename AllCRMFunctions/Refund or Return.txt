@@ -1,0 +1,80 @@
+string button.ReturnProcess(String userEmail,String userID,String crmID,String BCOrderID)
+{
+crmAdminUser = false;
+loginUserName = zoho.loginuser;
+getUsers = zoho.crm.getRecords("users");
+profileName = "";
+for each  user in getUsers.get("users")
+{
+	if(zoho.loginuserid == user.get("email"))
+	{
+		if(user.get("role").get("name").equalsIgnoreCase("Customer Service"))
+		{
+			crmAdminUser = true;
+		}
+		else if(user.get("profile").get("name").equalsIgnoreCase("Administrator"))
+		{
+			crmAdminUser = true;
+		}
+		else if(user.get("profile").get("name").equalsIgnoreCase("Product Management - Zyarina"))
+		{
+			crmAdminUser = true;
+		}
+		else if(user.get("profile").get("name").equalsIgnoreCase("Accounting"))
+		{
+			crmAdminUser = true;
+		}
+		else if(user.get("email") == "emma@bestaccessdoors.com" || user.get("email") == "saher@bestaccessdoors.com" || user.get("email") == "manisha@bestaccessdoors.com" || user.get("email") == "yaalidevelopers@gmail.com" || user.get("email") == "chantel@bestaccessdoors.com")
+		{
+			crmAdminUser = true;
+		}
+	}
+}
+//adminUsers = zoho.crm.invokeConnector("crm.getusers",{"type":"AdminUsers"});
+// userAdminList = adminUsers.get("response").get("users");
+// for each  userdata in userAdminList
+// {
+// 	if(zoho.loginuserid == userdata.get("email"))
+// 	{
+// 		crmAdminUser = true;
+// 		break;
+// 	}
+// }
+//adminUsers = zoho.crm.invokeConnector("crm.getusers",{"type":"AdminUsers"});
+//https://creator.zohopublic.com/zoho_zoho1502/quotes/form-perma/Select_Method/KPADFJbZuFGJ2n1bkBdyDY5K90kZzCZJxfgu16mwUJZYnbxzuMd4aSMWC9eq7TC9qBRAab8ku8WqO6WjFUUG5xRhvV5JS3Gnm9rO
+//url changed by cva for select method with RMA or w/o RMA
+refundStatus = false;
+getSalesOrder = zoho.crm.getRecordById("Sales_Orders",crmID.tolong());
+getsore = getSalesOrder.getJSON("Store").get("name");
+gateWay = "";
+if(getSalesOrder.containKey("Gateway") && getSalesOrder.get("Gateway") != null)
+{
+	gateWay = getSalesOrder.get("Gateway");
+}
+if(getSalesOrder.get("Status") == "Refunded")
+{
+	refundStatus = true;
+}
+if(gateWay == "stripe" || gateWay == "stripev3")
+{
+	// 	if(!refundStatus)
+	// 	{
+	url = "https://creatorapp.zohopublic.com/zoho_zoho1502/quotes/form-perma/Select_Method/KPADFJbZuFGJ2n1bkBdyDY5K90kZzCZJxfgu16mwUJZYnbxzuMd4aSMWC9eq7TC9qBRAab8ku8WqO6WjFUUG5xRhvV5JS3Gnm9rO?Login_User=" + userEmail + "&CRM_Admin_User=" + crmAdminUser + "&Login_User_CRM_ID=" + userID + "&CRM_RECORD_ID=" + crmID + "&Comes_From=Sales_Orders&Sales_Rep_Name=" + loginUserName + "&BC_Order_ID=" + BCOrderID + "&Gateway=" + gateWay + "&Store_name=" + getsore;
+	// 	}
+	// 	else
+	// 	{
+	// 		info "This SO is already refunded.";
+	// 		return "This SO is already refunded.";
+	// 	}
+}
+//url = "https://creator.zohopublic.com/zoho_zoho1502/quotes/form-perma/Refund_Process/m0qFCURg3hpfauAy1NxG2Y6U335qEKSD4t0APYuNOnjVwEOfpVFY1BEFZjOJ8xZqbNOEBe6EaXkMdpu7dSP8jZRNCsTda281eXnk?Login_User=" + userEmail + "&CRM_Admin_User=" + crmAdminUser + "&Login_User_CRM_ID=" + userID + "&CRM_RECORD_ID=" + crmID + "&Comes_From=Sales_Orders";
+if(crmAdminUser)
+{
+	openUrl(url,"new window");
+}
+else
+{
+	info "You don't have permission to access this button!";
+}
+return "";
+}

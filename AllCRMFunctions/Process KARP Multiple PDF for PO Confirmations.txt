@@ -1,0 +1,28 @@
+string standalone.process_karp_multiple_pdf_for_po_confirmation(String crmAPIRequest)
+{
+crm_api_map = crmAPIRequest.toMap();
+params = crm_api_map.get("body");
+// params = {"id":"9569d679503894b97c903a5ed652c79e","received_at":"2020-07-18 15:09:50","processed_at":"2020-07-18 15:11:47","mail_attachments":[{"att_id":"DHw-F7t9FKSkUOyvXM_nbA","att_name":"Cendrex_MailParser_Sales_Order_Confirmation_.pdf","att_url":"https:\/\/files.mailparser.io\/f\/DHw-F7t9FKSkUOyvXM_nbA","att_size":"175993","att_mime":"application\/pdf"},{"att_id":"gqkqtWiikMtY_lsdMuB_hA","att_name":"Sales_Order_VC20-13792.pdf","att_url":"https:\/\/files.mailparser.io\/f\/gqkqtWiikMtY_lsdMuB_hA","att_size":"736122","att_mime":"application\/pdf"},{"att_id":"tVyYXhMRIUXvcex7A4l_Rg","att_name":"Ordre_de_vente.pdf","att_url":"https:\/\/files.mailparser.io\/f\/tVyYXhMRIUXvcex7A4l_Rg","att_size":"37105","att_mime":"application\/pdf"},{"att_id":"mj6sVgPtTLU3lUYZAfcNUg","att_name":"Sales_Order_VC20-13783.pdf","att_url":"https:\/\/files.mailparser.io\/f\/mj6sVgPtTLU3lUYZAfcNUg","att_size":"736115","att_mime":"application\/pdf"},{"att_id":"y2_Ej3oW79AgzksliFd8JQ","att_name":"Sales_Order_VC20-13780.pdf","att_url":"https:\/\/files.mailparser.io\/f\/y2_Ej3oW79AgzksliFd8JQ","att_size":"736472","att_mime":"application\/pdf"}]};
+for each  mail_attachment in params.get("mail_attachments")
+{
+	if(mail_attachment.get("att_mime") != null && mail_attachment.get("att_mime").containsIgnoreCase("pdf"))
+	{
+		url = mail_attachment.get("att_url");
+		url = url.replaceAll("\\","");
+		file_stream = invokeurl
+		[
+			url :url
+			type :GET
+		];
+		sendmail
+		[
+			from :zoho.adminuserid
+			to :"dmrtehyb@mailparser.io"
+			subject :"Processed from Multiple PDF for KARP " + mail_attachment.get("att_name")
+			message :"Processed from Multiple PDF for KARP " + mail_attachment.get("att_name")
+			Attachments :file:file_stream
+		]
+	}
+}
+return "";
+}

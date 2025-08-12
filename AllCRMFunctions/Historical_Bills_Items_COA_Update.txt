@@ -1,0 +1,248 @@
+string standalone.Historical_Bills_Items_COA_Update(String billId)
+{
+/* Ezhilarasu 25/06/2020 */
+/* Books - Historical Bill Items COA Update */
+// crmRecordId = "3106252000101968003";
+OrganizationID = 666840843;
+// booksAuthToken = "352b62ac379a71fe6f7524fe107ebdd2";
+// Check and update bill
+billsRes = zoho.books.getRecordsByID("bills",OrganizationID,billId);
+// info billsRes;
+Output_response = billsRes;
+if(billsRes.get("code") == 0)
+{
+	billInfo = billsRes.get("bill");
+	billLineItemList = billInfo.get("line_items");
+	billLineItemUpdate = List();
+	itemExistinCrm = true;
+	updateBillCoa = false;
+	for each  billLineItemObj in billLineItemList
+	{
+		billLineItemMap = billLineItemObj.toMap();
+		billLineItemId = billLineItemMap.get("line_item_id");
+		billItemQty = billLineItemMap.get("quantity");
+		lineItemName = billLineItemMap.get("name");
+		billRate = billLineItemMap.get("rate");
+		billItemId = billLineItemMap.get("item_id");
+		billItemAccId = billLineItemMap.get("account_id");
+		itemsRes = zoho.books.getRecordsByID("items",OrganizationID,billItemId);
+		itemInfo = itemsRes.get("item");
+		itemName = itemInfo.get("name");
+		itemCustomFields = itemInfo.get("custom_field_hash");
+		itemCrmId = itemCustomFields.get("cf_crmrecorid");
+		// Skip Shipping Ex USD & CAD
+		if(billItemId == "1324986000026491986" || billItemId == "1324986000026509004")
+		{
+			// Shipping Cost Line Item
+			isCoaMatched = false;
+			if(lineItemName = "Shipping Ex - USD" && billItemAccId == "1324986000026491974")
+			{
+				isCoaMatched = true;
+			}
+			else if(lineItemName = "Shipping Ex - CAD" && billItemAccId == "1324986000026491980")
+			{
+				isCoaMatched = true;
+			}
+			info "Shipping COA Matched : " + isCoaMatched;
+			if(!isCoaMatched)
+			{
+				// Update Item Info
+				purchaseAccID = null;
+				if(lineItemName = "Shipping Ex - USD")
+				{
+					purchaseAccID = "1324986000026491974";
+				}
+				else if(lineItemName = "Shipping Ex - CAD")
+				{
+					purchaseAccID = "1324986000026491980";
+				}
+				if(purchaseAccID != null)
+				{
+					booksBillMap = Map();
+					booksBillMap.put("line_item_id",billLineItemId);
+					booksBillMap.put("quantity",billItemQty);
+					booksBillMap.put("rate",billRate);
+					booksBillMap.put("account_id",purchaseAccID);
+					billLineItemUpdate.add(booksBillMap);
+					// Update Books Item with Proper Vendor
+					updateBooksItem = Map();
+					if(purchaseAccID != null)
+					{
+						updateBooksItem.put("purchase_account_id",purchaseAccID);
+					}
+					booksItemUpdateRes = zoho.books.updateRecord("items",OrganizationID,billItemId,updateBooksItem);
+					// Update Flag to update bill COA
+					updateBillCoa = true;
+				}
+			}
+			else
+			{
+				// Add Bill Line Item
+				booksBillMap = Map();
+				booksBillMap.put("line_item_id",billLineItemId);
+				booksBillMap.put("quantity",billItemQty);
+				booksBillMap.put("rate",billRate);
+				booksBillMap.put("account_id",billItemAccId);
+				billLineItemUpdate.add(booksBillMap);
+			}
+		}
+		else
+		{
+			itemVendorName = itemCustomFields.get("cf_vendor_name");
+			crmProductRes = zoho.crm.getRecordById("Products",itemCrmId);
+			if(crmProductRes != null)
+			{
+				// Product Exist In CRM - Log
+				response = "Books Item Was Fount in CRM. Item CRM Record ID : " + itemCrmId;
+				logMap = Map();
+				logMap.put("Name","Item Exist In CRM : " + itemCrmId);
+				logMap.put("SalesOrder_Record_ID",billId.toString());
+				logMap.put("SalesOrder_Request","");
+				logMap.put("SO_Workflow_Name","Update Historical Books COA in Bills");
+				logMap.put("SalesOrder_Response",response);
+				endTime = now.toLong();
+				logMap.put("Start_Time",endTime.toString());
+				logMap.put("End_Time",endTime.toString());
+				createLog = zoho.crm.createRecord("Sales_Order_PO_Log",logMap);
+				crmItemVendorName = crmProductRes.get("Vendor_Name").get("name");
+				crmVendorCurrency = crmProductRes.get("Product_Currency");
+				updateItemInfo = false;
+				if(crmItemVendorName == itemVendorName)
+				{
+					// Books Item Vendor Matched with CRM Product Vendor
+					info "CRM Vendor Currency : " + crmVendorCurrency + " Books Item Account : " + billItemAccId;
+					isCoaMatched = false;
+					if(crmVendorCurrency == "USD" && billItemAccId == "1324986000025149419")
+					{
+						purchaseAccID = "1324986000025149419";
+					}
+					else if(crmVendorCurrency == "CAD" && billItemAccId == "1324986000000034003")
+					{
+						purchaseAccID = "1324986000000034003";
+					}
+					else
+					{
+						updateItemInfo = true;
+					}
+				}
+				else
+				{
+					updateItemInfo = true;
+				}
+				info "Update Item : " + updateItemInfo;
+				// Item Account Mismatched - Update Item Info
+				if(updateItemInfo)
+				{
+					// Update Flag to update bill COA
+					updateBillCoa = true;
+					// Vendor Mismatched - Update Vendor
+					info "Vendor Mis-Matched For Item " + itemCrmId + " CRM Vendor : " + crmItemVendorName + " Books Vendor : " + itemVendorName;
+					purchaseAccID = null;
+					if(crmVendorCurrency == "USD")
+					{
+						purchaseAccID = "1324986000025149419";
+					}
+					else if(crmVendorCurrency == "CAD")
+					{
+						purchaseAccID = "1324986000000034003";
+					}
+					booksBillMap = Map();
+					booksBillMap.put("line_item_id",billLineItemId);
+					booksBillMap.put("quantity",billItemQty);
+					booksBillMap.put("rate",billRate);
+					booksBillMap.put("account_id",purchaseAccID);
+					billLineItemUpdate.add(booksBillMap);
+					// Update Books Item with Proper Vendor
+					CustomFields = List();
+					CustomField = Map();
+					CustomField.put("label","Vendor Name");
+					CustomField.put("value",crmItemVendorName);
+					CustomFields.add(CustomField);
+					updateBooksItem = Map();
+					updateBooksItem.put("custom_fields",CustomFields);
+					// Update Purchase Account ID
+					if(purchaseAccID != null)
+					{
+						updateBooksItem.put("purchase_account_id",purchaseAccID);
+					}
+					booksItemUpdateRes = zoho.books.updateRecord("items",OrganizationID,billItemId,updateBooksItem);
+					info "Books Item Update Response : " + booksItemUpdateRes;
+					// Books Product Update - Log
+					logMap = Map();
+					logMap.put("Name","Update Books Item Info");
+					logMap.put("SalesOrder_Record_ID",billItemId.toString());
+					logMap.put("SalesOrder_Request",updateBooksItem);
+					logMap.put("SO_Workflow_Name","Update Historical Books COA in Bills");
+					logMap.put("SalesOrder_Response",booksItemUpdateRes);
+					endTime = now.toLong();
+					logMap.put("Start_Time",endTime.toString());
+					logMap.put("End_Time",endTime.toString());
+					createLog = zoho.crm.createRecord("Sales_Order_PO_Log",logMap);
+				}
+				else
+				{
+					booksBillMap = Map();
+					booksBillMap.put("line_item_id",billLineItemId);
+					booksBillMap.put("quantity",billItemQty);
+					booksBillMap.put("rate",billRate);
+					booksBillMap.put("account_id",billItemAccId);
+					billLineItemUpdate.add(booksBillMap);
+				}
+			}
+			else
+			{
+				// Product Not Exist In CRM - Log
+				response = "Books Item Was Not Fount in CRM. Item CRM Record ID : " + itemCrmId;
+				logMap = Map();
+				logMap.put("Name","Item Not Exist In CRM");
+				logMap.put("SalesOrder_Record_ID",billId.toString());
+				logMap.put("SalesOrder_Request","");
+				logMap.put("SO_Workflow_Name","Update Historical Books COA in Bills");
+				logMap.put("SalesOrder_Response",response);
+				endTime = now.toLong();
+				logMap.put("Start_Time",endTime.toString());
+				logMap.put("End_Time",endTime.toString());
+				createLog = zoho.crm.createRecord("Sales_Order_PO_Log",logMap);
+				// Product Not Exist in CRM - Dont Update Bills 
+				itemExistinCrm = false;
+				break;
+			}
+		}
+	}
+	info "Item Exist IN CRM : " + itemExistinCrm + " Update Bill COA : " + updateBillCoa;
+	info "Bill Update Data : " + billLineItemUpdate;
+	if(itemExistinCrm && updateBillCoa)
+	{
+		// Update Bill COA Info
+		billUpdateMap = Map();
+		billUpdateMap.put("line_items",billLineItemUpdate);
+		billUpdateRes = zoho.books.updateRecord("bills",OrganizationID,billId,billUpdateMap);
+		info "Books Bill Update Response : " + billUpdateRes;
+		// Update Bills Info - Log
+		Output_response = billUpdateRes;
+		logMap = Map();
+		logMap.put("Name","Update Books Bills COA");
+		logMap.put("SalesOrder_Record_ID",billId.toString());
+		logMap.put("SalesOrder_Request",billUpdateMap);
+		logMap.put("SO_Workflow_Name","Update Historical Books COA in Bills");
+		logMap.put("SalesOrder_Response",billUpdateRes);
+		endTime = now.toLong();
+		logMap.put("Start_Time",endTime.toString());
+		logMap.put("End_Time",endTime.toString());
+		createLog = zoho.crm.createRecord("Sales_Order_PO_Log",logMap);
+	}
+	else if(itemExistinCrm && !updateBillCoa)
+	{
+		output_map = Map();
+		output_map.put("output","correct coa");
+		Output_response = output_map;
+	}
+	else if(!itemExistinCrm)
+	{
+		output_map = Map();
+		output_map.put("output","item not exist in zoho crm");
+		Output_response = output_map;
+	}
+}
+return Output_response;
+}

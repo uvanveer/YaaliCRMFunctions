@@ -1,0 +1,52 @@
+void schedule.amazon_duplicate_product_find_delete()
+{
+/* Ezhilarasu 25/06/2020 */
+/* Get Amazon Duplicate Products */
+crmRecordId = "3106252000103912721";
+updateBillsData = zoho.crm.getRecordById("BooksCOAUpdate",crmRecordId);
+pageCount = updateBillsData.get("Page_Count");
+// Identify Duplicate Amazon Item
+if(pageCount == 22)
+{
+	sendmail
+	[
+		from :zoho.loginuserid
+		to :"ezhil@bizappln.com"
+		subject :"Amazon Duplicate Products"
+		message :"<div>Hi Ezhil<br><br>Duplicate Product Schedule Was Processed.</div>"
+	]
+}
+else
+{
+	duplicateProductCode = list();
+	recordsList = zoho.crm.searchRecords("Products","(Source:equals:Amazon Store)",pageCount,200);
+	for each  productRecord in recordsList
+	{
+		productCode = productRecord.get("Product_Code");
+		listingId = productRecord.get("Listing_Id");
+		asin = productRecord.get("ASIN");
+		productInfoRecord = zoho.crm.searchRecords("Products","((Source:equals:Amazon Store) and  (Product_Code:equals:" + productCode + ") and (Listing_Id:equals:" + listingId + ") and (ASIN:equals:" + asin + "))",1,50);
+		if(productInfoRecord.size() > 1)
+		{
+			// info productInfoRecord.size();
+			duplicateProductCode.add(productCode);
+		}
+	}
+	pageCount = pageCount.toLong();
+	pageCount = pageCount + 1;
+	updatePageCount = Map();
+	updatePageCount.put("Page_Count",pageCount.toString());
+	updatedInfo = zoho.crm.updateRecord("BooksCOAUpdate",crmRecordId,updatePageCount);
+	info duplicateProductCode;
+	if(duplicateProductCode.size() > 0)
+	{
+		sendmail
+		[
+			from :zoho.loginuserid
+			to :"ezhil@bizappln.com"
+			subject :"Amazon Duplicate Products"
+			message :"<div>Hi Ezhil<br><br>Duplicate Products :&nbsp;" + duplicateProductCode + "</div>"
+		]
+	}
+}
+}
