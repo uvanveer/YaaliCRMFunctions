@@ -1,0 +1,188 @@
+void automation.PO_Verify_Shipping_Details_Mismatched_Notification(String purchaseOrderId,String purchaseOrderStatus)
+{
+/* Created By Ezhil on 13 August 2020 */
+/* Send email notification if the PO customer shipping details mismatched */
+dropshipOrderInfo = zoho.crm.getRecordById("Purchase_Orders",purchaseOrderId);
+// Purchase Order Shipping Info
+shippingFirstname = dropshipOrderInfo.get("Shipping_First_Name");
+shippingLastname = dropshipOrderInfo.get("Shipping_Last_Name");
+shippingPhone = dropshipOrderInfo.get("Shipping_Phone");
+shippingEmail = dropshipOrderInfo.get("Shipping_Email");
+shippingCompany = dropshipOrderInfo.get("Shipping_Company");
+shippingStreet = dropshipOrderInfo.get("Shipping_Street");
+shippingStreet2 = dropshipOrderInfo.get("Shipping_Street_2");
+shippingCity = dropshipOrderInfo.get("Shipping_City");
+shippingState = dropshipOrderInfo.get("Shipping_State");
+shippingCode = dropshipOrderInfo.get("Shipping_Code");
+shippingCountry = dropshipOrderInfo.get("Shipping_Country");
+// Sale Order Info
+saleOrderId = dropshipOrderInfo.get("Sales_Order").get("id");
+dropshipOrderSource = dropshipOrderInfo.get("Source");
+//Get OAuthHashCode Zoho Crm variable
+BADAuthorization = zoho.crm.getOrgVariable("OAuthHashCode");
+if(saleOrderId != null && saleOrderId != "")
+{
+	saleOrderInfo = zoho.crm.getRecordById("Sales_Orders",saleOrderId);
+	// Sale Order Shipping Info
+	SoShippingFirstname = saleOrderInfo.get("Shipping_First_Name");
+	SoShippingLastname = saleOrderInfo.get("Shipping_Last_Name");
+	SoShippingPhone = saleOrderInfo.get("Shipping_Phone");
+	SoShippingEmail = saleOrderInfo.get("Shipping_Email");
+	SoShippingCompany = saleOrderInfo.get("Shipping_Company");
+	SoShippingStreet = saleOrderInfo.get("Shipping_Street");
+	SoShippingStreet2 = saleOrderInfo.get("Shipping_Street_2");
+	SoShippingCity = saleOrderInfo.get("Shipping_City");
+	SoShippingState = saleOrderInfo.get("Shipping_State");
+	SoShippingCode = saleOrderInfo.get("Shipping_Code");
+	SoShippingCountry = saleOrderInfo.get("Shipping_Country");
+	if(shippingFirstname != null && !shippingFirstname.equals(SoShippingFirstname) || shippingLastname != null && !shippingLastname.equals(SoShippingLastname) || shippingPhone != null && !shippingPhone.equals(SoShippingPhone) || shippingEmail != null && !shippingEmail.equals(SoShippingEmail) || shippingCompany != null && !shippingCompany.equals(SoShippingCompany) || shippingStreet != null && !shippingStreet.equals(SoShippingStreet) || shippingStreet2 != null && !shippingStreet2.equals(SoShippingStreet2) || shippingCity != null && !shippingCity.equals(SoShippingCity) || shippingState != null && !shippingState.equals(SoShippingState) || shippingCode != null && !shippingCode.equals(SoShippingCode) || shippingCountry != null && !shippingCountry.equals(SoShippingCountry))
+	{
+		tableData = "<div><br><table style='width: 100%; font-size: 10pt; font-family: Arial, Helvetica, sans-serif; border: 1px solid black; color: black;' border='1' cellspacing='2' cellpadding='2'> <tbody> <tr> <td style='width: 149px;'> <div>Column Name<br></div> </td> <td style='width: 149px;'> <div>Saleorder Value<br></div> </td> <td style='width: 149px;'> <div>Purchaseorder Value<br></div> </td> </tr>";
+		tableData = tableData + "<tr> <td style='width: 149px;'> Shipping First Name <br></td> <td style='width: 149px;'>" + SoShippingFirstname + "<br></td> <td style='width: 149px;'> <div>" + shippingFirstname + "<br></div> </td> </tr>";
+		tableData = tableData + "<tr> <td style='width: 149px;'> Shipping Last Name <br></td> <td style='width: 149px;'>" + SoShippingLastname + "<br></td> <td style='width: 149px;'> <div>" + shippingLastname + "<br></div> </td> </tr>";
+		tableData = tableData + "<tr> <td style='width: 149px;'> Shipping Phone <br></td> <td style='width: 149px;'>" + SoShippingPhone + "<br></td> <td style='width: 149px;'> <div>" + shippingPhone + "<br></div> </td> </tr>";
+		tableData = tableData + "<tr> <td style='width: 149px;'> Shipping Email <br></td> <td style='width: 149px;'>" + SoShippingEmail + "<br></td> <td style='width: 149px;'> <div>" + shippingEmail + "<br></div> </td> </tr>";
+		tableData = tableData + "<tr> <td style='width: 149px;'> Shipping Company <br></td> <td style='width: 149px;'>" + SoShippingCompany + "<br></td> <td style='width: 149px;'> <div>" + shippingCompany + "<br></div> </td> </tr>";
+		tableData = tableData + "<tr> <td style='width: 149px;'> Shipping Street <br></td> <td style='width: 149px;'>" + SoShippingStreet + "<br></td> <td style='width: 149px;'> <div>" + shippingStreet + "<br></div> </td> </tr>";
+		tableData = tableData + "<tr> <td style='width: 149px;'> Shipping Street 2 <br></td> <td style='width: 149px;'>" + SoShippingStreet2 + "<br></td> <td style='width: 149px;'> <div>" + shippingStreet2 + "<br></div> </td> </tr>";
+		tableData = tableData + "<tr> <td style='width: 149px;'> Shipping City <br></td> <td style='width: 149px;'>" + SoShippingCity + "<br></td> <td style='width: 149px;'> <div>" + shippingCity + "<br></div> </td> </tr>";
+		tableData = tableData + "<tr> <td style='width: 149px;'> Shipping State <br></td> <td style='width: 149px;'>" + SoShippingState + "<br></td> <td style='width: 149px;'> <div>" + shippingState + "<br></div> </td> </tr>";
+		tableData = tableData + "<tr> <td style='width: 149px;'> Shipping Code <br></td> <td style='width: 149px;'>" + SoShippingCode + "<br></td> <td style='width: 149px;'> <div>" + shippingCode + "<br></div> </td> </tr>";
+		tableData = tableData + "<tr> <td style='width: 149px;'> Shipping Country <br></td> <td style='width: 149px;'>" + SoShippingCountry + "<br></td> <td style='width: 149px;'> <div>" + shippingCountry + "<br></div> </td> </tr>";
+		tableData = tableData + "</tbody> </table><br><br></div>";
+		// SHIPPING ADDRESS MIS_MATCHED
+		emailSendUrl = "https://1.door-pay.com/api/Office360Mail/v2/sendreq";
+		emailToken = "59AACEAFB2CE53271A6048D2D385D4C800587C0D047F8B07958934F710AE5D7891FB4EC28BB2FA684F638630E9EF76F7D19D22EE9A20EE892625DC2FCEDCD976";
+		emailListData = list();
+		emailList = list();
+		saleOrderUrl = "https://crm.zoho.com/crm/org663942562/tab/SalesOrders/" + saleOrderId;
+		purchaseOrderUrl = "https://crm.zoho.com/crm/org663942562/tab/PurchaseOrders/" + purchaseOrderId;
+		emailSubject = "CRM Dropship order billing details mismatched.";
+		emailBody = "<div>Hi Anthony,<br></div><div><br></div><div>We have identified a purchase order with mismatched billing details.<br><br>Sales Order URL :&nbsp;" + saleOrderUrl + "</div><div><br></div><div>Purchase Order URL :&nbsp;" + purchaseOrderUrl + "<br></div>" + tableData + "<div>Thanks.</div>";
+		emailList.add("dinesh@bizappln.com");
+		// 		emailList.add("tharmendheran@bizappln.com");
+		emailList.add("balaji@bizappln.com");
+		emailList.add("prabhu@bizappln.com");
+		emailList.add("jegan@bizappln.com");
+		emailList.add("pooja@bizappln.com");
+		emailList.add("notifications@bestaccessdoors.com");
+		emailList.add("dev@bestaccessdoors.com");
+		emailList.add("zyarina@bestaccessdoors.com");
+		// 		emailList.add("citrigno@bestaccessdoors.com");
+		mailArrayDataObject = Map();
+		mailArrayDataObject.put("to",emailList);
+		mailArrayDataObject.put("subject",emailSubject);
+		mailArrayDataObject.put("body",emailBody);
+		mailArrayDataObject.put("Scope","PO Verify shipping details mismatched");
+		emailListData.add(mailArrayDataObject);
+		mailMap = Map();
+		mailMap.put("MailArray",emailListData);
+		mailMap.put("Authtoken",emailToken);
+		// Header
+		emailHeader = Map();
+		emailHeader.put("content-type","application/json");
+		emailHeader.put("BADAuthorization",BADAuthorization);
+		response = invokeurl
+		[
+			url :emailSendUrl
+			type :POST
+			parameters:mailMap.toString()
+			headers:emailHeader
+			detailed:false
+		];
+		info response;
+	}
+}
+// Check Billing Info With Store Info
+shippingFirstname = dropshipOrderInfo.get("Billing_First_Name");
+shippingLastname = dropshipOrderInfo.get("Billing_Last_Name");
+shippingPhone = dropshipOrderInfo.get("Billing_Phone");
+shippingEmail = dropshipOrderInfo.get("Billing_Email");
+shippingStreet = dropshipOrderInfo.get("Billing_Street");
+shippingStreet2 = dropshipOrderInfo.get("Billing_Street_2");
+shippingCity = dropshipOrderInfo.get("Billing_City");
+shippingState = dropshipOrderInfo.get("Billing_State");
+shippingCode = dropshipOrderInfo.get("Billing_Code");
+shippingCountry = dropshipOrderInfo.get("Billing_Country");
+// Billing Details Matches with store
+if(dropshipOrderInfo.get("Store") != null)
+{
+	storeInfo = dropshipOrderInfo.get("Store");
+	storeId = storeInfo.get("id");
+}
+if(storeId != null)
+{
+	storeInfoData = zoho.crm.getRecordById("Stores",storeId);
+	// Store Info
+	storeFirstName = storeInfoData.get("First_Name");
+	storeLastName = storeInfoData.get("Last_Name");
+	storePhone = storeInfoData.get("Phone");
+	storeEmail = storeInfoData.get("Email");
+	storeStreet = storeInfoData.get("Street");
+	storeCity = storeInfoData.get("City");
+	storeState = storeInfoData.get("State");
+	storeCode = storeInfoData.get("Code");
+	storeCountry = storeInfoData.get("Country");
+	if(shippingFirstname != null && !shippingFirstname.equals(storeFirstName) || shippingLastname != null && !shippingLastname.equals(storeLastName) || shippingPhone != null && !shippingPhone.equals(storePhone) || shippingEmail != null && !shippingEmail.equals(storeEmail) || shippingStreet != null && !shippingStreet.equals(storeStreet) || shippingCity != null && !shippingCity.equals(storeCity) || shippingState != null && !shippingState.equals(storeState) || shippingCode != null && !shippingCode.equals(storeCode) || shippingCountry != null && !shippingCountry.equals(storeCountry))
+	{
+		tableData = "<div><br><table style='width: 100%; font-size: 10pt; font-family: Arial, Helvetica, sans-serif; border: 1px solid black; color: black;' border='1' cellspacing='2' cellpadding='2'> <tbody> <tr> <td style='width: 149px;'> <div>Column Name<br></div> </td> <td style='width: 149px;'> <div>Purchaseorder Value<br></div> </td> <td style='width: 149px;'> <div>Store Value<br></div> </td> </tr>";
+		tableData = tableData + "<tr> <td style='width: 149px;'> Billing First Name <br></td> <td style='width: 149px;'>" + shippingFirstname + "<br></td> <td style='width: 149px;'> <div>" + storeFirstName + "<br></div> </td> </tr>";
+		tableData = tableData + "<tr> <td style='width: 149px;'> Billing Last Name <br></td> <td style='width: 149px;'>" + shippingLastname + "<br></td> <td style='width: 149px;'> <div>" + storeLastName + "<br></div> </td> </tr>";
+		tableData = tableData + "<tr> <td style='width: 149px;'> Billing Phone <br></td> <td style='width: 149px;'>" + shippingPhone + "<br></td> <td style='width: 149px;'> <div>" + storePhone + "<br></div> </td> </tr>";
+		tableData = tableData + "<tr> <td style='width: 149px;'> Billing Email <br></td> <td style='width: 149px;'>" + shippingEmail + "<br></td> <td style='width: 149px;'> <div>" + storeEmail + "<br></div> </td> </tr>";
+		tableData = tableData + "<tr> <td style='width: 149px;'> Billing Company <br></td> <td style='width: 149px;'>" + shippingStreet + "<br></td> <td style='width: 149px;'> <div>" + storeStreet + "<br></div> </td> </tr>";
+		tableData = tableData + "<tr> <td style='width: 149px;'> Billing Street <br></td> <td style='width: 149px;'>" + shippingCity + "<br></td> <td style='width: 149px;'> <div>" + storeCity + "<br></div> </td> </tr>";
+		tableData = tableData + "<tr> <td style='width: 149px;'> Billing State <br></td> <td style='width: 149px;'>" + shippingState + "<br></td> <td style='width: 149px;'> <div>" + storeState + "<br></div> </td> </tr>";
+		tableData = tableData + "<tr> <td style='width: 149px;'> Billing Code <br></td> <td style='width: 149px;'>" + shippingCode + "<br></td> <td style='width: 149px;'> <div>" + storeCode + "<br></div> </td> </tr>";
+		tableData = tableData + "<tr> <td style='width: 149px;'> Billing Country <br></td> <td style='width: 149px;'>" + shippingCountry + "<br></td> <td style='width: 149px;'> <div>" + storeCountry + "<br></div> </td> </tr>";
+		tableData = tableData + "</tbody> </table><br><br></div>";
+		// BILLING ADDRESS MIS_MATCHED
+		emailSendUrl = "https://1.door-pay.com/api/Office360Mail/v2/sendreq";
+		emailToken = "59AACEAFB2CE53271A6048D2D385D4C800587C0D047F8B07958934F710AE5D7891FB4EC28BB2FA684F638630E9EF76F7D19D22EE9A20EE892625DC2FCEDCD976";
+		emailListData = list();
+		emailList = list();
+		purchaseOrderUrl = "https://crm.zoho.com/crm/org663942562/tab/PurchaseOrders/" + purchaseOrderId;
+		emailSubject = "CRM Dropship order billing details mismatched.";
+		emailBody = "<div>Hi Anthony,<br></div><div><br></div><div>We have identified a purchase order with mismatched billing details.</div><div><br></div><div>Purchase Order URL :&nbsp;" + purchaseOrderUrl + "<br></div><div><br></div><div>Thanks.</div>";
+		emailList.add("dinesh@bizappln.com");
+		// 		emailList.add("tharmendheran@bizappln.com");
+		emailList.add("surya.k@bizappln.com");
+		emailList.add("ragul.r@bizappln.com");
+		emailList.add("balaji@bizappln.com");
+		emailList.add("ganesh@bizappln.com");
+		emailList.add("vijay.vr@bizappln.com");
+		// 		emailList.add("prabhu@bizappln.com");
+		// 		emailList.add("jegan@bizappln.com");
+		emailList.add("yogesh@bizappln.com");
+		emailList.add("mohan@bizappln.com");
+		emailList.add("bharathi@bizappln.com");
+		emailList.add("pooja@bizappln.com");
+		emailList.add("notifications@bestaccessdoors.com");
+		emailList.add("dev@bestaccessdoors.com");
+		emailList.add("zyarina@bestaccessdoors.com");
+		// 		emailList.add("citrigno@bestaccessdoors.com");
+		mailArrayDataObject = Map();
+		mailArrayDataObject.put("to",emailList);
+		mailArrayDataObject.put("subject",emailSubject);
+		mailArrayDataObject.put("body",emailBody);
+		mailArrayDataObject.put("Scope","Shipping details details mismatched");
+		emailListData.add(mailArrayDataObject);
+		mailMap = Map();
+		mailMap.put("MailArray",emailListData);
+		mailMap.put("Authtoken",emailToken);
+		// Header
+		emailHeader = Map();
+		emailHeader.put("content-type","application/json");
+		emailHeader.put("BADAuthorization",BADAuthorization);
+		response = invokeurl
+		[
+			url :emailSendUrl
+			type :POST
+			parameters:mailMap.toString()
+			headers:emailHeader
+			detailed:false
+		];
+		info response;
+	}
+}
+}

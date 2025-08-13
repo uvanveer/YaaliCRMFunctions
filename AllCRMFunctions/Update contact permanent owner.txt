@@ -1,0 +1,10 @@
+void automation.Update_contact_permanent_owner(String contact_id)
+{
+contact_details = zoho.crm.getRecordById("contacts",contact_id);
+if(contact_details.get("Permanent_Owner_Set") == true)
+{
+	temp_data = Map();
+	temp_data.put("Owner",contact_details.get("Secondary_Permanent_Contact_Owner"));
+	update_contact = zoho.crm.updateRecord("contacts",contact_id,temp_data,{"trigger":{}});
+}
+}

@@ -1,0 +1,210 @@
+string standalone.Testing_Bills()
+{
+Page_Count = 100;
+Record_count = 10;
+// Get_Pagination_details = zoho.crm.getRecordById("Tag_syncing_schedule","3106252000106962049");
+// Page_Count = Get_Pagination_details.get("Function_Execution");
+// Page_Count = Page_Count.toLong();
+// Updated_Page_Count = Page_Count + 1;
+// Update_log = Map();
+// Update_log.put("Function_Execution",Updated_Page_Count.toString());
+// Get_Updated_Page = zoho.crm.updateRecord("Tag_syncing_schedule","3106252000106962049",Update_log);
+// info Get_Updated_Page;
+// Ord_Id = "666840843";
+// Get_data = getUrl("https://books.zoho.com/api/v3/bills?page=" + Page_Count + "&per_page=" + Record_count + "&bill_number_contains=new&sort_column=bill_number&sort_order=A&organization_id=666840843",{"Authorization":"Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2"});
+// info Get_data;
+// Get_bills = Get_data.get("bills");
+// info Get_bills;
+New_Bill_id = 1324986000032009104;
+Get_new_Bill_details = zoho.books.getRecordsByID("Bills","666840843",New_Bill_id);
+info Get_new_Bill_details.get("bill").get("vendor_credits").size();
+// Get_bill = getUrl("https://books.zoho.com/api/v3/vendorcredits/vendor_credit_id?organization_id=666840843",{"Authorization":"Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2"});
+// info "Bill_data" + Get_bill;
+// Get_comment_description = rec_comment_map.get("description");
+// vendor_credit_id = 1324986000031619349;
+// 					Header_map = Map();
+// 					Header_map.put("Authorization","Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2");
+// 				Vendor_open_url = 	 "https://books.zoho.com/api/v3/vendorcredits/" + vendor_credit_id +"/status/open?organization_id=666840843";
+// 				Open_venddor_Bill = postUrl(Vendor_open_url,Header_map);
+// 					info Open_venddor_Bill;
+// 					Bill_amt = Map();
+// 					Bill_amt.put("bill_id",1324986000031912428);
+// 					Bill_amt.put("amount_applied", 25.2);
+// 					vendor_credits_list = LIST();
+// 					vendor_credits_list.add(Bill_amt);
+// 					vendor_credits = MAP();
+// 					vendor_credits.put("bills",vendor_credits_list);
+// 					Jsonmap = Map();
+// 					Jsonmap.put("JSONString",vendor_credits);
+// 					vendor_credit_id = 1324986000031619349;
+// 					Vendor_url = "https://books.zoho.com/api/v3/vendorcredits/" + vendor_credit_id + "/bills?organization_id=666840843";
+// 					Add_vendorcredits = postUrl(Vendor_url,Jsonmap,Header_map);
+// 					info Add_vendorcredits;
+/*
+for each  rec_bill in Get_bills
+{
+	rec_Bill_map = rec_bill.toMap();
+	Get_Bill_number = rec_Bill_map.get("bill_number");
+	Get_old_bill_id = rec_Bill_map.get("cf_bill_id");
+	Get_processed = rec_Bill_map.get("cf_bill_processed");
+	Get_old_bill_id = 1324986000029500438;
+	if(Get_processed != "true")
+	{
+		New_Bill_id = rec_Bill_map.get("bill_id");
+		New_Bill_id = 1324986000032009104;
+		Get_new_Bill_details = zoho.books.getRecordsByID("Bills",Ord_Id,New_Bill_id);
+		info Get_new_Bill_details;
+		New_bill_details = Get_new_Bill_details.get("bill");
+		New_bill_linedetails = New_bill_details.get("line_items");
+		shipping_flag = 0;
+		if(Get_Bill_number.contains("New") && !isNull(Get_old_bill_id))
+		{
+			Get_old_Bill = zoho.books.getRecordsByID("Bills",Ord_Id,Get_old_bill_id);
+			info Get_old_Bill;
+			Get_old_bill_details = Get_old_Bill.get("bill");
+			Get_old_bill_date = Get_old_bill_details.get("date");
+			Get_old_bill_due_date = Get_old_bill_details.get("due_date");
+			Get_terms_label = Get_old_bill_details.get("payment_terms_label");
+			Get_adjustment_description = Get_old_bill_details.get("adjustment_description");
+			Get_adjustment_description_amt = Get_old_bill_details.get("adjustment");
+			Get_taxes = Get_old_bill_details.get("taxes");
+			if(Get_taxes.size() > 0)
+			{
+				Get_tax_map = Get_taxes.toMap();
+				Get_Tax_Name = Get_tax_map.get("tax_name");
+				info "Tax_id" + Get_Tax_Name;
+			}
+			Get_terms = Get_old_bill_details.get("payment_terms");
+			Get_old_Billattachment = getUrl("https://books.zoho.com/api/v3/bills/" + Get_old_bill_id + "/attachment?organization_id=666840843",{"Authorization":"Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2"});
+			info Get_old_Billattachment;
+			url = "https://books.zoho.com/api/v3/bills/" + New_Bill_id + "/attachment?organization_id=666840843";
+			Header_map = Map();
+			Header_map.put("Authorization","Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2");
+// 			if(isFile(Get_old_Billattachment))
+// 			{
+// 				Get_old_Billattachment.setParamName("attachment");
+// 				add_attachment = invokeurl
+// 				[
+// 					url :url
+// 					type :POST
+// 					headers:Header_map
+// 					files:Get_old_Billattachment
+// 				];
+// 				info add_attachment;
+// 			}
+			Get_Old_BillsComments = getUrl("https://books.zoho.com/api/v3/bills/" + Get_old_bill_id + "/comments?organization_id=666840843",{"Authorization":"Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2"});
+			info Get_Old_BillsComments;
+			Get_all_comments = Get_Old_BillsComments.get("comments");
+			for each  rec_comment in Get_all_comments
+			{
+				rec_comment_map = rec_comment.toMAP();
+				comment_type = rec_comment_map.get("comment_type");
+// 				if(comment_type == "internal")
+// 				{
+// 					Get_comment_description = rec_comment_map.get("description");
+// 					Header_map = Map();
+// 					Header_map.put("Authorization","Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2");
+// 					comment_map = Map();
+// 					comment_map.put("description",Get_comment_description);
+// 					Jsonmap = Map();
+// 					Jsonmap.put("JSONString",comment_map);
+// 					comments_url = "https://books.zoho.com/api/v3/bills/" + New_Bill_id + "/comments?organization_id=666840843";
+// 					Add_comments = postUrl(comments_url,Jsonmap,Header_map);
+// 					info Add_comments;
+// 				}
+			}
+			Update_map = Map();
+			Update_map.put("date",Get_old_bill_date);
+			Update_map.put("due_date",Get_old_bill_due_date);
+			Update_map.put("payment_terms_label",Get_terms_label);
+			Update_map.put("payment_terms",Get_terms);
+			lineitem_tax_id = "";
+			Get_Old_Bill_Lineitems = Get_old_bill_details.get("line_items");
+			if(Get_taxes.size() > 0)
+			{
+				Tax_list = LIST();
+				Tax_map = Map();
+				Tax_map.put("tax_name",Get_Tax_Name);
+				Tax_list.add(Tax_map);
+				Update_map.put("taxes",Tax_list);
+				for each  newlineitem in Get_Old_Bill_Lineitems
+				{
+					newlineitemmap = newlineitem.toMAP();
+					lineitem_tax_id = newlineitemmap.get("tax_id");
+					if(!isNull(lineitem_tax_id))
+					{
+						break;
+					}
+				}
+			}
+			if(!isNull(Get_adjustment_description_amt) && !isNull(Get_adjustment_description))
+			{
+				Update_map.put("adjustment_description",Get_adjustment_description);
+				Update_map.put("adjustment",Get_adjustment_description_amt);
+			}
+			//Add shipping line items
+			
+			Bill_lineitem_list = LIST();
+			for each  rec_newlineitem in New_bill_linedetails
+			{
+				rec_newlineitemmap = rec_newlineitem.toMAP();
+				Books_Itemid = rec_newlineitemmap.get("item_id");
+				Books_Itemname = rec_newlineitemmap.get("name");
+				if(Books_Itemname.contains("Shipping"))
+				{
+					shipping_flag = 1;
+				}
+				Books_itemQuantity = rec_newlineitemmap.get("quantity");
+				Books_itemrate = rec_newlineitemmap.get("rate");
+				
+				Line_item_map = Map();
+				Line_item_map.put("item_id",Books_Itemid);
+				Line_item_map.put("quantity",Books_itemQuantity);
+				Line_item_map.put("rate",Books_itemrate);
+				if(lineitem_tax_id != "")
+				{
+					Line_item_map.put("tax_id",lineitem_tax_id);
+				}
+				Bill_lineitem_list.add(Line_item_map);
+			}
+			if(shipping_flag == 0)
+			{
+				for each  rec_lineitem in Get_Old_Bill_Lineitems
+				{
+					rec_lineitemmap = rec_lineitem.toMAP();
+					Books_Item_id = rec_lineitemmap.get("item_id");
+					Books_Item_name = rec_lineitemmap.get("name");
+					Books_Item_sku = rec_lineitemmap.get("sku");
+					Books_item_Quantity = rec_lineitemmap.get("quantity");
+					Books_item_rate = rec_lineitemmap.get("rate");
+					if(Books_Item_name.contains("Shipping"))
+					{
+						Shipping_Item_map = Map();
+						Shipping_Item_map.put("item_id",Books_Item_id);
+						Shipping_Item_map.put("quantity",Books_item_Quantity);
+						Shipping_Item_map.put("rate",Books_item_rate);
+						if(lineitem_tax_id != "")
+						{
+							Shipping_Item_map.put("tax_id",lineitem_tax_id);
+						}
+						info "SHipping_map:" + Shipping_Item_map;
+						Bill_lineitem_list.add(Shipping_Item_map);
+					}
+				}
+			}
+			Update_map.put("line_items",Bill_lineitem_list);
+			Custom_field_list = LIST();
+			Custom_field_map = Map();
+			Custom_field_map.put("label","Bill Processed");
+			Custom_field_map.put("value","true");
+			Custom_field_list.add(Custom_field_map);
+			Update_map.put("custom_fields",Custom_field_list);
+			info Update_map;
+// 			Update_new_bill = zoho.books.updateRecord("Bills",Ord_Id,New_Bill_id,Update_map);
+// 			info Update_new_bill;
+		}
+	}
+}
+*/
+return "";
+}

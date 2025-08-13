@@ -1,0 +1,10 @@
+void automation.Testing_Email()
+{
+response = invokeurl
+[
+	url :"https://www.zohoapis.com/crm/v2.2/Contacts/3106252000472417525/Emails"
+	type :GET
+	connection:"crm_connection"
+];
+info response;
+}

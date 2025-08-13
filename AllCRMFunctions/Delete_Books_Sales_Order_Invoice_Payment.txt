@@ -1,0 +1,71 @@
+void schedule.Delete_Books_Sales_Order_Invoice_Payment(String saleOrderId)
+{
+/* Updated By Ezhil on 07 July 2020 */
+/* Delete Bigcommerce Sales Order & Respective Invoice & Respective In Books For the Orders not synced with coupon */
+booksOrgId = 666840843;
+crmSaleOrderRes = zoho.crm.getRecordById("Sales_Orders",saleOrderId);
+bcUniqueId = crmSaleOrderRes.get("BigCommerce_Unique_ID");
+searchParam = Map();
+searchParam.put("cf_bigcommerce_unique_id",bcUniqueId);
+booksOrderInfo = zoho.books.getRecords("salesorders",booksOrgId,searchParam);
+if(booksOrderInfo.get("salesorders").size() > 0)
+{
+	for each  bookSaleOrderInfo in booksOrderInfo.get("salesorders")
+	{
+		bookSaleOrderId = bookSaleOrderInfo.get("salesorder_id");
+		crmSaleOrderId = bookSaleOrderInfo.get("cf_crm_salesorder_id");
+		bcOrderUniqueId = bookSaleOrderInfo.get("cf_bigcommerce_unique_id");
+		salesOrderSource = bookSaleOrderInfo.get("cf_source");
+		// Get Sale Order Respective Invoice
+		searchInvoice = Map();
+		searchInvoice.put("cf_bigcommerce_unique_id",bcOrderUniqueId);
+		booksInvoiceInfo = zoho.books.getRecords("invoices",booksOrgId,searchInvoice);
+		// info "Invoice Response : " + booksInvoiceInfo;
+		if(booksInvoiceInfo.get("message").equals("success"))
+		{
+			invoiceList = booksInvoiceInfo.get("invoices");
+			info "Incoice Size : " + invoiceList.size();
+			searchPayment = Map();
+			searchPayment.put("cf_bigcommerce_unique_id",bcOrderUniqueId);
+			booksPaymentInfo = zoho.books.getRecords("customerpayments",booksOrgId,searchPayment);
+			if(booksPaymentInfo.get("message").equals("success"))
+			{
+				paymentList = booksPaymentInfo.get("customerpayments");
+				for each  paymentInfoData in paymentList
+				{
+					paymentId = paymentInfoData.get("payment_id");
+					paymentDelUrl = "https://www.zohoapis.com/books/v3/customerpayments/" + paymentId + "?organization_id=" + booksOrgId;
+					info "Delete Payment URL : " + paymentDelUrl + " Payment Size : " + paymentList.size();
+					deletePayment = invokeurl
+					[
+						url :paymentDelUrl
+						type :DELETE
+						connection:"new_zoho_books"
+					];
+				}
+			}
+			for each  invoiceInfoData in invoiceList
+			{
+				invoiceId = invoiceInfoData.get("invoice_id");
+				invoiceDelUrl = "https://www.zohoapis.com/books/v3/invoices/" + invoiceId + "?organization_id=" + booksOrgId;
+				info "Delete Invoice URL : " + invoiceDelUrl + " Invoice Size : " + invoiceList.size();
+				deleteInvoice = invokeurl
+				[
+					url :invoiceDelUrl
+					type :DELETE
+					connection:"new_zoho_books"
+				];
+			}
+		}
+		// Delete Sales Order From Books
+		// 		orderDelUrl = "https://books.zoho.com/api/v3/salesorders/" + bookSaleOrderId + "?organization_id=" + booksOrgId;
+		// 		info "Delete Sale Order URL : " + orderDelUrl;
+		// 		deleteSaleOrder = invokeurl
+		// 		[
+		// 			url :orderDelUrl
+		// 			type :DELETE
+		// 			connection:"new_zoho_books"
+		// 		];
+	}
+}
+}

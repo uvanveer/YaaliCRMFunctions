@@ -1,0 +1,269 @@
+string button.Create_Amazon_Return_Ticket_In_Desk_Button_Action(String amazonReturnRecId)
+{
+/* Ezhilarasu 24/06/2020 */
+/* Create ticket in desk whenever new amazon order was returned */
+deskOrgId = 665802770;
+isTicketAlreadyExist = false;
+dataMap = Map();
+authToken = invokeurl
+[
+	url :"https://www.zohoapis.com/crm/v2/functions/generate_auth_token/actions/execute?auth_type=oauth"
+	type :GET
+	parameters:dataMap
+	connection:"crm_connection"
+];
+accessToken = authToken.get("details").get("output");
+info "Access Token : " + accessToken;
+amazonReturnOrderInfo = zoho.crm.getRecordById("Amazon_Order_Returns",amazonReturnRecId);
+storeInfo = amazonReturnOrderInfo.get("Store");
+amazonReturnOrderId = amazonReturnOrderInfo.get("Amazon_Order_ID");
+returnProdAsin = amazonReturnOrderInfo.get("Product_ASIN");
+storeName = storeInfo.get("name");
+coqlMap = Map();
+coqlMap.put("select_query","select Ticket_Created from Amazon_Order_Returns where ((Ticket_Created = 'true' and Amazon_Order_ID = '" + amazonReturnOrderId + "') and Product_ASIN = '" + returnProdAsin + "')");
+retunOrderList = invokeurl
+[
+	url :"https://www.zohoapis.com/crm/v2/coql"
+	type :POST
+	parameters:coqlMap.tostring()
+	connection:"crm_connection"
+];
+if(retunOrderList.get("data").size() >= 1)
+{
+	return "Ticket Already Created in Desk";
+}
+else
+{
+	if(storeName.equals("Amazon.com - ADAP"))
+	{
+		if(amazonReturnOrderInfo.get("Ticket_Created") != true)
+		{
+			// info amazonReturnOrderInfo;
+			amazonReturnOrderId = amazonReturnOrderInfo.get("Amazon_Order_ID");
+			amazonSaleOrderRecId = amazonReturnOrderInfo.get("Sale_Order").get("id");
+			amazonReturnCarrierName = amazonReturnOrderInfo.get("Carrier_Name");
+			amazonReturnTrackingId = amazonReturnOrderInfo.get("Tracking_ID");
+			amazonReturnReason = amazonReturnOrderInfo.get("Return_Reason");
+			amazonReturnRequestDate = amazonReturnOrderInfo.get("Return_Request_Date");
+			dropShipOrderNumber = "";
+			dropShipOrderId = "";
+			amazonReturnedProductRecId = amazonReturnOrderInfo.get("Returned_Product").get("id");
+			serchdropship = zoho.crm.searchRecords("Purchase_Orders","Sales_Order:equals:" + amazonSaleOrderRecId);
+			dropshiporderdeltionid = List();
+			if(serchdropship.size() > 0)
+			{
+				for each  dropshipInfo in serchdropship.toList()
+				{
+					productList = dropshipInfo.get("Product_Details");
+					for each  eachProductInfo in productList
+					{
+						productId = eachProductInfo.get("product").get("id");
+						if(amazonReturnedProductRecId == productId)
+						{
+							dropShipOrderId = dropshipInfo.get("id");
+							dropShipOrderNumber = dropshipInfo.get("Dropship_Number");
+						}
+					}
+				}
+				if(dropShipOrderId == "")
+				{
+					sendmail
+					[
+						from :zoho.loginuserid
+						to :"notifications@bestaccessdoors.com","dev@bestaccessdoors.com","ezhil@bizappln.com","balaji@bizappln.com"
+						subject :"Dropship Order Not Found"
+						message :"Hi Team,<br><br><div>We are not able to find the dropship order for the amazon return order with ID : " + amazonReturnOrderId + "<br><br>Because of that ticket creation will not be processed.&nbsp;</div><div><br></div><div>Thanks.</div>"
+					]
+				}
+			}
+			vendorEmail = "";
+			if(accessToken != "" && dropShipOrderId != "")
+			{
+				// Dropship order info
+				dropshipOrderInfo = zoho.crm.getRecordById("Purchase_Orders",dropShipOrderId);
+				PO_Number = dropshipOrderInfo.get("Dropship_Number");
+				vendorId = dropshipOrderInfo.get("Vendor_Name").get("id");
+				vendorName = dropshipOrderInfo.get("Vendor_Name").get("name");
+				// Get Vendor Info
+				vendorInfo = zoho.crm.getRecordById("Vendors",vendorId);
+				info "Vendor Info " + vendorInfo;
+				vendorEmail = vendorInfo.get("Email");
+				deskVendorContactId = null;
+				// Testing 
+				// vendorEmail = "ezhil@bizappln.com";
+				// Testing 
+				// Ticket exist check
+				deskSearchParam = Map();
+				deskSearchParam.put("customField1","cf_order_number:" + amazonReturnOrderId);
+				deskSearchParam.put("customField2","cf_po_number:" + PO_Number);
+				deskTicketInfo = zoho.desk.searchRecords(deskOrgId,"tickets",deskSearchParam);
+				if(deskTicketInfo.get("data").size() > 0)
+				{
+					isTicketAlreadyExist = true;
+				}
+				if(vendorEmail != "" || vendorEmail != null)
+				{
+					searchContact = Map();
+					searchContact.put("email",vendorEmail);
+					deskContactInfo = zoho.desk.searchRecords(deskOrgId,"contacts",searchContact);
+					deskContactInfoData = deskContactInfo.get("data");
+					if(deskContactInfoData.size() > 0)
+					{
+						for each  deskVendorInfo in deskContactInfoData
+						{
+							if(vendorEmail.equals(deskVendorInfo.get("email")))
+							{
+								deskVendorContactId = deskVendorInfo.get("id");
+								break;
+							}
+						}
+					}
+				}
+				else
+				{
+					// Vendor Email Not Exist in CRM & send Email
+					poLink = "https://crm.zoho.com/crm/org663942562/tab/PurchaseOrders/" + dropShipOrderId;
+					productLink = "https://crm.zoho.com/crm/org663942562/tab/Products/" + amazonReturnedProductRecId;
+					vendorLink = "https://crm.zoho.com/crm/org663942562/tab/Vendors/" + vendorId;
+					sendmail
+					[
+						from :zoho.loginuserid
+						to :"notifications@bestaccessdoors.com","dev@bestaccessdoors.com","ezhil@bizappln.com","balaji@bizappln.com"
+						subject :"Vendor Contact is not exist in Desk"
+						message :"<div>Hi Anthony,<br><br>While creating amazon return ticket we have identified vendor doesn't have a email. So kindly please update the email for vendor&nbsp;" + vendorName + "</div><div><br></div><div>Purchase Order Link : " + poLink + "<br><br>CRM Product Link :&nbsp;" + productLink + "</div><div><br></div><div>Vendor Info Link :&nbsp;" + vendorLink + "<br></div><div><br></div><div><br></div><div>Thanks.<br></div>"
+					]
+				}
+				if(deskVendorContactId != null && deskVendorContactId != "" && !isTicketAlreadyExist)
+				{
+					// Create Ticket
+					// deskContactId = 272635000010621929;
+					deskDepartmentId = 272635000000114056;
+					subject = "[" + PO_Number + "]" + " - Return Request";
+					ticketData = Map();
+					ticketData.put("subject",subject);
+					ticketData.put("departmentId",deskDepartmentId);
+					ticketData.put("contactId",deskVendorContactId);
+					ticketData.put("status","Open");
+					customFields = Map();
+					customFields.put("cf_type","Return");
+					customFields.put("cf_associated_type","Child");
+					customFields.put("cf_vendor",vendorName);
+					customFields.put("cf_store","Amazon");
+					customFields.put("cf_po_number",PO_Number);
+					customFields.put("cf_carrier_name",amazonReturnCarrierName);
+					customFields.put("cf_tracking_number",amazonReturnTrackingId);
+					customFields.put("cf_order_number",amazonReturnOrderId);
+					customFields.put("cf_authorization_type","Pre Authorized");
+					ticketData.put("cf",customFields);
+					ticketResponse = zoho.desk.create(deskOrgId,"tickets",ticketData);
+					info "Ticket Response : " + ticketResponse;
+					info "Ticket Number : " + ticketResponse.get("ticketNumber");
+					ticketId = ticketResponse.get("id");
+					info "Ticket Id : " + ticketId;
+					// ticketId = 272635000014345001;
+					updateTicket = Map();
+					updateTicket.put("Desk_Ticket_Id",ticketId);
+					updateTicket.put("Ticket_Created",true);
+					zoho.crm.updateRecord("Amazon_Order_Returns",amazonReturnRecId,updateTicket);
+					returnReasonString = "";
+					if(amazonReturnReason.equals("AMZ-PG-BAD-DESC"))
+					{
+						returnReasonString = "Incorrect Description";
+					}
+					else if(amazonReturnReason.equals("CR-DEFECTIVE"))
+					{
+						returnReasonString = "Defective";
+					}
+					else if(amazonReturnReason.equals("CR-SWITCHEROO"))
+					{
+						returnReasonString = "Wrong Item Sent";
+					}
+					else if(amazonReturnReason.equals("CR-DAMAGED_BY_FC"))
+					{
+						returnReasonString = "Product damaged by carrier.";
+					}
+					else if(amazonReturnReason.equals("CR-UNWANTED_ITEM"))
+					{
+						returnReasonString = "Ordered Accidently";
+					}
+					else if(amazonReturnReason.equals("CR-NOT_COMPATIBLE"))
+					{
+						returnReasonString = "product not compatible with application";
+					}
+					else if(amazonReturnReason.equals("CR-DAMAGED_BY_CARRIER"))
+					{
+						returnReasonString = "Damaged By Carrier";
+					}
+					else if(amazonReturnReason.equals("CR-ORDERED_WRONG_ITEM"))
+					{
+						returnReasonString = "Ordered Wrong Item";
+					}
+					else if(amazonReturnReason.equals("CR-UNAUTHORIZED_PURCHASE"))
+					{
+						returnReasonString = "Customer Did Not Authorize";
+					}
+					else if(amazonReturnReason.equals("CR-MISSED_ESTIMATED_DELIVERY"))
+					{
+						returnReasonString = "Delivery Date Missed";
+					}
+					if(vendorEmail != "")
+					{
+						mailContent = "<div>Hello,<br></div><div><br></div><div>Please issue RMA for PO " + PO_Number + ".<br><br>Customer is requesting to return the door due to " + returnReasonString + "</div>";
+						// Send Reply	
+						header = Map();
+						header.put("orgId",deskOrgId);
+						header.put("Content-Type","application/json");
+						header.put("Authorization","Zoho-oauthtoken " + accessToken);
+						bodyData = Map();
+						bodyData.put("channel","EMAIL");
+						bodyData.put("to",vendorEmail);
+						bodyData.put("fromEmailAddress","help@bestaccessdoors.zohodesk.com");
+						bodyData.put("contentType","html");
+						bodyData.put("content",mailContent);
+						bodyData.put("isForward","true");
+						sendReplyUrl = "https://desk.zoho.com/api/v1/tickets/" + ticketId + "/sendReply";
+						respose = invokeurl
+						[
+							url :sendReplyUrl
+							type :POST
+							parameters:bodyData.toString()
+							headers:header
+						];
+						info "Reply Response : " + respose;
+					}
+				}
+				else if(isTicketAlreadyExist)
+				{
+					updateTicket = Map();
+					updateTicket.put("Ticket_Created",true);
+					zoho.crm.updateRecord("Amazon_Order_Returns",amazonReturnRecId,updateTicket);
+					return "Ticket already created!";
+				}
+				else
+				{
+					// Vendor Not Exist in Desk & send Email
+					poLink = "https://crm.zoho.com/crm/org663942562/tab/PurchaseOrders/" + dropShipOrderId;
+					productLink = "https://crm.zoho.com/crm/org663942562/tab/Products/" + amazonReturnedProductRecId;
+					vendorLink = "https://crm.zoho.com/crm/org663942562/tab/Vendors/" + vendorId;
+					sendmail
+					[
+						from :zoho.loginuserid
+						to :"notifications@bestaccessdoors.com","dev@bestaccessdoors.com","ezhil@bizappln.com","balaji@bizappln.com"
+						subject :"Vendor Contact is not exist in Desk"
+						message :"<div>Hi Anthony,<br><br>While creating amazon return ticket we have identified vendor specific contact is not exist in desk. Please create contact in desk with vendor email : " + vendorEmail + ".</div><div><br></div><div><div>Purchase Order Link : " + poLink + "<br></div><div><br></div><div>CRM Product Link :&nbsp;" + productLink + "<br></div></div><div><br></div><div>Vendor Info Link :&nbsp;" + vendorLink + "<br></div><div><br></div><div><br></div><div>Thanks.<br></div>"
+					]
+				}
+			}
+			return "Ticket created successfully";
+		}
+		else
+		{
+			return "Ticket already created!";
+		}
+	}
+	else
+	{
+		return "Unable to create ticket for Amazon.ca return order. Contact your admin";
+	}
+}
+}

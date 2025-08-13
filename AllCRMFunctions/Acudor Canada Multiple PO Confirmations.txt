@@ -1,0 +1,78 @@
+string standalone.acudor_canada_multiple_po_confirmations(String crmAPIRequest)
+{
+crm_api_map = crmAPIRequest.toMap();
+params = crm_api_map.get("body");
+// params = {
+//   "id": "d7603bf10959f153478ec45153f71092",
+//   "received_at": "2020-07-16 18:01:42",
+//   "processed_at": "2020-07-16 18:07:59",
+//   "mail_attachments": [
+//     {
+//       "att_id": "6iX6ur-_SPfhfwyzlXTT8A",
+//       "att_name": "C.020929.pdf",
+//       "att_url": "https:\/\/files.mailparser.io\/f\/6iX6ur-_SPfhfwyzlXTT8A",
+//       "att_size": "25961",
+//       "att_mime": "application\/pdf"
+//     },
+//     {
+//       "att_id": "x4Y3Llw4VUkarw_hiF8Kow",
+//       "att_name": "C.020930.pdf",
+//       "att_url": "https:\/\/files.mailparser.io\/f\/x4Y3Llw4VUkarw_hiF8Kow",
+//       "att_size": "25895",
+//       "att_mime": "application\/pdf"
+//     },
+//     {
+//       "att_id": "S1Ye9fK5K9jG9z3sEC9EMA",
+//       "att_name": "C.020931.pdf",
+//       "att_url": "https:\/\/files.mailparser.io\/f\/S1Ye9fK5K9jG9z3sEC9EMA",
+//       "att_size": "26018",
+//       "att_mime": "application\/pdf"
+//     },
+//     {
+//       "att_id": "rKdwzc55RnZ5zvbMZSD0OA",
+//       "att_name": "C.020932.pdf",
+//       "att_url": "https:\/\/files.mailparser.io\/f\/rKdwzc55RnZ5zvbMZSD0OA",
+//       "att_size": "26018",
+//       "att_mime": "application\/pdf"
+//     },
+//     {
+//       "att_id": "eU_1fzFLAQgcBDfbxfTXoQ",
+//       "att_name": "C.020933.pdf",
+//       "att_url": "https:\/\/files.mailparser.io\/f\/eU_1fzFLAQgcBDfbxfTXoQ",
+//       "att_size": "25935",
+//       "att_mime": "application\/pdf"
+//     },
+//     {
+//       "att_id": "RYk5VfhHu5UdpnYx4ReB3Q",
+//       "att_name": "C.020935.pdf",
+//       "att_url": "https:\/\/files.mailparser.io\/f\/RYk5VfhHu5UdpnYx4ReB3Q",
+//       "att_size": "26013",
+//       "att_mime": "application\/pdf"
+//     }
+//   ]
+// };
+for each  attachment_map in params.get("mail_attachments")
+{
+	if(attachment_map.get("att_name").containsIgnoreCase("pdf"))
+	{
+		if(attachment_map.get("att_url") != null)
+		{
+			url = attachment_map.get("att_url").replaceAll("\\","");
+			file_resp = invokeurl
+			[
+				url :url
+				type :GET
+			];
+			sendmail
+			[
+				from :zoho.adminuserid
+				to :"pdjabarz@mailparser.io"
+				subject :"Single PO Confirmation from Acudor Canada Multiple Attachment " + attachment_map.get("att_name")
+				message :"Single PO Confirmation from Acudor Canada Multiple Attachment"
+				Attachments :file:file_resp
+			]
+		}
+	}
+}
+return "";
+}

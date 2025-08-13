@@ -1,0 +1,358 @@
+string standalone.updateZbDsUrl2()
+{
+//created on 03/August/2020
+//Created By Pooja L - Yaali
+//Purpose: Historical update for PO(DS download pdf url)
+orgId = "666840843";
+/*try 
+{
+	scheduleRecordID = 3106252000061961343;
+	pageIndexRec = zoho.crm.getRecordById("Merger_Schedule",scheduleRecordID);
+	lastpageIndex = ifnull(pageIndexRec.get("Last_Import_3_ID"),"");
+	//lastpageIndex=0;
+	if(lastpageIndex != "")
+	{
+		Page_count = lastpageIndex + 1;
+		//Page_count=1;
+		Record_count = 15;		
+		urlGet = "https://books.zoho.com/api/v3/purchaseorders?page=" + Page_count + "&per_page=" + Record_count + "&date_start=2020-02-01&date_end=2020-07-31&organization_id=" + orgId + "&sort_column=created_time&sort_order=A";
+		//info "urlGet " + urlGet;
+		Get_data = invokeurl
+		[
+			url :urlGet
+			type :GET
+			connection:"zohobooks_crmaccounts"
+		];
+		info Get_data;
+		purchaseOrders = Get_data.get("purchaseorders");
+		for each  po in purchaseOrders
+		{
+			try 
+			{
+				poId = po.get("purchaseorder_id");*/
+poId = "1324986000036061115";
+info "ZB PO ID " + poId;
+//crmId = ifnull(po.get("cf_crm_rec_id"),"");
+crmId = "3106252000112266622";
+info "ZCRM DS ID " + crmId;
+response = "";
+proceed = true;
+if(crmId != "")
+{
+	//Zoho crm download PDF Code Copied Below			
+	getd = zoho.crm.getRecordById("Purchase_Orders",crmId.toLong());
+	if(getd.containKey("Status"))
+	{
+		if(getd.get("Status").equalsIgnoreCase("failure"))
+		{
+			response = "Unable To Fetch Zcrm PO";
+			proceed = false;
+		}
+	}
+	if(proceed)
+	{
+		//getv = zoho.crm.getRecordById("Vendors",getd.get("Vendor_Name").get("id"));
+		getvendor_contacts = zoho.crm.getRelatedRecords("Vendor_Contacts","Vendors",getd.get("Vendor_Name").get("id"));
+		get_name = getd.get("Vendor_Name").get("name");
+		if(get_name.contains("@"))
+		{
+			get_name = get_name.getPrefix("@");
+		}
+		Vcontact_email = List();
+		products = getd.get("Product_Details").toJSONList();
+		dropro = Map();
+		for each  prod in products
+		{
+			crmProductId = prod.get("product").get("id");
+			//dropship_Print check
+			getp = zoho.crm.getRecordById("Products",crmProductId);
+			Dropship_print = getp.get("Dropship_Print");
+			if(Dropship_print != "No")
+			{
+				dropro.put(crmProductId,prod.get("product").get("Product_Code"));
+			}
+		}
+		//check dropship print 
+		droprolist = List();
+		droprolist.add(dropro);
+		if(droprolist.size() > 0)
+		{
+			getven = zoho.crm.getRecordById("Vendors",getd.get("Vendor_Name").get("id"));
+			if(getd.get("Contact_Name") != null && getd.get("Contact_Name") != "")
+			{
+				getcon = zoho.crm.getRecordById("Contacts",getd.get("Contact_Name").get("id").toLong());
+				vendorId = getven.get("id");
+				mailP = Map();
+				mailP.put("id",crmId);
+				mailP.put("vendorId",vendorId);
+				if(!isBlank(getven.get("Footer_Text")))
+				{
+					mailP.put("Footer_Text",getven.get("Footer_Text"));
+				}
+				mailP.put("Phone",getven.get("Phone"));
+				get_name = trim(get_name);
+				if(get_name == "default")
+				{
+					mailP.put("Phone","0000000000");
+					mailP.put("Address","default Vendor Dropship");
+					Vcontact_email.add('tharmendheran@bizappln.com');
+				}
+				else if(get_name == "Acudor - USA" || get_name == "Acudor" || get_name == "Bauco" || get_name == "Acudor USA")
+				{
+					mailP.put("Phone","9735755120");
+					mailP.put("Address","80 Little Falls Road Fairfield, NJ 07004");
+					Vcontact_email.add("orders@acudor.com");
+				}
+				else if(get_name == "Babcock Davis" || get_name == "BabcockDavis")
+				{
+					mailP.put("Phone","800-547-2635");
+					mailP.put("Address","9300 73rd Avenue North Brooklyn Park, MN 55428");
+					Vcontact_email.add("info@babcockdavis.com");
+				}
+				else if(get_name == "Nystrom")
+				{
+					mailP.put("Phone","800-547-2635");
+					mailP.put("Address","9300 73rd Avenue North Brooklyn Park, MN 55428");
+					Vcontact_email.add("info@babcockdavis.com");
+				}
+				else if(get_name == "Acudor-Canada-USD" || get_name == "Acudor Canada")
+				{
+					mailP.put("Phone","9054279957");
+					mailP.put("Address","1125 Squires Beach RoadC2 Pickering, ON, L1W 3T9");
+					Vcontact_email.add("orderentry@acudor.ca");
+				}
+				else if(get_name == "Cendrex" || get_name == "Cendrex Inc." || get_name == "CendrexInc.")
+				{
+					mailP.put("Phone","8004791489");
+					mailP.put("Address","11303 26th Avenue Montreal, Quebec H1E 6N6");
+					Vcontact_email.add("orders@cendrex.com");
+				}
+				else if(get_name == "Elmdor Canada")
+				{
+					mailP.put("Phone","9058320909");
+					mailP.put("Address","321 Cityview Blvd Unit 4, Vaughan ON L4H 3M3");
+					Vcontact_email.add("orders@morrisleecan.com");
+					Vcontact_email.add("jpeterkin@morrisleecan.com");
+				}
+				else if(get_name == "Elmdor Access Doors" || get_name == "Elmdor" || get_name == "Elmdor USA")
+				{
+					mailP.put("Phone","8004888999");
+					mailP.put("Address","500 S Azusa Ave, BLDG 7 City of Industry, California ");
+					Vcontact_email.add("custserv@elmdorstoneman.com");
+					Vcontact_email.add("orders@morrisleecan.com");
+				}
+				else if(get_name == "FF Systems Inc. -Canada")
+				{
+					mailP.put("Phone","8004888999");
+					mailP.put("Address","2840 Hunter St. Fort Myers, FL. 33916");
+					Vcontact_email.add("chris.dileo@ffsystemsinc.com");
+					Vcontact_email.add("kimberly.quintero@ffsystemsinc.com");
+				}
+				else if(get_name == "FF Systems Inc. -USA" || get_name == "FFSystemsInc.-USA" || get_name == "FFSystems" || get_name == "FF Systems Inc USA")
+				{
+					mailP.put("Phone"," ");
+					mailP.put("Address","2840 Hunter St. Fort Myers, FL. 33916");
+					Vcontact_email.add("orders@ffsystemsinc.com");
+				}
+				else if(get_name == "JL Industries")
+				{
+					mailP.put("Phone"," ");
+					mailP.put("Address","1231 Ranck Mill Road Lancaster PA 17602");
+					Vcontact_email.add("orders@activarcpg.com");
+					Vcontact_email.add("KSHEPPARD@activarcpg.com");
+				}
+				else if(get_name == "Karp Associates, Inc" || get_name == "Karp" || get_name == "Karp Associates, Inc" || get_name == "Karp Associates")
+				{
+					mailP.put("Phone"," ");
+					mailP.put("Address","260 Spagnoli Road Melville, NY 11747");
+					Vcontact_email.add("bestsales@Karpinc.com");
+					Vcontact_email.add("po@bestaccessdoors.com");
+				}
+				else if(get_name == "Mifab-Canada-USD")
+				{
+					mailP.put("Phone"," ");
+					mailP.put("Address","1321 W 119th Street Chicago, IL 60643");
+					Vcontact_email.add("DMoody@mifab.com");
+				}
+				else if(get_name == "MIFAB, Inc." || get_name == "MIFAB USA")
+				{
+					mailP.put("Phone"," ");
+					mailP.put("Address","1321 W 119th Street Chicago, IL 60643");
+					Vcontact_email.add("tsmith@mifab.com");
+				}
+				else if(get_name == "Milcor Access Doors" || get_name == "Milcor")
+				{
+					mailP.put("Phone","8004336341 ");
+					mailP.put("Address","5030 Corporate Exchange Blvd. SE Grand Rapids, MI 49512");
+					Vcontact_email.add("jcampeau@hartcool.com");
+				}
+				else if(get_name == "StrikeFirst")
+				{
+					mailP.put("Phone","8002555515 ");
+					mailP.put("Address","1330 Progress Dr, Front Royal, VA 22630, United States");
+					Vcontact_email.add("orders@williams-brothers.com ");
+					Vcontact_email.add("po@bestaccessdoors.com");
+				}
+				else if(get_name == "Williams Brothers")
+				{
+					mailP.put("Phone","8002555515 ");
+					mailP.put("Address","777 Tapscott Road Scarborough, Ontario M1X 1A2");
+					Vcontact_email.add("citrigno@bestaccessdoors.com");
+					Vcontact_email.add("anthony@bestaccessdoors.com");
+				}
+				else if(get_name == "Williams Brothers - Canada" || get_name == "Williams Brothers Canada")
+				{
+					mailP.put("Phone","4162997767 ");
+					mailP.put("Address","777 Tapscott Road Scarborough, Ontario M1X 1A2");
+					Vcontact_email.add("orders@williams-brothers.com");
+					Vcontact_email.add("best@williams-brothers.com");
+				}
+				else if(get_name == "Wind-lock" || get_name = "Windlock" || get_name = "Wind-lock USA")
+				{
+					mailP.put("Phone"," ");
+					mailP.put("Address","3895 Corsair St, Reno, NV 89502");
+					Vcontact_email.add("orders@wind-lock.com");
+					Vcontact_email.add("po@bestaccessdoors.com");
+				}
+				else if(get_name == "Wind-lock-Canada-USD")
+				{
+					mailP.put("Phone"," ");
+					mailP.put("Address","3895 Corsair St, Reno, NV 89502");
+					Vcontact_email.add("Tara.Loftus@wind-lock.com");
+				}
+				else if(get_name == "Castle - USA" || get_name == "Castle")
+				{
+					mailP.put("Phone","9057388089 ");
+					mailP.put("Address","173 Adesso Dr Unit 2, Concord, ON L4K 3C3 ");
+					Vcontact_email.add("orders@castleaccesspanels.com");
+				}
+				else if(get_name == "Omni Containment")
+				{
+					mailP.put("Phone","1 847-468-1772");
+					mailP.put("Address","1501 Commerce Dr, Elgin, IL 60123, United States");
+					Vcontact_email.add("gary@omnicontainment.com");
+					Vcontact_email.add(",sales@omnicontainment.com");
+				}
+				else if(get_name == "The Bilco Company" || get_name == "Bilco")
+				{
+					mailP.put("Phone","203-934-6363");
+					mailP.put("Address","847 Highbury Ave N Bldg 11, London, ON N5Y 5B8 ");
+					Vcontact_email.add("cs@bilco.com");
+				}
+				else if(get_name == "Elmdor - UAE")
+				{
+					mailP.put("Phone"," ");
+					mailP.put("Address","500 S Azusa Ave, BLDG 7 City of Industry, California 91744 ");
+					Vcontact_email.add("shane@bestaccessdoors.com");
+				}
+				BCClist = List();
+				if(Vcontact_email.size() > 0)
+				{
+					mailP.put("email",Vcontact_email);
+					mailP.put("sku",dropro);
+					mailP.put("replyto","orders@bestaccessdoors.com");
+					mailP.put("contact_phone",getcon.get("Phone"));
+					mailP.put("vendor_notes",ifnull(getd.get("Description"),""));
+					mailP.put("customer_notes",ifnull(getd.get("Order_Notes"),""));
+					mailP.put("bcc",{});
+					mailP.put("cc",{});
+					info "mailP:" + mailP;
+					apiUrl = "https://www.1.door-pay.com/api/zohocrm/send/vendorPdf";
+					senddata = postUrl(apiUrl,mailP);
+					download = "";
+					info "mailres:" + senddata;
+					if(senddata.containKey("downloadurl"))
+					{
+						download = senddata.get("downloadurl");
+						if(download != "" && download != null)
+						{
+							path = download.getSuffix("public_html/public/pdf/");
+							//path = zoho.encryption.urlEncode(path);
+							//path = path.replaceAll(" ","%20");
+							encodedFileName = zoho.encryption.base64Encode(path);
+							downloadUrl = "https://www.1.door-pay.com/api/" + encodedFileName + "/download";
+							//downloadUrl = downloadUrl + path;
+							info "downlaodURl : " + downloadUrl;
+							//update custom field URL
+							urlMap = Map();
+							updateList = list();
+							updateMap = Map();
+							urlMap.put("customfield_id",1324986000032408585);
+							urlMap.put("value",downloadUrl);
+							updateList.add(urlMap);
+							updateMap.put("custom_fields",updateList);
+							info "updateMap " + updateMap;
+							updatePo = zoho.books.updateRecord("purchaseorders",orgId,poId,updateMap.toString());
+							info "updatePo " + updatePo;
+							if(updatePo.get("code") != 0)
+							{
+								response = "Unable to update the url in zoho books";
+							}
+							else if(updatePo.get("code") == 0)
+							{
+								response1 = "Successfully Updated : " + poId;
+								info response1;
+							}
+						}
+					}
+					else
+					{
+						response = "No Pdf link available for this dropship";
+					}
+				}
+				else
+				{
+					response = "No Vendor Email id associated with this vendor";
+				}
+			}
+			else
+			{
+				response = "Contact Not Associated with PO";
+			}
+		}
+		else
+		{
+			response = "The Line Items is have't available to PDF";
+		}
+	}
+}
+else
+{
+	response = "Zoho CRM DS Order ID Not Found In Books PO";
+}
+info "REC ID : " + poId + " RESPONSE " + response;
+/*}
+ catch (e)
+			{				response = e;
+			}
+			if(response != "")
+			{
+				failureLog = zoho.crm.createRecord("Duplicate_Moderation_Log",{"ZB_PO_ID":poId,"ZCRM_DS_ID":crmId,"REASON":response,"Log_Type":"ZB PO URL UPATE"});
+				info " failureLog " + failureLog;
+			}
+		}
+		updatePageIndex = zoho.crm.updateRecord("Merger_Schedule",scheduleRecordID,{"Last_Import_3_ID":Page_count});
+		info "updatePageIndex" + updatePageIndex;
+	}
+}
+ catch (e)
+{	info "Unexpected ERROR " + e;
+	body = "Hello , <br><br>" + e + " <br><br>Page Number : <b>" + Page_count + "</b><br>PO ZB ID : " + poId + "Kindly do the needful. <br><br> Thanks, <br><b>Best Access Doors</b><br><br>";
+	mailmap = Map();
+	//vendorEmail = "\"" + vendorEmail + "\"";
+	mailmap.put("to",{"\"pooja@bizappln.com\""});
+	mailmap.put("cc",{"\"dinesh@bizappln.com\""});
+	//mailmap.put("bcc",{"\"pooja@bizappln.com\"","\"dinesh@bizappln.com\""});
+	mailmap.put("scope","Update PO/DS order download URL in zoho books historical");
+	mailmap.put("subject","Update PO/DS order download URL in zoho books historical" + poId);
+	mailmap.put("body",body);
+	// 	info mailmap;
+	mailres = postURL("https://1.door-pay.com/api/Office360Mail/sendreq",mailmap);
+	info "mailres:" + mailres;
+	if(mailres.contains("code\":200"))
+	{
+		info "Mail Sent Successfully";
+	}
+}*/
+return "";
+}

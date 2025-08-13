@@ -1,0 +1,3281 @@
+string standalone.Testing_Po(Int Purchase_Id)
+{
+//Verify PO data with SO data developed by Balaji on 06/10/20
+Get_Purchase_Order = zoho.crm.getRecordById("Purchase_Orders",Purchase_Id);
+info Get_Purchase_Order;
+// Created By Ezhil To Update EDI Verified Time in DSO
+currentTime = zoho.currenttime;
+currentTime = currentTime.toString("yyyy-MM-dd'T'HH:mm:ss'-04:00'");
+updateMap = Map();
+updateMap.put("EDI_Verified_Date_Time",currentTime);
+zoho.crm.updateRecord("Purchase_Orders",Purchase_Id,updateMap);
+// ------END--------
+/////////////////////////
+//////////////////////
+Edi_log_create = Map();
+Mismatch_Object = Map();
+EDI_verified = true;
+Get_Po_storeid = "";
+Get_Po_contactid = "";
+Get_Po_accountid = "";
+Dropship_number = Get_Purchase_Order.get("Dropship_Number");
+Get_Salesorder_id = Get_Purchase_Order.get("Sales_Order").get("id");
+vendor_id = Get_Purchase_Order.get("Vendor_Name").get("id");
+info "vendor_id" + vendor_id;
+Get_Sales_Order = zoho.crm.getRecordById("Sales_Orders",Get_Salesorder_id);
+info "Get_Sales_Order" + Get_Sales_Order;
+Edi_log_create.put("Salesorder_Recid",Get_Salesorder_id);
+SoShippingEmail = ifnull(Get_Sales_Order.get("Shipping_Email"),"");
+SoShippingFirstname = ifnull(Get_Sales_Order.get("Shipping_First_Name"),"");
+SoShippingLastname = ifnull(Get_Sales_Order.get("Shipping_Last_Name"),"");
+Salesorder_staffnotes = Get_Sales_Order.get("Staff_Notes");
+Get_So_Source = ifnull(Get_Sales_Order.get("Source"),"");
+vendor_name = Get_Purchase_Order.get("Vendor_Name").get("name");
+DRO_Number = Get_Purchase_Order.get("Dropship_Number");
+if(!Get_So_Source.contains("Amazon"))
+{
+	DSO_staffnotes_update_map = Map();
+	vendor_name = Get_Purchase_Order.get("Vendor_Name").get("name");
+	DRO_Number = Get_Purchase_Order.get("Dropship_Number");
+	//Salesorder_staffnotes = Salesorder_staffnotes +"\n"+DRO_Number+" - "+vendor_name;
+	DSO_staffnotes_update_map.put("Staff_Notes",Salesorder_staffnotes);
+	//update_DSO = zoho.crm.updateRecord("Purchase_Orders",Purchase_Id,DSO_staffnotes_update_map);
+}
+Sales_quoteno = "";
+if(Salesorder_staffnotes != null)
+{
+	if(Salesorder_staffnotes.contains("Quote #"))
+	{
+		Sales_quoteno = Get_Sales_Order.get("Quote_Number");
+	}
+}
+info "Sales_quoteno" + Sales_quoteno;
+Get_So_orderdate = ifnull(Get_Sales_Order.get("Order_Date"),"");
+Get_salesorder_year = Get_So_orderdate.getYear();
+Get_current_year = zoho.currentdate.getYear();
+Current_year = false;
+if(Get_salesorder_year == Get_current_year)
+{
+	Current_year = true;
+}
+info "Current_year" + Current_year;
+Test_order = true;
+if(!SoShippingFirstname.containsIgnoreCase("yaali") && !SoShippingFirstname.containsIgnoreCase("test") && !SoShippingLastname.containsIgnoreCase("yaali") && !SoShippingLastname.containsIgnoreCase("test") && !SoShippingEmail.containsIgnoreCase("zyarinabest@gmail.com") && !SoShippingEmail.containsIgnoreCase("mariebestacc@gmail.com") && !SoShippingEmail.containsIgnoreCase("anthonytest@donotprocess.com") && !SoShippingEmail.containsIgnoreCase("kristian@algofy.io") && !SoShippingEmail.containsIgnoreCase("julia@bestaccessdoors.com") && !SoShippingEmail.containsIgnoreCase("test@bigcommerce.com") && !SoShippingEmail.containsIgnoreCase("meganbestacc@gmail.com") && !SoShippingEmail.containsIgnoreCase("bestaccessoperations@yahoo.com") && !Sales_quoteno.containsIgnoreCase("00YD") && !Sales_quoteno.containsIgnoreCase("00PR"))
+{
+	Test_order = false;
+}
+info "Test_order" + Test_order;
+if(Test_order == true)
+{
+	Update_map = Map();
+	Update_map.put("Test_dropship_order",true);
+	UpdatePO = zoho.crm.updateRecord("Purchase_Orders",Purchase_Id,Update_map);
+	info "UpdatePO" + UpdatePO;
+}
+Mismatched_list = List();
+Get_Po_storedetails = Get_Purchase_Order.get("Store");
+if(!isNull(Get_Po_storedetails))
+{
+	Get_Po_storeid = Get_Po_storedetails.get("id");
+	Get_Po_store_name = Get_Po_storedetails.get("name");
+}
+Get_Po_bcunique_id = ifnull(Get_Purchase_Order.get("BC_Unique_Id"),"");
+Get_Po_contactdetails = Get_Purchase_Order.get("Contact_Name");
+if(!isNull(Get_Po_contactdetails))
+{
+	Get_Po_contactid = Get_Po_contactdetails.get("id");
+	Get_contact_name = Get_Po_contactdetails.get("name");
+	// 	Edi_log_create.put("Contact_Name1",Get_contact_name);
+}
+Get_Po_accountdetails = Get_Purchase_Order.get("Account_Name");
+if(!isNull(Get_Po_accountdetails))
+{
+	Get_Po_accountid = Get_Po_accountdetails.get("id");
+	Get_Po_account_name = Get_Po_accountdetails.get("name");
+}
+Get_Po_shipmethod = ifnull(Get_Purchase_Order.get("Ship_Method"),"");
+Get_Po_orderdate = ifnull(Get_Purchase_Order.get("Order_Date"),"");
+Get_Po_currency = ifnull(Get_Purchase_Order.get("Currency"),"");
+Get_Po_salescommission = ifnull(Get_Purchase_Order.get("Sales_Commission"),"");
+Get_Po_termsandconditions = ifnull(Get_Purchase_Order.get("Terms_and_Conditions"),"");
+Get_Po_duedate = ifnull(Get_Purchase_Order.get("Due_Date"),"");
+Get_Po_Amazonstoreregion = ifnull(Get_Purchase_Order.get("Amazon_Store_Region"),"");
+Get_Po_Source = ifnull(Get_Purchase_Order.get("Source"),"");
+Get_Po_product_details = Get_Purchase_Order.get("Product_Details");
+po_product_list = list();
+for each  Po_product in Get_Po_product_details
+{
+	po_product_list.add(Po_product.get("product").get("id"));
+}
+info "po_product_list" + po_product_list;
+/* product_count = 0;
+for each  Po_product in Get_Po_product_details
+{
+	product_count = product_count + 1;
+	po_product_CRM_id = Po_product.get("product").get("id");
+	ProductModule = zoho.crm.getRecordById("Products",po_product_CRM_id.toLong());
+	Product_CostPrice = ProductModule.tomap().get("Cost_Price").toDecimal();
+	//3106252000138196503
+	PO_ListPrice = Po_product.get("list_price").toDecimal();
+	if(Product_CostPrice != PO_ListPrice)
+	{
+		Mismatched_list.add("Purchase Order Product List Price Mismatched with Product Cost Price");
+		Mismatch_Object.put(product_count + ".Product_Name ::" + Po_product.get("product").get("name"),{"PO":"List Price = " + PO_ListPrice,"Actual":"Cost Price = " + Product_CostPrice,"id":po_product_CRM_id,"type":"Product List Price"});
+	}
+} */
+if(Get_Salesorder_id != null && Get_Salesorder_id != "")
+{
+	Get_So_product_details = Get_Sales_Order.get("Product_Details");
+	Get_So_Source = ifnull(Get_Sales_Order.get("Source"),"");
+	Get_BC_OrderId = Get_Sales_Order.get("Bigcommerce_Order_ID");
+	Get_So_storeid = "";
+	Get_So_storedetails = Get_Sales_Order.get("Store");
+	if(!isNull(Get_So_storedetails))
+	{
+		Get_So_storeid = Get_So_storedetails.get("id");
+		Get_So_store_name = Get_So_storedetails.get("name");
+	}
+	//Fetch Purchase order shipping address
+	Po_shippingFirstname = ifnull(Get_Purchase_Order.get("Shipping_First_Name"),"");
+	Po_shippingLastname = ifnull(Get_Purchase_Order.get("Shipping_Last_Name"),"");
+	Po_shippingPhone = ifnull(Get_Purchase_Order.get("Shipping_Phone"),"");
+	Po_shippingEmail = ifnull(Get_Purchase_Order.get("Shipping_Email"),"");
+	Po_shippingCompany = ifnull(Get_Purchase_Order.get("Shipping_Company"),"");
+	Po_shippingStreet = ifnull(Get_Purchase_Order.get("Shipping_Street"),"");
+	Po_shippingStreet2 = ifnull(Get_Purchase_Order.get("Shipping_Street_2"),"");
+	Po_shippingCity = ifnull(Get_Purchase_Order.get("Shipping_City"),"");
+	Po_shippingState = ifnull(Get_Purchase_Order.get("Shipping_State"),"");
+	Po_shippingCode = ifnull(Get_Purchase_Order.get("Shipping_Code"),"");
+	Po_shippingCountry = ifnull(Get_Purchase_Order.get("Shipping_Country"),"");
+	//Fetch Purchase order Billing address
+	Po_billing_Firstname = ifnull(Get_Purchase_Order.get("Billing_First_Name"),"");
+	Po_billing_Lastname = ifnull(Get_Purchase_Order.get("Billing_Last_Name"),"");
+	Po_billing_Phone = ifnull(Get_Purchase_Order.get("Billing_Phone"),"");
+	//Po_billing_Email = ifnull(Get_Purchase_Order.get("Billing_Email"),"");
+	Po_billing_Street = ifnull(Get_Purchase_Order.get("Billing_Street"),"");
+	Po_billing_City = ifnull(Get_Purchase_Order.get("Billing_City"),"");
+	Po_billing_State = ifnull(Get_Purchase_Order.get("Billing_State"),"");
+	Po_billing_Code = ifnull(Get_Purchase_Order.get("Billing_Code"),"");
+	Po_billing_Country = ifnull(Get_Purchase_Order.get("Billing_Country"),"");
+	//Fetch store address
+	storeInfoData = zoho.crm.getRecordById("Stores",Get_So_storeid);
+	// Store Info
+	storeFirstName = ifnull(storeInfoData.get("First_Name"),"");
+	storeLastName = ifnull(storeInfoData.get("Last_Name"),"");
+	storePhone = ifnull(storeInfoData.get("Phone"),"");
+	storeEmail = ifnull(storeInfoData.get("Email"),"");
+	storeStreet = ifnull(storeInfoData.get("Street"),"");
+	storeCity = ifnull(storeInfoData.get("City"),"");
+	storeState = ifnull(storeInfoData.get("State"),"");
+	storeCode = ifnull(storeInfoData.get("Code"),"");
+	storeCountry = ifnull(storeInfoData.get("Country"),"");
+	Edi_log_create.put("Billing_City1",storeCity);
+	Edi_log_create.put("Billing_Code1",storeCode);
+	Edi_log_create.put("Billing_Country1",storeCountry);
+	Edi_log_create.put("Billing_Email",storeEmail);
+	Edi_log_create.put("Billing_Phone",storePhone);
+	Edi_log_create.put("Billing_State1",storeState);
+	Edi_log_create.put("Billing_Street1",storeStreet);
+	Edi_log_create.put("Billing_First_Name1",storeFirstName);
+	Edi_log_create.put("Billing_Last_Name1",storeLastName);
+	if(!Po_billing_Firstname.equals(storeFirstName))
+	{
+		Mismatch_Object.put("Billing_First_Name",{"PO":Po_billing_Firstname,"Actual":storeFirstName});
+	}
+	if(!Po_billing_Lastname.equals(storeLastName))
+	{
+		Mismatch_Object.put("Billing_Last_Name",{"PO":Po_billing_Lastname,"Actual":storeLastName});
+	}
+	if(!Po_billing_Phone.equals(storePhone))
+	{
+		Mismatch_Object.put("Billing_Phone",{"PO":Po_billing_Phone,"Actual":storePhone});
+	}
+	if(!Po_billing_Street.equals(storeStreet))
+	{
+		Mismatch_Object.put("Billing_Street",{"PO":Po_billing_Street,"Actual":storeStreet});
+	}
+	if(!Po_billing_City.equals(storeCity))
+	{
+		Mismatch_Object.put("Billing_City",{"PO":Po_billing_City,"Actual":storeCity});
+	}
+	if(!storeState.equals(Po_billing_State))
+	{
+		Mismatch_Object.put("Billing_State",{"PO":storeState,"Actual":Po_billing_State});
+	}
+	if(!Po_billing_Code.equals(storeCode))
+	{
+		Mismatch_Object.put("Billing_Code",{"PO":Po_billing_Code,"Actual":storeCode});
+	}
+	if(!Po_billing_Country.equals(storeCountry))
+	{
+		Mismatch_Object.put("Billing_Country",{"PO":Po_billing_Country,"Actual":storeCountry});
+	}
+	if(!storeFirstName.equals(Po_billing_Firstname) || !storeLastName.equals(Po_billing_Lastname) || !storePhone.equals(Po_billing_Phone) || !storeStreet.equals(Po_billing_Street) || !storeCity.equals(Po_billing_City) || !storeState.equals(Po_billing_State) || !storeCode.equals(Po_billing_Code) || !storeCountry.equals(Po_billing_Country))
+	{
+		info "Success";
+		EDI_verified = false;
+		Mismatched_list.add("Purchase order has mismatched Billing address");
+	}
+	/*****Comparing Amazon Order*****/
+	if(Get_So_Source.contains("Amazon"))
+	{
+		Edi_log_create.put("Source","Amazon");
+		Get_So_contactid = "";
+		Get_So_accountid = "";
+		Get_So_bcunique_id = ifnull(Get_Sales_Order.get("BigCommerce_Unique_ID"),"");
+		Get_So_contactdetails = Get_Sales_Order.get("Contact_Name");
+		if(!isNull(Get_So_contactdetails))
+		{
+			Get_So_contactid = Get_So_contactdetails.get("id");
+			Get_So_contact_name = Get_So_contactdetails.get("name");
+		}
+		Get_So_accountdetails = Get_Sales_Order.get("Account_Name");
+		if(!isNull(Get_So_accountdetails))
+		{
+			Get_So_accountid = Get_So_accountdetails.get("id");
+			Get_accountname = Get_So_accountdetails.get("name");
+			Edi_log_create.put("Account_Name1",Get_accountname);
+		}
+		Get_So_shipmethod = ifnull(Get_Sales_Order.get("Ship_Method"),"");
+		Get_So_orderdate = ifnull(Get_Sales_Order.get("Order_Date"),"");
+		if(!isNull(Get_So_orderdate))
+		{
+			Get_So_orderdate = Get_So_orderdate.getPrefix("T");
+			info Get_So_orderdate;
+		}
+		Get_So_descripton = ifnull(Get_Sales_Order.get("Description"),"");
+		Get_So_staffnotes = Get_Sales_Order.get("Staff_Notes");
+		Get_So_currency = ifnull(Get_Sales_Order.get("Currency"),"");
+		Get_So_salescommission = ifnull(Get_Sales_Order.get("Sales_Commission"),"");
+		Get_So_termsandconditions = ifnull(Get_Sales_Order.get("Terms_and_Conditions"),"");
+		Get_So_duedate = ifnull(Get_Sales_Order.get("Due_Date"),"");
+		Get_So_Amazonstoreregion = ifnull(Get_Sales_Order.get("Amazon_Store_Region"),"");
+		if(!Get_Po_storeid.equals(Get_So_storeid))
+		{
+			info "Success";
+			EDI_verified = false;
+			Mismatched_list.add("Purchase Order has mismatched store");
+			Edi_log_create.put("Store1",Get_So_store_name);
+			Edi_log_create.put("Store_ID",Get_So_storeid);
+			Mismatch_Object.put("Store",{"PO":Get_Po_store_name,"Actual":Get_So_store_name});
+		}
+		if(!Get_Po_contactid.equals(Get_So_contactid))
+		{
+			info "Success";
+			EDI_verified = false;
+			Mismatched_list.add("Purchase Order has mismatched contact");
+			Edi_log_create.put("Contact_Name1",Get_So_contact_name);
+			Edi_log_create.put("Contact_ID",Get_So_contactid);
+			Mismatch_Object.put("Contact_Name",{"PO":Get_contact_name,"Actual":Get_So_contact_name});
+		}
+		if(!Get_Po_accountid.equals(Get_So_accountid))
+		{
+			info "Success";
+			EDI_verified = false;
+			Mismatched_list.add("Purchase Order has mismatched account");
+			Edi_log_create.put("Account_Name1",Get_accountname);
+			Edi_log_create.put("Account_ID",Get_So_accountid);
+			Mismatch_Object.put("Account",{"PO":Get_Po_account_name,"Actual":Get_accountname});
+		}
+		if(!Get_Po_orderdate.equals(Get_So_orderdate))
+		{
+			info "Success";
+			EDI_verified = false;
+			Mismatched_list.add("Purchase Order has mismatched order date");
+			Edi_log_create.put("Order_Date1",Get_So_orderdate);
+			Mismatch_Object.put("Order_Date",{"PO":Get_Po_orderdate,"Actual":Get_So_orderdate});
+		}
+		if(!ifnull(Get_Purchase_Order.get("Ship_By_Date"),"").equals(ifnull(Get_Sales_Order.get("Ship_By_Date"),"")))
+		{
+			info "Success";
+			EDI_verified = false;
+			Mismatched_list.add("Purchase Order has mismatched ship by date");
+			Edi_log_create.put("Ship_By_Date1",ifnull(Get_Purchase_Order.get("Ship_By_Date"),""));
+			Edi_log_create.put("Ship_By_Date",ifnull(Get_Sales_Order.get("Ship_By_Date"),""));
+			Mismatch_Object.put("Ship_By_Date",{"PO":ifnull(Get_Purchase_Order.get("Ship_By_Date"),""),"Actual":ifnull(Get_Sales_Order.get("Ship_By_Date"),"")});
+		}
+		if(!ifnull(Get_Purchase_Order.get("Delivery_By_Date"),"").equals(ifnull(Get_Sales_Order.get("Delivery_By_Date"),"")))
+		{
+			info "Success";
+			EDI_verified = false;
+			Mismatched_list.add("Purchase Order has mismatched delivery by date");
+			Edi_log_create.put("Delivery_By_Date1",ifnull(Get_Purchase_Order.get("Delivery_By_Date"),""));
+			Edi_log_create.put("Delivery_By_Date",ifnull(Get_Sales_Order.get("Delivery_By_Date"),""));
+			Mismatch_Object.put("Delivery_By_Date",{"PO":ifnull(Get_Purchase_Order.get("Delivery_By_Date"),""),"Actual":ifnull(Get_Sales_Order.get("Delivery_By_Date"),"")});
+		}
+		if(!Get_Po_shipmethod.equals(Get_So_shipmethod))
+		{
+			info "Success";
+			EDI_verified = false;
+			Mismatched_list.add("Purchase Order has mismatched Ship method");
+			Edi_log_create.put("Ship_Method1",Get_So_shipmethod);
+			Mismatch_Object.put("Ship_Method",{"PO":Get_Po_shipmethod,"Actual":Get_So_shipmethod});
+		}
+		if(!Get_Po_Amazonstoreregion.equals(Get_Po_Amazonstoreregion))
+		{
+			info "Success";
+			// 			EDI_verified = false;
+			//Mismatched_list.add("Purchase Order has mismatched Amazon store region");
+			//Mismatch_Object.put("Amazaon Region",{"PO":Get_Po_Amazonstoreregion,"Actual":Get_Po_Amazonstoreregion});
+		}
+		//Comparing product details from Po to SO
+		Get_So_product_details = Get_Sales_Order.get("Product_Details");
+		product_list = LIST();
+		product_count = 0;
+		for each  Po_product in Get_Po_product_details
+		{
+			product_count = product_count + 1;
+			Line_item_flag = 0;
+			Po_product = Po_product.toMap();
+			Po_product_sku = "";
+			Po_product_crmid = "";
+			Get_po_product = Po_product.get("product");
+			if(!isNull(Get_po_product))
+			{
+				Po_productmap = Get_po_product.toMap();
+				Po_product_sku = Po_productmap.get("Product_Code");
+				Po_product_crmid = Po_productmap.get("id");
+			}
+			Mismatch_Type_List = list();
+			Mismatch_Object.put(product_count + ".Product_Name::" + Po_product.get("product").get("name"),Mismatch_Type_List);
+			ProductModule = zoho.crm.getRecordById("Products",Po_product_crmid.toLong());
+			product_sku_for_table = ProductModule.tomap().get("Product_Code");
+			vendor_sku_for_table = ifnull(ProductModule.tomap().get("Vendor_SKU"),ProductModule.tomap().get("Manufacturer_Part_Number"));
+			Product_CostPrice = ProductModule.tomap().get("Cost_Price").toDecimal();
+			//3106252000138196503
+			PO_ListPrice = Po_product.get("list_price").toDecimal();
+			info "Product_CostPrice" + Product_CostPrice.round(2);
+			info "Po_listprice" + PO_ListPrice.truncate(2);
+			if(Product_CostPrice.round(2) != PO_ListPrice.round(2))
+			{
+				Mismatched_list.add("Purchase Order Product List Price Mismatched with Product Cost Price");
+				ListPrice_Map = Map();
+				ListPrice_Map.put("Product_Vendor_Cost",{"PO":PO_ListPrice,"Actual":Product_CostPrice});
+				Mismatch_Type_List.add(ListPrice_Map);
+			}
+			//CRM_vendor_product_count = 0;
+			SO_vendor_based_product_list = list();
+			SO_vendor_based_product_list.clear();
+			MissingQuantity = Map();
+			for each  So_product in Get_So_product_details
+			{
+				So_product = So_product.toMap();
+				So_product_crmid = "";
+				So_product_sku = "";
+				Get_So_product = So_product.get("product");
+				if(!isNull(Get_So_product))
+				{
+					So_productmap = Get_So_product.toMap();
+					So_product_sku = So_productmap.get("Product_Code");
+					So_product_crmid = So_productmap.get("id");
+				}
+				info "Product_Id" + So_productmap;
+				info "So_product_crmid" + So_product_crmid;
+				info "Po_product_crmid" + Po_product_crmid;
+				ProductModule = zoho.crm.getRecordById("Products",So_product_crmid.toLong());
+				if(ProductModule.tomap().get("Vendor_Name").get("id") == Get_Purchase_Order.get("Vendor_Name").get("id"))
+				{
+					SO_vendor_based_product_list.add(So_product_crmid);
+					MissingQuantity.put(So_product_crmid,So_product.get("quantity"));
+				}
+				if(So_product_crmid == Po_product_crmid && So_product_crmid != "")
+				{
+					/* 					
+					info "ProductModule: "+ProductModule.tomap() ; */
+					if(Po_product_sku != So_product_sku)
+					{
+						// 						Mismatched_list.add("Product with sku " + So_product_sku + "has mismatched SKU");
+						// 						SKU_Map = Map();
+						// 						SKU_Map.put("Product_SKU",{"PO":Po_product_sku,"Actual":So_product_sku});
+						// 						Mismatch_Type_List.add(SKU_Map);
+					}
+					Get_So_product_Quantity = ifnull(So_product.get("quantity"),"");
+					Get_Po_product_Quantity = ifnull(Po_product.get("quantity"),"");
+					info Get_So_product_Quantity;
+					info Get_Po_product_Quantity;
+					Get_so_productoption = ifnull(So_product.get("product_description"),"");
+					Get_po_productoption = ifnull(Po_product.get("product_description"),"");
+					info "So Option:" + Get_so_productoption;
+					info "Po Option:" + Get_po_productoption;
+					product_id = Map();
+					product_id.put("id",Po_product_crmid);
+					product_map = Map();
+					product_map.put("Product_Name",product_id);
+					Get_product_listprice = Po_product.get("list_price");
+					Get_product_nettotal = Get_product_listprice * Get_So_product_Quantity;
+					Get_product_total = Get_product_nettotal;
+					Get_product_total = Get_product_total.round(2);
+					Get_product_discount = Po_product.get("Discount");
+					Get_product_tax = Po_product.get("Tax");
+					product_map.put("Quantity",Get_So_product_Quantity);
+					product_map.put("Amount",Get_product_total);
+					product_map.put("Product_Description",Get_so_productoption);
+					product_map.put("Total",Get_product_nettotal.round(2));
+					product_map.put("Tax",Get_product_tax);
+					product_map.put("List_Price",Get_product_listprice.round(2));
+					product_map.put("Discount",Get_product_discount);
+					if(!Get_po_productoption.equals(Get_so_productoption))
+					{
+						info "Success";
+						EDI_verified = false;
+						Mismatched_list.add("Product with sku " + So_product_sku + "has mismatched Options");
+						Options_Map = Map();
+						Options_Map.put("Product_Description",{"PO":Get_po_productoption,"Actual":Get_so_productoption});
+						Mismatch_Type_List.add(Options_Map);
+					}
+					if(Get_So_product_Quantity != Get_Po_product_Quantity)
+					{
+						info "Success";
+						EDI_verified = false;
+						Mismatched_list.add("Product with sku" + So_product_sku + "has mismatched Quantity");
+						Quantity_Map = Map();
+						Quantity_Map.put("Product_Quantity",{"PO":Get_Po_product_Quantity,"Actual":Get_So_product_Quantity});
+						Mismatch_Type_List.add(Quantity_Map);
+						//Mismatch_Object.put("Product_Name ::" + Po_product.get("product").get("name"),{"PO":Get_Po_product_Quantity,"Actual":Get_So_product_Quantity,"id":Po_product_crmid,"type":"Product Quantity"});
+					}
+					//Compare line item tax for Amazon orders
+					if(Get_So_Source == "Amazon Store")
+					{
+						Get_SOlineitem_tax = So_product.get("line_tax");
+						Get_POlineitem_tax = Po_product.get("line_tax");
+						if(Get_SOlineitem_tax.length() > 0)
+						{
+							SO_Line_item_tax = Get_SOlineitem_tax.toMap();
+							Get_SO_tax_percentage = SO_Line_item_tax.get("percentage");
+							Get_SO_tax_id = SO_Line_item_tax.get("id");
+							Get_so_tax_name = SO_Line_item_tax.get("name");
+							amazon_lineitem_tax_map = Map();
+							Line_itemtax_list = List();
+							Line_item_taxmap = Map();
+							Line_item_taxmap.put("percentage",Get_SO_tax_percentage);
+							Line_item_taxmap.put("name",Get_so_tax_name);
+							Line_itemtax_list.add(Line_item_taxmap);
+							product_map.put("line_tax",Line_itemtax_list);
+							if(Get_POlineitem_tax.length() > 0)
+							{
+								PO_Line_item_tax = Get_POlineitem_tax.toMap();
+								Get_PO_tax_percentage = PO_Line_item_tax.get("percentage");
+								Get_SO_tax_percentage = SO_Line_item_tax.get("percentage");
+								info "Get_PO_tax_percentage" + Get_PO_tax_percentage;
+								info "Get_SO_tax_percentage" + Get_SO_tax_percentage;
+								if(Get_PO_tax_percentage != Get_SO_tax_percentage)
+								{
+									// 									info "Success";
+									// 									EDI_verified = false;
+									// 									Mismatched_list.add("Product with sku " + So_product_sku + " has mismatched Lineitem tax");
+									// 									Tax_Map = Map();
+									// 									Tax_Map.put("Product_Lineitem_Tax",{"PO":Get_PO_tax_percentage,"Actual":Get_SO_tax_percentage});
+									// 									Mismatch_Type_List.add(Tax_Map);
+									//Mismatch_Object.put("Product_Name ::" + Po_product.get("product").get("name"),{"PO":Get_PO_tax_percentage,"Actual":Get_SO_tax_percentage,"id":Po_product_crmid,"type":"Product Lineitem Tax"});
+								}
+							}
+							else
+							{
+								// 								info "Success";
+								// 								EDI_verified = false;
+								// 								Mismatched_list.add("Product with sku " + So_product_sku + " has no Lineitem tax");
+								// 								NoTax_Map = Map();
+								// 								NoTax_Map.put("No_Lineitem_Tax",{"PO":"-","Actual":"-"});
+								// 								Mismatch_Type_List.add(NoTax_Map);
+								//Mismatch_Object.put("Product_Name ::" + Po_product.get("product").get("name"),{"PO":"-","Actual":"-","id":Po_product_crmid,"type":"Product has No Lineitem Tax"});
+							}
+						}
+					}
+					Line_item_flag = 1;
+					product_list.add(product_map);
+				}
+			}
+			if(Line_item_flag == 0)
+			{
+				info "Success";
+				//EDI_verified = false;
+				//Mismatched_list.add("Product with sku " + Po_product_sku + " has mismatched product");
+				//Mismatch_Object.put("Mismatched_Product",{"PO":"-","Actual":"-"});
+			}
+			if(Mismatch_Type_List.size() > 0)
+			{
+				ProductID_Map = Map();
+				ProductID_Map.put("product_id",Po_product_crmid);
+				prod_sku_map = Map();
+				prod_sku_map.put("product_SKU",product_sku_for_table);
+				vendor_sku_map = Map();
+				vendor_sku_map.put("vendor_SKU",vendor_sku_for_table);
+				Mismatch_Type_List.add(prod_sku_map);
+				Mismatch_Type_List.add(vendor_sku_map);
+				Mismatch_Type_List.add(ProductID_Map);
+			}
+			else
+			{
+				remove_key = list();
+				for each  obj_key in Mismatch_Object.keys()
+				{
+					if(obj_key.contains(Po_product.get("product").get("name")))
+					{
+						remove_key.add(obj_key);
+					}
+				}
+				for each  rem_key in remove_key
+				{
+					Mismatch_Object.remove(rem_key);
+				}
+			}
+		}
+		if(po_product_list.size() < SO_vendor_based_product_list.size())
+		{
+			SO_vendor_based_product_list.removeAll(po_product_list);
+			if(SO_vendor_based_product_list.size() > 0)
+			{
+				missing_product_list = list();
+				Edi_log_create.put("MissingQuantity_Map",MissingQuantity);
+				for each  SO_prod in SO_vendor_based_product_list
+				{
+					//Mismatch_Object.put("1.Product_Name::???", [{"Product_Missing":"Product_Name"},{"product_id":3106252000019228225}]);
+					missing_product_map = Map();
+					get_prod = zoho.crm.getRecordById("Products",SO_prod.toLong());
+					missing_product_map.put("Missing_Product",{"Actual":"Product Found","PO":"Product Not Found"});
+					missing_product_id_map = Map();
+					missing_product_id_map.put("product_id",SO_prod);
+					missing_product_list.add(missing_product_map);
+					missing_product_list.add(missing_product_id_map);
+					Mismatch_Object.put("Product_Name::" + get_prod.get("Product_Name"),missing_product_list);
+				}
+			}
+		}
+		/***Removal of additional products from dropship orders**/
+		if(po_product_list.size() > SO_vendor_based_product_list.size())
+		{
+			Additional_product_list = LIST();
+			Additional_product_list.addAll(po_product_list);
+			Additional_product_list.removeAll(SO_vendor_based_product_list);
+			if(Additional_product_list.size() > 0)
+			{
+				missing_product_list = list();
+				Edi_log_create.put("MissingQuantity_Map",MissingQuantity);
+				for each  SO_prod in Additional_product_list
+				{
+					//Mismatch_Object.put("1.Product_Name::???", [{"Product_Missing":"Product_Name"},{"product_id":3106252000019228225}]);
+					missing_product_map = Map();
+					get_prod = zoho.crm.getRecordById("Products",SO_prod.toLong());
+					missing_product_map.put("Additional_Product",{"Actual":"Extra Product Found","PO":"Product Found"});
+					missing_product_id_map = Map();
+					missing_product_id_map.put("product_id",SO_prod);
+					missing_product_list.add(missing_product_map);
+					missing_product_list.add(missing_product_id_map);
+					Mismatch_Object.put("Product_Name::" + get_prod.get("Product_Name"),missing_product_list);
+				}
+			}
+		}
+		//Additional product 
+		if(po_product_list.size() = SO_vendor_based_product_list.size())
+		{
+			Additional_product_list = LIST();
+			Additional_product_list.addAll(po_product_list);
+			Additional_product_list.removeAll(SO_vendor_based_product_list);
+			if(Additional_product_list.size() > 0)
+			{
+				missing_product_list = list();
+				Edi_log_create.put("MissingQuantity_Map",MissingQuantity);
+				for each  SO_prod in Additional_product_list
+				{
+					//Mismatch_Object.put("1.Product_Name::???", [{"Product_Missing":"Product_Name"},{"product_id":3106252000019228225}]);
+					missing_product_map = Map();
+					get_prod = zoho.crm.getRecordById("Products",SO_prod.toLong());
+					missing_product_map.put("Additional_Product",{"Actual":"Extra Product Found","PO":"Product Found"});
+					missing_product_id_map = Map();
+					missing_product_id_map.put("product_id",SO_prod);
+					missing_product_list.add(missing_product_map);
+					missing_product_list.add(missing_product_id_map);
+					Mismatch_Object.put("Product_Name::" + get_prod.get("Product_Name"),missing_product_list);
+				}
+			}
+			Missing_product_list = LIST();
+			Missing_product_list.addAll(SO_vendor_based_product_list);
+			Missing_product_list.removeAll(po_product_list);
+			if(Missing_product_list.size() > 0)
+			{
+				missing_product_list = list();
+				Edi_log_create.put("MissingQuantity_Map",MissingQuantity);
+				for each  SO_prod in Missing_product_list
+				{
+					//Mismatch_Object.put("1.Product_Name::???", [{"Product_Missing":"Product_Name"},{"product_id":3106252000019228225}]);
+					missing_product_map = Map();
+					get_prod = zoho.crm.getRecordById("Products",SO_prod.toLong());
+					missing_product_map.put("Missing_Product",{"Actual":"Product Found","PO":"Product Not Found"});
+					missing_product_id_map = Map();
+					missing_product_id_map.put("product_id",SO_prod);
+					missing_product_list.add(missing_product_map);
+					missing_product_list.add(missing_product_id_map);
+					Mismatch_Object.put("Product_Name::" + get_prod.get("Product_Name"),missing_product_list);
+				}
+			}
+		}
+		/***Verfify Billing and shipping address in po***/
+		//Fetch Purchase order billing address
+		SoShippingFirstname = ifnull(Get_Sales_Order.get("Shipping_First_Name"),"");
+		SoShippingLastname = ifnull(Get_Sales_Order.get("Shipping_Last_Name"),"");
+		SoShippingPhone = ifnull(Get_Sales_Order.get("Shipping_Phone"),"");
+		SoShippingEmail = ifnull(Get_Sales_Order.get("Shipping_Email"),"");
+		SoShippingCompany = ifnull(Get_Sales_Order.get("Shipping_Company"),"");
+		SoShippingStreet = ifnull(Get_Sales_Order.get("Shipping_Street"),"");
+		SoShippingStreet2 = ifnull(Get_Sales_Order.get("Shipping_Street_2"),"");
+		SoShippingCity = ifnull(Get_Sales_Order.get("Shipping_City"),"");
+		SoShippingState = ifnull(Get_Sales_Order.get("Shipping_State"),"");
+		SoShippingCode = ifnull(Get_Sales_Order.get("Shipping_Code"),"");
+		SoShippingCountry = ifnull(Get_Sales_Order.get("Shipping_Country"),"");
+		Edi_log_create.put("Shipping_City1",SoShippingCity);
+		Edi_log_create.put("Shipping_Code1",SoShippingCode);
+		Edi_log_create.put("Shipping_Company1",SoShippingCompany);
+		Edi_log_create.put("Shipping_Country1",SoShippingCountry);
+		Edi_log_create.put("Shipping_Email",SoShippingEmail);
+		Edi_log_create.put("Shipping_Phone",SoShippingPhone);
+		Edi_log_create.put("Shipping_State1",SoShippingState);
+		Edi_log_create.put("Shipping_Street1",SoShippingStreet);
+		Edi_log_create.put("Shipping_Street_2",SoShippingStreet2);
+		Edi_log_create.put("Shipping_First_Name1",SoShippingFirstname);
+		Edi_log_create.put("Shipping_Last_Name1",SoShippingLastname);
+		//Comparing SO shipping details with PO shipping details
+		//Po_shippingFirstname.equals(SoShippingFirstname)
+		if(!Po_shippingFirstname.equals(SoShippingFirstname))
+		{
+			Mismatch_Object.put("Shipping_First_Name",{"PO":Po_shippingFirstname,"Actual":SoShippingFirstname});
+		}
+		if(!Po_shippingLastname.equals(SoShippingLastname))
+		{
+			Mismatch_Object.put("Shipping_Last_Name",{"PO":Po_shippingLastname,"Actual":SoShippingLastname});
+		}
+		if(!Po_shippingPhone.equals(SoShippingPhone))
+		{
+			Mismatch_Object.put("Shipping_Phone",{"PO":Po_shippingPhone,"Actual":SoShippingPhone});
+		}
+		if(!Po_shippingCompany.equals(SoShippingCompany))
+		{
+			Mismatch_Object.put("Shipping_Company",{"PO":Po_shippingCompany,"Actual":SoShippingCompany});
+		}
+		if(!Po_shippingStreet.equals(SoShippingStreet))
+		{
+			Mismatch_Object.put("Shipping_Street",{"PO":Po_shippingStreet,"Actual":SoShippingStreet});
+		}
+		if(!Po_shippingStreet2.equals(SoShippingStreet2))
+		{
+			Mismatch_Object.put("Shipping_Street2",{"PO":Po_shippingStreet2,"Actual":SoShippingStreet2});
+		}
+		if(!Po_shippingCity.equals(SoShippingCity))
+		{
+			Mismatch_Object.put("Shipping_City",{"PO":Po_shippingCity,"Actual":SoShippingCity});
+		}
+		if(!Po_shippingState.equals(SoShippingState))
+		{
+			Mismatch_Object.put("Shipping_State",{"PO":Po_shippingState,"Actual":SoShippingState});
+		}
+		if(!Po_shippingCode.equals(SoShippingCode))
+		{
+			Mismatch_Object.put("Shipping_Code",{"PO":Po_shippingCode,"Actual":SoShippingCode});
+		}
+		if(!Po_shippingCountry.equals(SoShippingCountry))
+		{
+			Mismatch_Object.put("Shipping_Country",{"PO":Po_shippingCountry,"Actual":SoShippingCountry});
+		}
+		// 		if(!Po_shippingEmail.equals(SoShippingEmail))
+		// 		{
+		// 			Mismatch_Object.put("Shipping_Email",{"PO":Po_shippingEmail,"Actual":SoShippingEmail});
+		// 		}
+		if(!Po_shippingFirstname.equals(SoShippingFirstname) || !Po_shippingLastname.equals(SoShippingLastname) || !Po_shippingPhone.equals(SoShippingPhone) || !Po_shippingCompany.equals(SoShippingCompany) || !Po_shippingStreet.equals(SoShippingStreet) || !Po_shippingStreet2.equals(SoShippingStreet2) || !Po_shippingCity.equals(SoShippingCity) || !Po_shippingState.equals(SoShippingState) || !Po_shippingCode.equals(SoShippingCode) || !Po_shippingCountry.equals(SoShippingCountry))
+		{
+			info "Success";
+			EDI_verified = false;
+			Mismatched_list.add("Purchase order has mismatched Shipping address");
+		}
+	}
+}
+else
+{
+	info "success";
+	EDI_verified = false;
+	Mismatched_list.add("Salesorder not associated");
+	Mismatch_Object.put("Sale_Order_Not_Associated",{"PO":"-","Actual":"-"});
+}
+//Comparing Po details with the Quote
+/*****Comparing Quote Orders******/
+//Comparing the additional shipping options and Description
+Salesorder_staffnotes = Get_Sales_Order.get("Staff_Notes");
+quoteno = '';
+if(Salesorder_staffnotes != null)
+{
+	if(Salesorder_staffnotes.contains("Quote #"))
+	{
+		Edi_log_create.put("Source","Quote");
+		quoteno = Get_Sales_Order.get("Quote_Number");
+		info quoteno;
+		// 		quote = zoho.creator.v1.getRecords("zoho_zoho1502","quotes","All_Quotes","Quote_Number ==" + "\"" + quoteno + "\"");
+		quote = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Quotes","Quote_Number ==" + "\"" + quoteno + "\"",1,1,"zcreator_connecction");
+		info quote;
+		if(quote.get("code") == 3000)
+		{
+			if(quote.get("data").size() > 0)
+			{
+				if(quote.get("data").get(0).get("Cheque_Manual_Order") == true)
+				{
+					info "Came here";
+					if(quote.get("data").get(0).get("Staff_Notes") != null)
+					{
+						Get_Po_staffnotes = ifnull(Get_Purchase_Order.get("Staff_Notes"),"");
+						if(!Get_Po_staffnotes.containsIgnoreCase(quote.get("data").get(0).get("Staff_Notes")))
+						{
+							Edi_log_create.put("Staff_Notes",Get_Purchase_Order.get("Staff_Notes"));
+							Edi_log_create.put("Staff_Notes1",DRO_Number + " - " + vendor_name + "\n" + "Quote #" + quoteno + "\n" + quote.get("data").get(0).get("Staff_Notes"));
+							EDI_verified = false;
+							Mismatched_list.add("Purchase Order has mismatched Staff Notes");
+							Mismatch_Object.put("Staff_Notes",{"PO":Get_Purchase_Order.get("Staff_Notes"),"Actual":DRO_Number + " - " + vendor_name + "\n" + "Quote #" + quoteno + "\n" + quote.get("data").get(0).get("Staff_Notes")});
+						}
+					}
+				}
+				quote = quote.get("data").get(0);
+				quoteid = quote.getJSON("ID");
+			}
+		}
+		// 		quoteid = quote.getJSON("ID");
+		// 		customitem = zoho.creator.v1.getRecords("zoho_zoho1502","quotes","Custom_Product_In_Quote_Report","Quotes == " + "\"" + quoteid + "\"");
+		info quoteid;
+		customitem = zoho.creator.getRecords("zoho_zoho1502","quotes","Custom_Product_In_Quote_Report","Quotes == " + quoteid,1,90,"zcreator_connecction");
+		info "Custom Item : " + customitem;
+		if(customitem.get("code") == 3000)
+		{
+			if(customitem.get("data").size() > 0)
+			{
+				customitem = customitem.get("data");
+			}
+		}
+		else if(customitem.get("code") == 3100)
+		{
+			customitem = list();
+		}
+		// 		Standard_item = zoho.creator.v1.getRecords("zoho_zoho1502","quotes","Items_In_Quote_Report","Create_Quote == " + "\"" + quoteid + "\"");
+		Standard_item = zoho.creator.getRecords("zoho_zoho1502","quotes","Items_In_Quote_Report","Create_Quote == " + quoteid,1,90,"zcreator_connecction");
+		if(Standard_item.get("code") == 3000)
+		{
+			if(Standard_item.get("data").size() > 0)
+			{
+				Standard_item = Standard_item.get("data");
+			}
+		}
+		else if(Standard_item.get("code") == 3100)
+		{
+			Standard_item = list();
+		}
+	}
+}
+info "quoteno" + quote;
+if(quoteno != '' && !isNull(quoteno))
+{
+	info "quote std item:" + Standard_item;
+	info "customitem" + customitem;
+	notestovendor = List();
+	product_list = LIST();
+	vendor_quotes = List();
+	Get_Po_storedetails = Get_Sales_Order.get("Store");
+	if(!isNull(Get_Po_storedetails))
+	{
+		Get_Po_storename = Get_Po_storedetails.get("name");
+	}
+	//Gettting Contact and account details
+	customeremail = quote.getJSON("Customer_Email");
+	Billing_Email = quote.getJSON("Billing_Email");
+	info "customeremail" + customeremail;
+	getcrmcontactdata = zoho.crm.searchRecords("Contacts","(Email:equals:" + customeremail + ")");
+	Get_crmcontact_id = "";
+	Get_req_contact_name = "";
+	if(getcrmcontactdata.size() > 0)
+	{
+		info "getcrmcontactdata" + getcrmcontactdata;
+		getcrmcontactdata = getcrmcontactdata.get(0);
+		Get_crmcontact_id = getcrmcontactdata.get("id");
+		Get_req_contact_name = ifnull(getcrmcontactdata.get("First_Name"),"") + " " + ifnull(getcrmcontactdata.get("Last_Name"),"");
+	}
+	Get_customeraccount = "";
+	Get_accountid = "";
+	if(getcrmcontactdata.size() > 0)
+	{
+		Get_customeraccount = ifnull(getcrmcontactdata.get("Account_Name"),"");
+		if(Get_customeraccount != "")
+		{
+			Get_accountid = Get_customeraccount.get("id");
+			Get_accountname = Get_customeraccount.get("name");
+		}
+	}
+	info "Get_accountname: " + Get_accountname;
+	info "Get_Po_account_name" + Get_Po_account_name;
+	info "Get_Po_accountid: " + Get_Po_accountid;
+	info "Get_accountid: " + Get_accountid;
+	info "Get_crmcontact_id: " + Get_crmcontact_id;
+	info "Get_Po_contactid: " + Get_Po_contactid;
+	info "Get_req_contact_name: " + Get_req_contact_name;
+	info "Get_contact_name: " + Get_contact_name;
+	if(!Get_Po_accountid.equals(Get_accountid))
+	{
+		info "Success";
+		EDI_verified = false;
+		Mismatched_list.add("Purchase Order has mismatched account");
+		Edi_log_create.put("Account_Name1",Get_accountname);
+		Edi_log_create.put("Account_ID",Get_accountid);
+		Mismatch_Object.put("Account",{"PO":Get_Po_account_name,"Actual":Get_accountname});
+	}
+	if(!Get_Po_contactid.equals(Get_crmcontact_id))
+	{
+		info "Success";
+		EDI_verified = false;
+		Mismatched_list.add("Purchase Order has mismatched contact");
+		Edi_log_create.put("Contact_Name1",Get_contact_name);
+		Edi_log_create.put("Contact_ID",Get_crmcontact_id);
+		Mismatch_Object.put("Contact_Name",{"PO":Get_contact_name,"Actual":Get_req_contact_name});
+	}
+	BC_Store_Map = Map();
+	BC_Store_Map.put("storename",Get_Po_storename);
+	BC_Store = invokeurl
+	[
+		url :"https://www.zohoapis.com/crm/v2/functions/get_bigcommerce_authorization/actions/execute?auth_type=oauth"
+		type :GET
+		parameters:BC_Store_Map
+		connection:"crm_connection"
+	];
+	info BC_Store;
+	if(!isNull(BC_Store))
+	{
+		Get_output = BC_Store.get("details").get("output");
+		Get_output = Get_output.toMap();
+		Get_store_hash = Get_output.get("Store_hash");
+		Get_store_client = Get_output.get("client secret");
+		Get_store_auth = Get_output.get("Auth token");
+		info Get_store_hash;
+	}
+	HeaderMap = Map();
+	HeaderMap.put("Accept","application/json");
+	HeaderMap.put("Content-Type","application/json");
+	HeaderMap.put("X-Auth-Token",Get_store_auth);
+	HeaderMap.put("X-Auth-Client",Get_store_client);
+	info HeaderMap;
+	Get_bc_order_details = getUrl("https://api.bigcommerce.com/stores/" + Get_store_hash + "/v2/orders/" + Get_BC_OrderId + "/products",HeaderMap);
+	info "Get_bc_order_details" + Get_bc_order_details;
+	getStore = zoho.crm.searchRecords("Stores","((Store_UID:equals:" + Get_store_hash + "))");
+	quote_store_id = getStore.get(0).tomap().get("id");
+	quote_store_name = getStore.get(0).tomap().get("Name");
+	if(quote_store_id != NULL)
+	{
+		if(!Get_Po_storeid.equals(quote_store_id))
+		{
+			info "Success";
+			EDI_verified = false;
+			Mismatched_list.add("Purchase Order has mismatched store");
+			Edi_log_create.put("Store1",quote_store_name);
+			Edi_log_create.put("Store_ID",quote_store_id);
+			Mismatch_Object.put("Store",{"PO":Get_Po_store_name,"Actual":quote_store_name});
+		}
+	}
+	product_count = 0;
+	for each  po_product in Get_Po_product_details
+	{
+		product_count = product_count + 1;
+		crm_quote_product = 0;
+		Product_sku = po_product.get("product").get("Product_Code");
+		crmproductid = po_product.get("product").get("id");
+		CRM_Po_product_Quantity = ifnull(po_product.get("quantity"),"");
+		Mismatch_Type_List = list();
+		Mismatch_Object.put(product_count + ".Product_Name::" + po_product.get("product").get("name"),Mismatch_Type_List);
+		ProductModule = zoho.crm.getRecordById("Products",crmproductid.toLong());
+		product_sku_for_table = ProductModule.tomap().get("Product_Code");
+		vendor_sku_for_table = ifnull(ProductModule.tomap().get("Vendor_SKU"),ProductModule.tomap().get("Manufacturer_Part_Number"));
+		Product_CostPrice = ProductModule.tomap().get("Cost_Price").toDecimal();
+		PO_ListPrice = po_product.get("list_price").toDecimal();
+		info "Product_CostPrice" + Product_CostPrice.truncate(2);
+		info "Product_ListPrice" + PO_ListPrice;
+		if(Product_CostPrice.truncate(2) != PO_ListPrice.truncate(2))
+		{
+			Mismatched_list.add("Purchase Order Product List Price Mismatched with Product Cost Price");
+			ListPrice_Map = Map();
+			ListPrice_Map.put("Product_Vendor_Cost",{"PO":PO_ListPrice,"Actual":Product_CostPrice});
+			Mismatch_Type_List.add(ListPrice_Map);
+		}
+		if(Standard_item.size() > 0)
+		{
+			// 			info "singlestditem_size: " + Standard_item.tomap().contains("message");
+			std_product_list = List();
+			// 			std_product_list.clear();
+			info "before_loop" + Standard_item;
+			for each  singlestditem in Standard_item
+			{
+				std_SKU = singlestditem.get("Product").get("display_value");
+				info "singlestditem" + singlestditem;
+				crm_std_product_id = singlestditem.get("Items_CrmRecId").get("display_value");
+				get_SKU_product = zoho.crm.getRecordById("Products",crm_std_product_id.toLong());
+				if(get_SKU_product.tomap().get("Vendor_Name").get("id") == Get_Purchase_Order.get("Vendor_Name").get("id"))
+				{
+					std_product_list.add(get_SKU_product.tomap().get("id"));
+				}
+				quote_std_prod_quantity = ifnull(singlestditem.get("Qty"),"");
+				quote_std_prod_quantity = quote_std_prod_quantity.toLong();
+				Vendor_Notes_std_item = ifnull(singlestditem.get("Notes_to_Vendor"),"");
+				Get_std_prod_options = ifnull(singlestditem.get("Option"),"");
+				info "Get_std_prod_options" + Get_std_prod_options;
+				info "Product_sku" + Product_sku;
+				info "std_SKU" + std_SKU;
+				if(Product_sku == std_SKU)
+				{
+					if(Product_sku != std_SKU)
+					{
+						// 						Mismatched_list.add("Product with sku " + std_SKU + "has mismatched SKU");
+						// 						SKU_Map = Map();
+						// 						SKU_Map.put("Product_SKU",{"PO":Product_sku,"Actual":std_SKU});
+						// 						Mismatch_Type_List.add(SKU_Map);
+					}
+					product_id = Map();
+					product_id.put("id",crmproductid);
+					product_map = Map();
+					product_map.put("Product_Name",product_id);
+					Get_product_listprice = po_product.get("list_price");
+					Get_product_nettotal = Get_product_listprice * quote_std_prod_quantity;
+					Get_product_total = Get_product_nettotal;
+					Get_product_total = Get_product_total.round(2);
+					Get_product_discount = po_product.get("Discount");
+					Get_product_tax = po_product.get("Tax");
+					product_map.put("Quantity",quote_std_prod_quantity);
+					product_map.put("Amount",Get_product_total);
+					product_map.put("Total",Get_product_nettotal.round(2));
+					product_map.put("Tax",Get_product_tax);
+					product_map.put("List_Price",Get_product_listprice.round(2));
+					product_map.put("Discount",Get_product_discount);
+					Product_options_description = "";
+					crm_quote_product = 1;
+					if(quote_std_prod_quantity != CRM_Po_product_Quantity)
+					{
+						EDI_verified = false;
+						Mismatched_list.add("Product with sku " + Product_sku + " has mismatched Quantity");
+						Quantity_Map = Map();
+						Quantity_Map.put("Product_Quantity",{"PO":CRM_Po_product_Quantity,"Actual":quote_std_prod_quantity});
+						Mismatch_Type_List.add(Quantity_Map);
+						//Mismatch_Object.put("Product_Name ::" + po_product.get("product").get("name"),{"PO":CRM_Po_product_Quantity,"Actual":quote_std_prod_quantity,"id":crmproductid,"type":"Product Quantity"});
+					}
+					Get_po_product_option = ifnull(po_product.get("product_description"),"");
+					//	if(Get_po_product_option != "")
+					//	{
+					List_Parameter1 = "";
+					if(Get_std_prod_options.startsWith("-#"))
+					{
+						List_Parameter1 = "-#";
+					}
+					else
+					{
+						List_Parameter1 = "->";
+					}
+					// 					List_Parameter1="-#";
+					info "Get_std_prod_options" + Get_std_prod_options;
+					for each  quote_prodoption in Get_std_prod_options.tolist(List_Parameter1)
+					{
+						if(!isNull(quote_prodoption))
+						{
+							info "quote_prodoption" + quote_prodoption;
+							// 							quote_prodoption = quote_prodoption.remove(",");
+							quote_prodoption = quote_prodoption.remove("[");
+							quote_prodoption = quote_prodoption.remove("]");
+							BC_option_id = quote_prodoption.getSuffix("--");
+							if(!isnull(BC_option_id))
+							{
+								quote_prodoption = quote_prodoption.remove(BC_option_id);
+								quote_prodoption = quote_prodoption.remove("--");
+								quote_prodoption = quote_prodoption.trim();
+								Dropprint = "";
+								if(quote_prodoption.contains("$") == true)
+								{
+									Bcoptionlist = quote_prodoption.toList("$");
+									Bcoptionlist = Bcoptionlist.get(1);
+									info Bcoptionlist;
+									Bcoptionlist = Bcoptionlist.toList(" ");
+									Bcoptionlist = Bcoptionlist.get(0);
+									Bcoptionval = Bcoptionlist.toDecimal();
+									info Bcoptionval;
+									if(Bcoptionval > 0)
+									{
+										Dropprint = " _Yes";
+									}
+								}
+								Product_options_description = Product_options_description + quote_prodoption + Dropprint + "\n";
+							}
+						}
+					}
+					CRM_options_description = "";
+					if(!isnull(Get_po_product_option))
+					{
+						for each  crm_prodoption in Get_po_product_option.tolist("\n")
+						{
+							//crm_prodoption = crm_prodoption.remove(" _Yes");
+							//crm_prodoption = crm_prodoption.remove(" _No");
+							CRM_options_description = CRM_options_description + crm_prodoption + "\n";
+						}
+					}
+					if(!CRM_options_description.equals(Product_options_description))
+					{
+						Product_description_mismatch = false;
+						CRM_options_description_list = CRM_options_description.tolist("\n");
+						Product_options_description_list = Product_options_description.tolist("\n");
+						if(CRM_options_description_list.size() > 0 && Product_options_description_list.size() > 0)
+						{
+							for each  Quot_options_description in Product_options_description_list
+							{
+								Product_description_match = 0;
+								for each  Inv_product_description in CRM_options_description_list
+								{
+									if(Inv_product_description.equals(Quot_options_description))
+									{
+										Product_description_match = 1;
+									}
+								}
+								if(Product_description_match == 0)
+								{
+									Product_description_mismatch = true;
+								}
+							}
+						}
+						else
+						{
+							Product_description_mismatch = true;
+						}
+						if(Product_description_mismatch == true)
+						{
+							EDI_verified = false;
+							Mismatched_list.add("Product with sku " + Product_sku + " has mismatched product desciption");
+							BCprod_option_Map = Map();
+							BCprod_option_Map.put("Product_Description",{"PO":CRM_options_description,"Actual":Product_options_description});
+							Mismatch_Type_List.add(BCprod_option_Map);
+						}
+					}
+					/* 						for each  crm_prodoption in Get_po_product_option.tolist("\n")
+						{
+							Quote_stdprod_option = 0;
+							info "crm_prodoption" + crm_prodoption;
+							crm_prodoption = crm_prodoption.remove(" _Yes");
+							crm_prodoption = crm_prodoption.remove(" _No");
+							for each  quote_prodoption in Get_std_prod_options.tolist(",")
+							{
+								info "quote_prodoption" + quote_prodoption;
+								quote_prodoption = quote_prodoption.remove("->");
+								quote_prodoption = quote_prodoption.remove("[");
+								quote_prodoption = quote_prodoption.remove("]");
+								BC_option_id = quote_prodoption.getSuffix("--");
+								quote_prodoption = quote_prodoption.remove(BC_option_id);
+								quote_prodoption = quote_prodoption.remove("--");
+								quote_prodoption = quote_prodoption.trim();
+								if(crm_prodoption == quote_prodoption)
+								{
+									info "match" + crm_prodoption;
+									Quote_stdprod_option = 1;
+								}
+							}
+							if(Quote_stdprod_option == 0)
+							{
+								EDI_verified = false;
+								Mismatched_list.add("Product with sku " + Product_sku + " has mismatched product desciption");
+								BCprod_option_Map = Map();
+								BCprod_option_Map.put("Product_Description",{"PO":CRM_options_description,"Actual":Product_options_description});
+								Mismatch_Type_List.add(BCprod_option_Map);
+								//EDI_verified = false;
+								//Mismatched_list.add("Product with sku " + Product_sku + " has mismatched option");
+							}
+						} */
+					product_map.put("Product_Description",Product_options_description);
+					//}
+					// 					if(Vendor_Notes_std_item != "")
+					// 					{
+					// 						notestovendor.add(std_SKU + ": " + Vendor_Notes_std_item + "\n");
+					// 					}
+					if(product_map.size() > 0)
+					{
+						product_list.add(product_map);
+					}
+				}
+			}
+		}
+		// 		info "custom size:" + customitem.tomap().contains("message");
+		if(customitem.size() > 0)
+		{
+			info "customitem" + customitem;
+			custom_product_list = List();
+			// 			custom_product_list.clear();
+			for each  singlecustitem in customitem
+			{
+				info "success custom item";
+				Custom_SKU = singlecustitem.get("Custom_SKU.Vendor_SKU");
+				custm_product_id = singlecustitem.get("Custom_Product_CrmRecId").get("display_value");
+				get_custom_SKU_product = zoho.crm.getRecordById("Products",custm_product_id.toLong());
+				if(get_custom_SKU_product.tomap().get("Vendor_Name").get("id") == Get_Purchase_Order.get("Vendor_Name").get("id"))
+				{
+					custom_product_list.add(get_custom_SKU_product.tomap().get("id"));
+				}
+				quote_cust_prod_quantity = ifnull(singlecustitem.get("Qty"),"");
+				quote_cust_prod_quantity = quote_cust_prod_quantity.toLong();
+				Customitem_Vendor_Notes = ifnull(singlecustitem.get("Notes_to_Vendor"),"");
+				criteria_sku = singlecustitem.get("Custom_SKU").get("display_value");
+				Get_customproduct_description = ifnull(singlecustitem.get("Additional_Description"),"");
+				Custom_prod_description = "";
+				info "criteria_sku" + criteria_sku;
+				info "Product_sku" + Product_sku;
+				if(Product_sku == criteria_sku)
+				{
+					if(Product_sku != criteria_sku)
+					{
+						// 						Mismatched_list.add("Product with sku " + criteria_sku + "has mismatched SKU");
+						// 						SKU_Map = Map();
+						// 						SKU_Map.put("Product_SKU",{"PO":Product_sku,"Actual":criteria_sku});
+						// 						Mismatch_Type_List.add(SKU_Map);
+					}
+					product_id = Map();
+					product_id.put("id",crmproductid);
+					product_map = Map();
+					product_map.put("Product_Name",product_id);
+					Get_product_listprice = po_product.get("list_price");
+					Get_product_nettotal = Get_product_listprice * quote_cust_prod_quantity;
+					Get_product_total = Get_product_nettotal;
+					Get_product_total = Get_product_total.round(2);
+					Get_product_discount = po_product.get("Discount");
+					Get_product_tax = po_product.get("Tax");
+					Custom_prod_description = Custom_prod_description + Get_customproduct_description + "\n";
+					Get_po_product_option = ifnull(po_product.get("product_description"),"");
+					if(!Custom_prod_description.equals(Get_po_product_option))
+					{
+						EDI_verified = false;
+						Mismatched_list.add("Product with sku " + Product_sku + " has mismatched product desciption");
+						BCprod_option_Map = Map();
+						BCprod_option_Map.put("Product_Description",{"PO":Get_po_product_option,"Actual":Custom_prod_description});
+						Mismatch_Type_List.add(BCprod_option_Map);
+					}
+					product_map.put("Product_Description",Custom_prod_description);
+					product_map.put("Quantity",quote_cust_prod_quantity);
+					product_map.put("Amount",Get_product_total);
+					product_map.put("Total",Get_product_nettotal.round(2));
+					product_map.put("Tax",Get_product_tax);
+					product_map.put("List_Price",Get_product_listprice.round(2));
+					product_map.put("Discount",Get_product_discount);
+					crm_quote_product = 1;
+					info "CRM_Po_product_Quantity" + CRM_Po_product_Quantity;
+					info "quote_cust_prod_quantity" + quote_cust_prod_quantity;
+					if(CRM_Po_product_Quantity != quote_cust_prod_quantity)
+					{
+						info "inside quantity mismatch";
+						EDI_verified = false;
+						Mismatched_list.add("Product with sku " + Product_sku + " has mismatched quantity");
+						Custom_Quantity_Map = Map();
+						Custom_Quantity_Map.put("Product_Quantity",{"PO":CRM_Po_product_Quantity,"Actual":quote_cust_prod_quantity});
+						Mismatch_Type_List.add(Custom_Quantity_Map);
+						//Mismatch_Object.put("Product_Name ::" + po_product.get("product").get("name"),{"PO":CRM_Po_product_Quantity,"Actual":quote_cust_prod_quantity,"id":crmproductid,"type":"Product Quantity"});
+					}
+					// 					if(Customitem_Vendor_Notes != "")
+					// 					{
+					// 						notestovendor.add(Custom_SKU + ": " + Customitem_Vendor_Notes + "\n");
+					// 					}
+					if(product_map.size() > 0)
+					{
+						product_list.add(product_map);
+					}
+				}
+			}
+		}
+		if(crm_quote_product == 0)
+		{
+			//EDI_verified = false;
+			//Mismatched_list.add("Product with sku " + Product_sku + " is not available in Quote");
+		}
+		if(Mismatch_Type_List.size() > 0)
+		{
+			ProductID_Map = Map();
+			ProductID_Map.put("product_id",crmproductid);
+			prod_sku_map = Map();
+			prod_sku_map.put("product_SKU",product_sku_for_table);
+			vendor_sku_map = Map();
+			vendor_sku_map.put("vendor_SKU",vendor_sku_for_table);
+			Mismatch_Type_List.add(prod_sku_map);
+			Mismatch_Type_List.add(vendor_sku_map);
+			Mismatch_Type_List.add(ProductID_Map);
+		}
+		else
+		{
+			remove_key = list();
+			for each  obj_key in Mismatch_Object.keys()
+			{
+				if(obj_key.contains(po_product.get("product").get("name")))
+				{
+					remove_key.add(obj_key);
+				}
+			}
+			for each  rem_key in remove_key
+			{
+				Mismatch_Object.remove(rem_key);
+			}
+		}
+	}
+	info "po_product_list" + po_product_list;
+	info "custom_product_list" + custom_product_list;
+	info "std_product_list" + std_product_list.size();
+	if(po_product_list.size() < custom_product_list.size() + std_product_list.size())
+	{
+		Missing_Quote_product_list = LIST();
+		if(std_product_list.size() > 0)
+		{
+			Missing_Quote_product_list.addAll(std_product_list);
+		}
+		if(custom_product_list.size() > 0)
+		{
+			Missing_Quote_product_list.addAll(custom_product_list);
+		}
+		Missing_Quote_product_list.removeAll(po_product_list);
+		if(Missing_Quote_product_list.size() > 0)
+		{
+			Mismatched_list.add("Dropship Order has missing product(s)");
+			missing_product_list = list();
+			for each  miss_prod in Missing_Quote_product_list
+			{
+				missing_product_map = Map();
+				miss_prod = miss_prod.toString();
+				// 				miss_prod = miss_prod.toLong();
+				get_prod = zoho.crm.getRecordById("Products",miss_prod.toLong());
+				missing_product_map.put("Missing_Product",{"Actual":"Product Found","PO":"Product Not Found"});
+				missing_product_id_map = Map();
+				missing_product_id_map.put("product_id",miss_prod);
+				missing_product_list.add(missing_product_map);
+				missing_product_list.add(missing_product_id_map);
+				Mismatch_Object.put("Product_Name::" + get_prod.get("Product_Name"),missing_product_list);
+			}
+		}
+	}
+	//Removing additional script
+	if(po_product_list.size() > custom_product_list.size() + std_product_list.size())
+	{
+		Additional_quote_product_list = LIST();
+		if(std_product_list.size() > 0)
+		{
+			Additional_quote_product_list.addAll(std_product_list);
+		}
+		if(custom_product_list.size() > 0)
+		{
+			Additional_quote_product_list.addAll(custom_product_list);
+		}
+		po_product_list.removeAll(Additional_quote_product_list);
+		if(po_product_list.size() > 0)
+		{
+			Mismatched_list.add("Dropship Order has additional product(s)");
+			missing_product_list = list();
+			for each  miss_prod in po_product_list
+			{
+				missing_product_map = Map();
+				miss_prod = miss_prod.toString();
+				// 				miss_prod = miss_prod.toLong();
+				get_prod = zoho.crm.getRecordById("Products",miss_prod.toLong());
+				missing_product_map.put("Additional_Product",{"Actual":"Extra Product Found","PO":"Product Found"});
+				missing_product_id_map = Map();
+				missing_product_id_map.put("product_id",miss_prod);
+				missing_product_list.add(missing_product_map);
+				missing_product_list.add(missing_product_id_map);
+				Mismatch_Object.put("Product_Name::" + get_prod.get("Product_Name"),missing_product_list);
+			}
+		}
+	}
+	//Removing extra product and adding the missing product
+	if(po_product_list.size() == custom_product_list.size() + std_product_list.size())
+	{
+		Missing_Product_list = List();
+		if(std_product_list.size() > 0)
+		{
+			Missing_Product_list.addAll(std_product_list);
+		}
+		if(custom_product_list.size() > 0)
+		{
+			Missing_Product_list.addAll(custom_product_list);
+		}
+		Missing_Product_list.removeAll(po_product_list);
+		if(Missing_Product_list.size() > 0)
+		{
+			Mismatched_list.add("Dropship Order has missing product(s)");
+			missing_product_list = list();
+			info "Missing_Product_list" + Missing_Product_list;
+			for each  miss_prod in Missing_Product_list
+			{
+				missing_product_map = Map();
+				info "miss_prod" + miss_prod;
+				miss_prod = miss_prod.toString();
+				// 				miss_prod = miss_prod.toLong();
+				get_prod = zoho.crm.getRecordById("Products",miss_prod.toLong());
+				missing_product_map.put("Missing_Product",{"Actual":"Product Found","PO":"Product Not Found"});
+				missing_product_id_map = Map();
+				missing_product_id_map.put("product_id",miss_prod);
+				missing_product_list.add(missing_product_map);
+				missing_product_list.add(missing_product_id_map);
+				Mismatch_Object.put("Product_Name::" + get_prod.get("Product_Name"),missing_product_list);
+			}
+		}
+		//Removing additional products
+		Additional_product_list = LIST();
+		if(std_product_list.size() > 0)
+		{
+			Additional_product_list.addAll(std_product_list);
+		}
+		if(custom_product_list.size() > 0)
+		{
+			Additional_product_list.addAll(custom_product_list);
+		}
+		info "custom_product_list" + custom_product_list;
+		info "std_product_list" + std_product_list;
+		info "po_product_list" + po_product_list;
+		info "additonal list" + Additional_product_list;
+		po_product_list.removeAll(Additional_product_list);
+		info "po_product_list after removal" + po_product_list;
+		if(po_product_list.size() > 0)
+		{
+			Mismatched_list.add("Dropship Order has additional product(s)");
+			missing_product_list = list();
+			for each  miss_prod in po_product_list
+			{
+				missing_product_map = Map();
+				miss_prod = miss_prod.toString();
+				// 				miss_prod = miss_prod.toLong();
+				get_prod = zoho.crm.getRecordById("Products",miss_prod.toLong());
+				missing_product_map.put("Additional_Product",{"Actual":"Extra Product Found","PO":"Product Found"});
+				missing_product_id_map = Map();
+				missing_product_id_map.put("product_id",miss_prod);
+				missing_product_list.add(missing_product_map);
+				missing_product_list.add(missing_product_id_map);
+				Mismatch_Object.put("Product_Name::" + get_prod.get("Product_Name"),missing_product_list);
+			}
+		}
+	}
+	new_description = '';
+	description = '';
+	vendor_quotes_Str = '';
+	//Forming vendor description
+	// 	for each  CRM_PO_productdata in Get_Po_product_details
+	// 	{
+	// 		CRM_Product_sku = CRM_PO_productdata.get("product").get("Product_Code");
+	MissingQuantity = Map();
+	MissingProductdescription = Map();
+	if(Standard_item.size() > 0)
+	{
+		for each  singlestditem in Standard_item
+		{
+			std_SKU = singlestditem.get("Product").get("display_value");
+			V_Notes_std_item = ifnull(singlestditem.get("Notes_to_Vendor"),"");
+			crm_std_product_id = singlestditem.get("Items_CrmRecId").get("display_value");
+			get_SKU_product = zoho.crm.getRecordById("Products",crm_std_product_id.toLong());
+			if(get_SKU_product.tomap().get("Vendor_Name").get("id") == Get_Purchase_Order.get("Vendor_Name").get("id"))
+			{
+				MissingQuantity.put(crm_std_product_id,singlestditem.get("Qty").toLong());
+				Get_std_prod_options = ifnull(singlestditem.get("Option"),"");
+				List_Parameter2 = "";
+				info "Get_std_prod_options" + Get_std_prod_options;
+				if(Get_std_prod_options.startsWith("-#"))
+				{
+					List_Parameter2 = "-#";
+				}
+				else
+				{
+					List_Parameter2 = "->";
+				}
+				// 				List_Parameter2 = "-#";
+				for each  quote_prodoption in Get_std_prod_options.tolist(List_Parameter2)
+				{
+					if(!isNull(quote_prodoption))
+					{
+						info "quote_prodoption" + quote_prodoption;
+						// 							quote_prodoption = quote_prodoption.remove(",");
+						quote_prodoption = quote_prodoption.remove("[");
+						quote_prodoption = quote_prodoption.remove("]");
+						BC_option_id = quote_prodoption.getSuffix("--");
+						if(!isnull(BC_option_id))
+						{
+							quote_prodoption = quote_prodoption.remove(BC_option_id);
+							quote_prodoption = quote_prodoption.remove("--");
+							quote_prodoption = quote_prodoption.trim();
+							Dropprint = "";
+							if(quote_prodoption.contains("$") == true)
+							{
+								Bcoptionlist = quote_prodoption.toList("$");
+								Bcoptionlist = Bcoptionlist.get(1);
+								info Bcoptionlist;
+								Bcoptionlist = Bcoptionlist.toList(" ");
+								Bcoptionlist = Bcoptionlist.get(0);
+								Bcoptionval = Bcoptionlist.toDecimal();
+								info Bcoptionval;
+								if(Bcoptionval > 0)
+								{
+									Dropprint = " _Yes";
+								}
+							}
+							Product_options_description = Product_options_description + quote_prodoption + Dropprint + "\n";
+						}
+					}
+				}
+				MissingProductdescription.put(crm_std_product_id,Product_options_description);
+				if(V_Notes_std_item != "")
+				{
+					notestovendor.add(std_SKU + ": " + V_Notes_std_item + "\n");
+				}
+			}
+		}
+	}
+	if(customitem.size() > 0)
+	{
+		for each  singlecustitem in customitem
+		{
+			Custom_SKU = singlecustitem.get("Custom_SKU.Vendor_SKU");
+			V_Notes = ifnull(singlecustitem.get("Notes_to_Vendor"),"");
+			criteria_sku = singlecustitem.get("Custom_SKU").get("display_value");
+			custm_product_id = singlecustitem.get("Custom_Product_CrmRecId").get("display_value");
+			get_custom_SKU_product = zoho.crm.getRecordById("Products",custm_product_id.toLong());
+			if(get_custom_SKU_product.tomap().get("Vendor_Name").get("id") == Get_Purchase_Order.get("Vendor_Name").get("id"))
+			{
+				MissingQuantity.put(custm_product_id,singlecustitem.get("Qty").toLong());
+				Get_customproduct_description = ifnull(singlecustitem.get("Additional_Description"),"");
+				Custom_prod_description = "";
+				Custom_prod_description = Custom_prod_description + Get_customproduct_description + "\n";
+				MissingProductdescription.put(custm_product_id,Custom_prod_description);
+				if(V_Notes != "")
+				{
+					vendor_quotes.add(Custom_SKU + ": " + V_Notes + "\n");
+				}
+			}
+		}
+	}
+	// 	}
+	info "notestovendor" + notestovendor;
+	Edi_log_create.put("MissingQuantity_Map",MissingQuantity);
+	Edi_log_create.put("MissingProductdes_Map",MissingProductdescription);
+	if(notestovendor.size() > 0)
+	{
+		description = ifnull(Get_Sales_Order.get("Description"),"") + notestovendor.toString();
+		new_description = Get_Sales_Order.get("Customer_Notes");
+		if(new_description != null)
+		{
+			if(new_description.contains("Additional Delivery Instructions:"))
+			{
+				finalStr = new_description.getsuffix("--");
+				midStr = new_description.getsuffix("Additional Delivery Instructions:").getprefix("--");
+				midStrList = midStr.tolist("\n");
+				collectedMidStr = "";
+				for each  eachStr in midStrList
+				{
+					collectedMidStr = collectedMidStr + eachStr.getprefix(" + ") + "\n";
+				}
+				new_description = "Customer notes: Additional Delivery Instructions: " + collectedMidStr + "--" + finalStr;
+			}
+			else if(new_description.contains("Customer notes:"))
+			{
+				info "Stor Front Order Customer Notes : " + new_description;
+				// Added By Ezhil on 16th Feb 2021
+				// To sync BC customer comment to DSO
+				new_description = Get_Sales_Order.get("Customer_Notes");
+			}
+		}
+		// 		if(new_description.contains("Additional Delivery Instructions:"))
+		// 		{
+		// 			final_str = new_description.getsuffix("--");
+		// 			mid_str = new_description.getsuffix("Additional Delivery Instructions:").getprefix("--");
+		// 			mid_str = mid_str.replaceAll("\+ ","").toString();
+		// 			// 				info mid_str;
+		// 			mid_str_list = mid_str.replaceAll("\n",",").toList(",");
+		// 			Correct_mid_str = "";
+		// 			for each  each_element in mid_str_list
+		// 			{
+		// 				split = "";
+		// 				split = each_element.replaceAll(" ",",").toList(",");
+		// 				for each  each_split in split
+		// 				{
+		// 					if(!each_split.contains("$"))
+		// 					{
+		// 						Correct_mid_str = Correct_mid_str + each_split + " ";
+		// 					}
+		// 				}
+		// 				Correct_mid_str = Correct_mid_str + "\n";
+		// 			}
+		// 			new_description = "Additional Delivery Instructions:" + Correct_mid_str + "--" + final_str;
+		// 		}
+	}
+	else
+	{
+		description = ifnull(Get_Sales_Order.get("Description"),"") + notestovendor.toString();
+		new_description = Get_Sales_Order.get("Customer_Notes");
+		if(new_description != null)
+		{
+			if(new_description.contains("Additional Delivery Instructions:"))
+			{
+				info "Quote Order Customer Notes : " + new_description;
+				finalStr = new_description.getsuffix("--");
+				midStr = new_description.getsuffix("Additional Delivery Instructions:").getprefix("--");
+				midStrList = midStr.tolist("\n");
+				collectedMidStr = "";
+				for each  eachStr in midStrList
+				{
+					info eachStr.getprefix(" + ");
+					collectedMidStr = collectedMidStr + eachStr.getprefix(" + ") + "\n";
+				}
+				new_description = "Customer notes: Additional Delivery Instructions: " + collectedMidStr;
+			}
+			else if(new_description.contains("Customer notes:"))
+			{
+				info "Stor Front Order Customer Notes : " + new_description;
+				// Added By Ezhil on 16th Feb 2021
+				// To sync BC customer comment to DSO
+				new_description = Get_Sales_Order.get("Customer_Notes");
+			}
+			info "TEST : " + new_description;
+		}
+	}
+	if(vendor_quotes.size() > 0)
+	{
+		vendorquotesstr = "";
+		for each  eachvendorquotes in vendor_quotes
+		{
+			if(vendorquotesstr == "")
+			{
+				vendorquotesstr = eachvendorquotes;
+			}
+			else
+			{
+				vendorquotesstr = vendorquotesstr + eachvendorquotes;
+			}
+		}
+		vendor_quotes_Str = vendorquotesstr;
+	}
+	else
+	{
+		vendor_quotes_Str = "";
+	}
+	Get_po_description = ifnull(Get_Purchase_Order.get("Description"),"");
+	Get_po_notes = ifnull(Get_Purchase_Order.get("Order_Notes"),"");
+	Get_vendor_quotes = ifnull(Get_Purchase_Order.get("Vendor_Quotes"),"");
+	info "Get_po_description" + Get_po_description;
+	info "description" + description;
+	info "Get_po_notes" + Get_po_notes;
+	info "new_description" + new_description;
+	info "vendor_quotes_str" + vendor_quotes_Str;
+	if(Get_po_description != "" && Get_po_notes != "")
+	{
+		Get_po_notes = Get_po_notes.trim();
+		new_description = new_description.trim();
+		Edi_log_create.put("Vendor_Description1",description);
+		Edi_log_create.put("Order_Comments1",new_description);
+	}
+	if(Get_vendor_quotes != "")
+	{
+		Edi_log_create.put("Vendor_Quotes1",vendor_quotes_Str);
+		Edi_log_create.put("Vendor_Quotes",Get_po_description);
+	}
+	if(!Get_po_description.equals(description))
+	{
+		vendor_description_mismatch = false;
+		Get_po_description_list = Get_po_description.tolist(",");
+		description_list = description.tolist(",");
+		if(Get_po_description_list.size() > 0 && description_list.size() > 0)
+		{
+			for each  vendor_note in description_list
+			{
+				vendor_description_match = 1;
+				for each  Po_vendor_note in Get_po_description_list
+				{
+					if(Po_vendor_note.equals(vendor_note))
+					{
+						vendor_description_match = 0;
+					}
+				}
+				if(vendor_description_match == 1)
+				{
+					vendor_description_mismatch = true;
+				}
+			}
+		}
+		else
+		{
+			vendor_description_mismatch = true;
+		}
+		if(vendor_description_mismatch = true)
+		{
+			info "success";
+			EDI_verified = false;
+			Mismatched_list.add("Purchase order has mismatched vendor description");
+			Mismatch_Object.put("Vendor_Description",{"PO":Get_po_description,"Actual":description});
+		}
+	}
+	//BD Added 
+	if(!Get_vendor_quotes.equals(vendor_quotes_Str))
+	{
+		vendor_description_mismatch = false;
+		Get_vendor_quotes_list = Get_vendor_quotes.tolist(",");
+		vendor_quotes_list = vendor_quotes_Str.tolist(",");
+		if(Get_vendor_quotes_list.size() > 0 && vendor_quotes_list.size() > 0)
+		{
+			for each  each_vendor_quotes in vendor_quotes_list
+			{
+				vendor_description_match = 1;
+				for each  Po_vendor_note in Get_vendor_quotes_list
+				{
+					if(Po_vendor_note.equals(each_vendor_quotes))
+					{
+						vendor_description_match = 0;
+					}
+				}
+				if(vendor_description_match == 1)
+				{
+					vendor_description_mismatch = true;
+				}
+			}
+		}
+		else
+		{
+			vendor_description_mismatch = true;
+		}
+		if(vendor_description_mismatch = true)
+		{
+			info "success";
+			EDI_verified = false;
+			Mismatched_list.add("Purchase order has mismatched vendor Quotes");
+			Mismatch_Object.put("Vendor_Quotes",{"PO":Get_vendor_quotes,"Actual":vendor_quotes_Str});
+		}
+	}
+	//BD End
+	new_description = ifnull(new_description,"");
+	if(!Get_po_notes.equalsIgnoreCase(new_description))
+	{
+		info "success";
+		EDI_verified = false;
+		Mismatched_list.add("Purchase order has mismatched Additional shipping options");
+		Mismatch_Object.put("Additional_Shipping_Options",{"PO":Get_po_notes,"Actual":new_description});
+	}
+	//Added by Balaji on Oct - 25, 2021
+	Get_additional_notes = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Notes","Create_Quote ==" + quote.getJSON("ID"),1,100,"zcreator_connecction");
+	info Get_additional_notes;
+	Creator_additional_notes = "";
+	Get_additional_notes = Get_additional_notes.get("data");
+	for each  add_creator_notes in Get_additional_notes
+	{
+		Creator_additional_notes = Creator_additional_notes + add_creator_notes.get("Add_notes") + "\n";
+	}
+	Get_po_additional_notes = ifnull(Get_Purchase_Order.get("Customer_Additional_Notes"),"");
+	info "Get_po_additional_notes" + Get_po_additional_notes;
+	Additional_notes_mismatch = false;
+	if(Get_po_additional_notes != Creator_additional_notes)
+	{
+		info "Customer additional notes: mismatch";
+		Get_po_additional_notes_list = Get_po_additional_notes.toList("\n");
+		Creator_additional_notes_list = Creator_additional_notes.toList("\n");
+		for each  additional_notes_creator in Creator_additional_notes_list
+		{
+			Additional_notes_flag = 0;
+			info "additional_notes_creator" + additional_notes_creator;
+			for each  additional_notes_po in Get_po_additional_notes_list
+			{
+				info "additional_notes_po" + additional_notes_po;
+				if(additional_notes_creator == additional_notes_po)
+				{
+					Additional_notes_flag = 1;
+				}
+			}
+			if(Additional_notes_flag == 0)
+			{
+				Additional_notes_mismatch = true;
+			}
+		}
+		if(Additional_notes_mismatch == true)
+		{
+			info "Customer additional notes: mismatch temp";
+			EDI_verified = false;
+			Mismatched_list.add("Purchase order has mismatched Additional customer notes");
+			Mismatch_Object.put("Additional_Customer_Notes",{"PO":Get_po_additional_notes,"Actual":Creator_additional_notes});
+			Edi_log_create.put("Customer_Additional_Notes1",Get_po_additional_notes);
+			Edi_log_create.put("Additional_customer_notes",Creator_additional_notes);
+		}
+	}
+	//Comparing Quote shipping address
+	Get_Quote_shippingfirstname = ifnull(quote.getJSON("First_Name"),"");
+	Get_Quote_shippingLastName = ifnull(quote.getJSON("Last_Name"),"");
+	Get_Quote_shippingcompanyname = ifnull(quote.getJSON("Company_Name"),"");
+	Get_Quote_shippingemail = ifnull(quote.getJSON("Email"),"");
+	Get_Quote_shippingphone = ifnull(quote.getJSON("Phone"),"");
+	Get_Quote_shippingaddress1 = ifnull(quote.getJSON("CustomerShipAddress1"),"");
+	Get_Quote_shippingaddress2 = ifnull(quote.getJSON("CustomerShipAddress2"),"");
+	Get_Quote_shippingaddress3 = ifnull(quote.getJSON("CustomerShipAddress3"),"");
+	Get_Quote_shippingcity = ifnull(quote.getJSON("CustomerShipCity"),"");
+	Get_Quote_shippingstate = ifnull(quote.getJSON("CustomerShipState"),"");
+	Get_Quote_shippingcountry = ifnull(quote.getJSON("CustomerShipCountry"),"");
+	Get_Quote_shippingcode = ifnull(quote.getJSON("CustomerShipPostal_Code"),"");
+	Get_Quote_shippingfirstname_list = Get_Quote_shippingfirstname.toList(" ");
+	Get_Quote_shippingfirstname = "";
+	for each  rec1 in Get_Quote_shippingfirstname_list
+	{
+		if(!isNull(rec1))
+		{
+			Get_Quote_shippingfirstname = Get_Quote_shippingfirstname + rec1 + " ";
+		}
+	}
+	Get_Quote_shippingfirstname = Get_Quote_shippingfirstname.trim();
+	Get_Quote_shippingLastName_list = Get_Quote_shippingLastName.toList(" ");
+	Get_Quote_shippingLastName = "";
+	for each  rec2 in Get_Quote_shippingLastName_list
+	{
+		if(!isNull(rec2))
+		{
+			Get_Quote_shippingLastName = Get_Quote_shippingLastName + rec2 + " ";
+		}
+	}
+	Get_Quote_shippingLastName = Get_Quote_shippingLastName.trim();
+	Get_Quote_shippingcompanyname_list = Get_Quote_shippingcompanyname.toList(" ");
+	Get_Quote_shippingcompanyname = "";
+	for each  rec3 in Get_Quote_shippingcompanyname_list
+	{
+		if(!isNull(rec3))
+		{
+			Get_Quote_shippingcompanyname = Get_Quote_shippingcompanyname + rec3 + " ";
+		}
+	}
+	Get_Quote_shippingcompanyname = Get_Quote_shippingcompanyname.trim();
+	Get_Quote_shippingaddress1_list = Get_Quote_shippingaddress1.toList(" ");
+	Get_Quote_shippingaddress1 = "";
+	for each  rec4 in Get_Quote_shippingaddress1_list
+	{
+		if(!isNull(rec4))
+		{
+			Get_Quote_shippingaddress1 = Get_Quote_shippingaddress1 + rec4 + " ";
+		}
+	}
+	Get_Quote_shippingaddress1 = Get_Quote_shippingaddress1.trim();
+	Get_Quote_shippingaddress2_list = Get_Quote_shippingaddress2.toList(" ");
+	Get_Quote_shippingaddress2 = "";
+	for each  rec5 in Get_Quote_shippingaddress2_list
+	{
+		if(!isNull(rec5))
+		{
+			Get_Quote_shippingaddress2 = Get_Quote_shippingaddress2 + rec5 + " ";
+		}
+	}
+	Get_Quote_shippingaddress2 = Get_Quote_shippingaddress2.trim();
+	Get_Quote_shippingcity_list = Get_Quote_shippingcity.toList(" ");
+	Get_Quote_shippingcity = "";
+	for each  rec6 in Get_Quote_shippingcity_list
+	{
+		if(!isNull(rec6))
+		{
+			Get_Quote_shippingcity = Get_Quote_shippingcity + rec6 + " ";
+		}
+	}
+	Get_Quote_shippingcity = Get_Quote_shippingcity.trim();
+	Get_Quote_shippingstate_list = Get_Quote_shippingstate.toList(" ");
+	Get_Quote_shippingstate = "";
+	for each  rec7 in Get_Quote_shippingstate_list
+	{
+		if(!isNull(rec7))
+		{
+			Get_Quote_shippingstate = Get_Quote_shippingstate + rec7 + " ";
+		}
+	}
+	Get_Quote_shippingstate = Get_Quote_shippingstate.trim();
+	Get_Quote_shippingcode_list = Get_Quote_shippingcode.toList(" ");
+	Get_Quote_shippingcode = "";
+	for each  rec8 in Get_Quote_shippingcode_list
+	{
+		if(!isNull(rec8))
+		{
+			Get_Quote_shippingcode = Get_Quote_shippingcode + rec8 + " ";
+		}
+	}
+	Get_Quote_shippingcode = Get_Quote_shippingcode.trim();
+	Get_Quote_shippingcountry_list = Get_Quote_shippingcountry.toList(" ");
+	Get_Quote_shippingcountry = "";
+	for each  rec9 in Get_Quote_shippingcountry_list
+	{
+		if(!isNull(rec9))
+		{
+			Get_Quote_shippingcountry = Get_Quote_shippingcountry + rec9 + " ";
+		}
+	}
+	Get_Quote_shippingcountry = Get_Quote_shippingcountry.trim();
+	Get_Quote_shippingphone_list = Get_Quote_shippingphone.toList(" ");
+	Get_Quote_shippingphone = "";
+	for each  rec10 in Get_Quote_shippingphone_list
+	{
+		if(!isNull(rec10))
+		{
+			Get_Quote_shippingphone = Get_Quote_shippingphone + rec10 + " ";
+		}
+	}
+	Get_Quote_shippingphone = Get_Quote_shippingphone.trim();
+	Get_Quote_shippingemail_list = Get_Quote_shippingemail.toList(" ");
+	Get_Quote_shippingemail = "";
+	for each  rec11 in Get_Quote_shippingemail_list
+	{
+		if(!isNull(rec11))
+		{
+			Get_Quote_shippingemail = Get_Quote_shippingemail + rec11 + " ";
+		}
+	}
+	Get_Quote_shippingemail = Get_Quote_shippingemail.trim();
+	if(Get_Quote_shippingcountry == "US")
+	{
+		Get_Quote_shippingcountry = "United States";
+	}
+	else if(Get_Quote_shippingcountry == "CA")
+	{
+		Get_Quote_shippingcountry = "Canada";
+	}
+	Get_Quote_shippingphone = Get_Quote_shippingphone.replaceAll("[^a-zA-Z0-9\-+ ]","");
+	Edi_log_create.put("Shipping_City1",Get_Quote_shippingcity);
+	Edi_log_create.put("Shipping_Code1",Get_Quote_shippingcode);
+	Edi_log_create.put("Shipping_Company1",Get_Quote_shippingcompanyname);
+	Edi_log_create.put("Shipping_Country1",Get_Quote_shippingcountry);
+	Edi_log_create.put("Shipping_Email",Get_Quote_shippingemail);
+	Edi_log_create.put("Shipping_Phone",Get_Quote_shippingphone);
+	Edi_log_create.put("Shipping_State1",Get_Quote_shippingstate);
+	Edi_log_create.put("Shipping_Street1",Get_Quote_shippingaddress1);
+	Edi_log_create.put("Shipping_Street_2",Get_Quote_shippingaddress2);
+	Edi_log_create.put("Shipping_First_Name1",Get_Quote_shippingfirstname);
+	Edi_log_create.put("Shipping_Last_Name1",Get_Quote_shippingLastName);
+	info "Po_shippingFirstname" + Po_shippingFirstname;
+	if(!Po_shippingFirstname.equals(Get_Quote_shippingfirstname))
+	{
+		Mismatch_Object.put("Shipping_First_Name",{"PO":Po_shippingFirstname,"Actual":Get_Quote_shippingfirstname});
+	}
+	if(!Po_shippingLastname.equals(Get_Quote_shippingLastName))
+	{
+		Mismatch_Object.put("Shipping_Last_Name",{"PO":Po_shippingLastname,"Actual":Get_Quote_shippingLastName});
+	}
+	// 	special_char_list = {"(",")",";","!","@","#","&","*","=","|","<",">","?"," "};
+	// 	for each  char in special_char_list
+	// 	{
+	// 		Get_Quote_shippingphone = Get_Quote_shippingphone.remove(char);
+	// 	}
+	if(!Po_shippingPhone.equals(Get_Quote_shippingphone))
+	{
+		Mismatch_Object.put("Shipping_Phone",{"PO":Po_shippingPhone,"Actual":Get_Quote_shippingphone});
+	}
+	if(!Po_shippingCompany.equals(Get_Quote_shippingcompanyname))
+	{
+		Mismatch_Object.put("Shipping_Company",{"PO":Po_shippingCompany,"Actual":Get_Quote_shippingcompanyname});
+	}
+	if(!Po_shippingStreet.equals(Get_Quote_shippingaddress1))
+	{
+		Mismatch_Object.put("Shipping_Street",{"PO":Po_shippingStreet,"Actual":Get_Quote_shippingaddress1});
+	}
+	if(!Po_shippingStreet2.equals(Get_Quote_shippingaddress2))
+	{
+		Mismatch_Object.put("Shipping_Street2",{"PO":Po_shippingStreet2,"Actual":Get_Quote_shippingaddress2});
+	}
+	if(!Po_shippingCity.equals(Get_Quote_shippingcity))
+	{
+		Mismatch_Object.put("Shipping_City",{"PO":Po_shippingCity,"Actual":Get_Quote_shippingcity});
+	}
+	if(!Po_shippingState.equals(Get_Quote_shippingstate))
+	{
+		Mismatch_Object.put("Shipping_State",{"PO":Po_shippingState,"Actual":Get_Quote_shippingstate});
+	}
+	if(Po_shippingCode != Get_Quote_shippingcode)
+	{
+		Mismatch_Object.put("Shipping_Code",{"PO":Po_shippingCode,"Actual":Get_Quote_shippingcode});
+	}
+	if(!Po_shippingCountry.equals(Get_Quote_shippingcountry))
+	{
+		Mismatch_Object.put("Shipping_Country",{"PO":Po_shippingCountry,"Actual":Get_Quote_shippingcountry});
+	}
+	// 	if(!Po_shippingEmail.equals(Get_Quote_shippingemail))
+	// 	{
+	// 		Mismatch_Object.put("Shipping_Email",{"PO":Po_shippingEmail,"Actual":Get_Quote_shippingemail});
+	// 	}
+	if(!Po_shippingFirstname.equals(Get_Quote_shippingfirstname) || !Po_shippingLastname.equals(Get_Quote_shippingLastName) || Po_shippingPhone != Get_Quote_shippingphone || !Po_shippingCompany.equals(Get_Quote_shippingcompanyname) || !Po_shippingStreet.equals(Get_Quote_shippingaddress1) || !Po_shippingStreet2.equals(Get_Quote_shippingaddress2) || !Po_shippingCity.equals(Get_Quote_shippingcity) || !Po_shippingState.equals(Get_Quote_shippingstate) || Po_shippingCode != Get_Quote_shippingcode || !Po_shippingCountry.equals(Get_Quote_shippingcountry))
+	{
+		info "Success";
+		EDI_verified = false;
+		Mismatched_list.add("Purchase order has mismatched Shipping address");
+	}
+	Get_Quote_shippingtype = ifnull(quote.getJSON("Shipping_Type"),"");
+	if(Get_Quote_shippingtype != "")
+	{
+		Get_Quote_shippingtype = Get_Quote_shippingtype.get("display_value");
+	}
+	info "Get_Po_shipmethod" + Get_Po_shipmethod;
+	info "Get_Quote_shippingtype" + Get_Quote_shippingtype;
+	if(!Get_Po_shipmethod.equals(Get_Quote_shippingtype))
+	{
+		info "Success";
+		EDI_verified = false;
+		Edi_log_create.put("Ship_Method1",Get_Quote_shippingtype);
+		Mismatched_list.add("Purchase order has mismatched Ship method");
+		Mismatch_Object.put("Ship_Method",{"PO":Get_Po_shipmethod,"Actual":Get_Quote_shippingtype});
+	}
+	Get_additional_shippingfeatures = ifnull(quote.getJSON("SpecialField_Additional_Shipping_Charges"),"");
+	info "Get_additional_shippingfeatures" + Get_additional_shippingfeatures;
+	Get_Po_ordercomments = ifnull(Get_Purchase_Order.get("Order_Notes"),"");
+	Get_Po_ordercomments = ifnull(Get_Po_ordercomments.getSuffix("Additional Delivery Instructions:"),"");
+	Get_Po_ordercomments = ifnull(Get_Po_ordercomments.getSuffix("\n"),"");
+	Get_Po_ordercomments = ifnull(Get_Po_ordercomments.getPrefix("--"),"");
+	info "temppp:" + Get_Po_ordercomments;
+	if(Get_additional_shippingfeatures != "")
+	{
+		for each  shipping_features in Get_additional_shippingfeatures
+		{
+			Po_ordercomment_count = 0;
+			info "Po_ordercomment" + shipping_features.getprefix(" +");
+			for each  Po_ordercomment in Get_Po_ordercomments.toList("\n")
+			{
+				info "temp:" + Po_ordercomment;
+				if(shipping_features == Po_ordercomment)
+				{
+					info shipping_features;
+					Po_ordercomment = 1;
+				}
+			}
+			if(Po_ordercomment == 0)
+			{
+				info "tempp";
+				//EDI_verified = false;
+				//Mismatched_list.add("Purchase order has mismatched Additional Shipping features");
+			}
+		}
+	}
+}
+/***Comparing BC Store front Orders****/
+//checking with BC order
+if((quoteno == '' || isNull(quoteno)) && Get_So_Source == "BigCommerce")
+{
+	Edi_log_create.put("Source","BigCommerce");
+	Get_Po_storedetails = Get_Sales_Order.get("Store");
+	if(!isNull(Get_Po_storedetails))
+	{
+		Get_Po_storename = Get_Po_storedetails.get("name");
+	}
+	BC_Store_Map = Map();
+	BC_Store_Map.put("storename",Get_Po_storename);
+	BC_Store = invokeurl
+	[
+		url :"https://www.zohoapis.com/crm/v2/functions/get_bigcommerce_authorization/actions/execute?auth_type=oauth"
+		type :GET
+		parameters:BC_Store_Map
+		connection:"crm_connection"
+	];
+	info BC_Store;
+	if(!isNull(BC_Store))
+	{
+		Get_output = BC_Store.get("details").get("output");
+		Get_output = Get_output.toMap();
+		Get_store_hash = Get_output.get("Store_hash");
+		Get_store_client = Get_output.get("client secret");
+		Get_store_auth = Get_output.get("Auth token");
+		info Get_store_hash;
+		getStore = zoho.crm.searchRecords("Stores","((Store_UID:equals:" + Get_store_hash + "))");
+		quote_store_id = getStore.get(0).tomap().get("id");
+		quote_store_name = getStore.get(0).tomap().get("Name");
+		if(quote_store_id != NULL)
+		{
+			if(!Get_Po_storeid.equals(quote_store_id))
+			{
+				info "Success";
+				EDI_verified = false;
+				Mismatched_list.add("Purchase Order has mismatched store");
+				Edi_log_create.put("Store1",quote_store_name);
+				Edi_log_create.put("Store_ID",quote_store_id);
+				Mismatch_Object.put("Store",{"PO":Get_Po_store_name,"Actual":quote_store_name});
+			}
+		}
+	}
+	HeaderMap = Map();
+	HeaderMap.put("Accept","application/json");
+	HeaderMap.put("Content-Type","application/json");
+	HeaderMap.put("X-Auth-Token",Get_store_auth);
+	HeaderMap.put("X-Auth-Client",Get_store_client);
+	info HeaderMap;
+	getting_bigcommerce_order = getUrl("https://api.bigcommerce.com/stores/" + Get_store_hash + "/v2/orders/" + Get_BC_OrderId,HeaderMap);
+	info getting_bigcommerce_order;
+	Get_Bc_customer_id = getting_bigcommerce_order.get("customer_id");
+	if(Get_Bc_customer_id != 0)
+	{
+		getting_bigcommerce_order_customer = getUrl("https://api.bigcommerce.com/stores/" + Get_store_hash + "/v2/customers/" + Get_Bc_customer_id,HeaderMap);
+		info getting_bigcommerce_order_customer;
+		customeremail = getting_bigcommerce_order_customer.get("email");
+		getcrmcontactdata = zoho.crm.searchRecords("Contacts","(Email:equals:" + customeremail + ")");
+		getcrmcontactdata = getcrmcontactdata.get(0);
+		Get_crmcontact_id = getcrmcontactdata.get("id");
+		Get_req_contact_name = getcrmcontactdata.get("Full_Name");
+		Get_customeraccount = "";
+		Get_accountid = "";
+		if(!isNull(getcrmcontactdata))
+		{
+			Get_customeraccount = ifnull(getcrmcontactdata.get("Account_Name"),"");
+			if(Get_customeraccount != "")
+			{
+				Get_accountid = Get_customeraccount.get("id");
+				Get_accountname = Get_customeraccount.get("name");
+			}
+		}
+		if(!Get_Po_accountid.equals(Get_accountid))
+		{
+			info "Success";
+			EDI_verified = false;
+			Mismatched_list.add("Purchase Order has mismatched account");
+			Edi_log_create.put("Account_Name1",Get_accountname);
+			Edi_log_create.put("Account_ID",Get_accountid);
+			Mismatch_Object.put("Account",{"PO":Get_Po_account_name,"Actual":Get_accountname});
+		}
+		if(!Get_Po_contactid.equals(Get_crmcontact_id))
+		{
+			info "Success";
+			EDI_verified = false;
+			Mismatched_list.add("Purchase Order has mismatched contact");
+			Edi_log_create.put("Contact_Name1",Get_contact_name);
+			Edi_log_create.put("Contact_ID",Get_crmcontact_id);
+			Mismatch_Object.put("Contact_Name",{"PO":Get_contact_name,"Actual":Get_req_contact_name});
+		}
+	}
+	/* 	Edi_log_create.put("Staff_Notes",Get_Purchase_Order.get("Staff_Notes"));
+	Edi_log_create.put("Staff_Notes1",getting_bigcommerce_order.get("staff_notes"));
+	if(getting_bigcommerce_order.get("staff_notes") != Get_Purchase_Order.get("Staff_Notes"))
+	{
+		EDI_verified = false;
+		Mismatched_list.add("Purchase Order has mismatched Staff Notes");
+		BCprod_option_Map = Map();
+		BCprod_option_Map.put("Staff_Notes",{"PO":Get_Purchase_Order.get("Staff_Notes"),"Actual":getting_bigcommerce_order.get("staff_notes")});
+		Mismatch_Type_List.add(BCprod_option_Map);
+	} */
+	Edi_log_create.put("Order_Comments",Get_Purchase_Order.get("Order_Notes"));
+	Edi_log_create.put("Order_Comments1","Customer notes: " + getting_bigcommerce_order.get("customer_message"));
+	Bigcommerce_order_notes = ifnull(getting_bigcommerce_order.get("customer_message"),"");
+	if(Bigcommerce_order_notes != "")
+	{
+		Bigcommerce_order_notes = "Customer notes: " + getting_bigcommerce_order.get("customer_message");
+	}
+	Dropshiporder_comments = ifnull(Get_Purchase_Order.get("Order_Notes"),"");
+	if(Bigcommerce_order_notes.trim() != Dropshiporder_comments.trim())
+	{
+		EDI_verified = false;
+		Mismatched_list.add("Purchase Order has mismatched Order Comments");
+		Mismatch_Object.put("Order_Comments",{"PO":Dropshiporder_comments,"Actual":Bigcommerce_order_notes});
+	}
+	getting_bigcommerce_order_shippingaaddress = getUrl("https://api.bigcommerce.com/stores/" + Get_store_hash + "/v2/orders/" + Get_BC_OrderId + "/shipping_addresses",HeaderMap);
+	info getting_bigcommerce_order_shippingaaddress;
+	BC_Unique_id = Get_BC_OrderId + "_" + Get_store_hash;
+	Edi_log_create.put("BC_Unique_Id1",BC_Unique_id);
+	//Comparing BC Billing address
+	// 	Get_Bc_Billing_address = ifnull(getting_bigcommerce_order.get("shipping_addresses"),"");
+	Get_Bc_Billing_address = getting_bigcommerce_order_shippingaaddress.get(0);
+	info "Get_Bc_Billing_address" + Get_Bc_Billing_address;
+	Get_Bc_first_name = ifnull(Get_Bc_Billing_address.get("first_name"),"");
+	// 	Get_Bc_last_name = ifnull(Get_Bc_Billing_address.get("last_name"),"");
+	// 	Get_Bc_company = ifnull(Get_Bc_Billing_address.get("company"),"");
+	// 	Get_Bc_street1 = ifnull(Get_Bc_Billing_address.get("street_1"),"");
+	// 	Get_Bc_street2 = ifnull(Get_Bc_Billing_address.get("street_2"),"");
+	// 	Get_Bc_city = ifnull(Get_Bc_Billing_address.get("city"),"");
+	// 	Get_Bc_state = ifnull(Get_Bc_Billing_address.get("state"),"");
+	// 	Get_Bc_zip = ifnull(Get_Bc_Billing_address.get("zip"),"");
+	// 	Get_Bc_country = ifnull(Get_Bc_Billing_address.get("country"),"");
+	// 	Get_Bc_phone = ifnull(Get_Bc_Billing_address.get("phone"),"");
+	// 	Get_Bc_email = ifnull(Get_Bc_Billing_address.get("email"),"");
+	Get_Bc_first_name_list = Get_Bc_first_name.toList(" ");
+	Get_Bc_first_name = "";
+	for each  rec1 in Get_Bc_first_name_list
+	{
+		if(!isNull(rec1))
+		{
+			Get_Bc_first_name = Get_Bc_first_name + rec1 + " ";
+		}
+	}
+	Get_Bc_first_name = Get_Bc_first_name.trim();
+	Get_Bc_last_name = ifnull(Get_Bc_Billing_address.get("last_name"),"");
+	Get_Bc_last_name_list = Get_Bc_last_name.toList(" ");
+	Get_Bc_last_name = "";
+	for each  rec2 in Get_Bc_last_name_list
+	{
+		if(!isNull(rec2))
+		{
+			Get_Bc_last_name = Get_Bc_last_name + rec2 + " ";
+		}
+	}
+	Get_Bc_last_name = Get_Bc_last_name.trim();
+	Get_Bc_company = ifnull(Get_Bc_Billing_address.get("company"),"");
+	Get_Bc_company_list = Get_Bc_company.toList(" ");
+	Get_Bc_company = "";
+	for each  rec3 in Get_Bc_company_list
+	{
+		if(!isNull(rec3))
+		{
+			Get_Bc_company = Get_Bc_company + rec3 + " ";
+		}
+	}
+	Get_Bc_company = Get_Bc_company.trim();
+	Get_Bc_street1 = ifnull(Get_Bc_Billing_address.get("street_1"),"");
+	Get_Bc_street1_list = Get_Bc_street1.toList(" ");
+	Get_Bc_street1 = "";
+	for each  rec4 in Get_Bc_street1_list
+	{
+		if(!isNull(rec4))
+		{
+			Get_Bc_street1 = Get_Bc_street1 + rec4 + " ";
+		}
+	}
+	Get_Bc_street1 = Get_Bc_street1.trim();
+	Get_Bc_street2 = ifnull(Get_Bc_Billing_address.get("street_2"),"");
+	Get_Bc_street2_list = Get_Bc_street2.toList(" ");
+	Get_Bc_street2 = "";
+	for each  rec5 in Get_Bc_street2_list
+	{
+		if(!isNull(rec5))
+		{
+			Get_Bc_street2 = Get_Bc_street2 + rec5 + " ";
+		}
+	}
+	Get_Bc_street2 = Get_Bc_street2.trim();
+	Get_Bc_city = ifnull(Get_Bc_Billing_address.get("city"),"");
+	Get_Bc_city_list = Get_Bc_city.toList(" ");
+	Get_Bc_city = "";
+	for each  rec6 in Get_Bc_city_list
+	{
+		if(!isNull(rec6))
+		{
+			Get_Bc_city = Get_Bc_city + rec6 + " ";
+		}
+	}
+	Get_Bc_city = Get_Bc_city.trim();
+	Get_Bc_state = ifnull(Get_Bc_Billing_address.get("state"),"");
+	Get_Bc_state_list = Get_Bc_state.toList(" ");
+	Get_Bc_state = "";
+	for each  rec7 in Get_Bc_state_list
+	{
+		if(!isNull(rec7))
+		{
+			Get_Bc_state = Get_Bc_state + rec7 + " ";
+		}
+	}
+	Get_Bc_state = Get_Bc_state.trim();
+	Get_Bc_zip = ifnull(Get_Bc_Billing_address.get("zip"),"");
+	Get_Bc_zip_list = Get_Bc_zip.toList(" ");
+	Get_Bc_zip = "";
+	for each  rec8 in Get_Bc_zip_list
+	{
+		if(!isNull(rec8))
+		{
+			Get_Bc_zip = Get_Bc_zip + rec8 + " ";
+		}
+	}
+	Get_Bc_zip = Get_Bc_zip.trim();
+	Get_Bc_country = ifnull(Get_Bc_Billing_address.get("country"),"");
+	Get_Bc_country_list = Get_Bc_country.toList(" ");
+	Get_Bc_country = "";
+	for each  rec9 in Get_Bc_country_list
+	{
+		if(!isNull(rec9))
+		{
+			Get_Bc_country = Get_Bc_country + rec9 + " ";
+		}
+	}
+	Get_Bc_country = Get_Bc_country.trim();
+	Get_Bc_phone = ifnull(Get_Bc_Billing_address.get("phone"),"");
+	Get_Bc_phone_list = Get_Bc_phone.toList(" ");
+	Get_Bc_phone = "";
+	for each  rec10 in Get_Bc_phone_list
+	{
+		if(!isNull(rec10))
+		{
+			Get_Bc_phone = Get_Bc_phone + rec10 + " ";
+		}
+	}
+	Get_Bc_phone = Get_Bc_phone.trim();
+	Get_Bc_email = ifnull(Get_Bc_Billing_address.get("email"),"");
+	Get_Bc_email_list = Get_Bc_email.toList(" ");
+	Get_Bc_email = "";
+	for each  rec11 in Get_Bc_email_list
+	{
+		if(!isNull(rec11))
+		{
+			Get_Bc_email = Get_Bc_email + rec11 + " ";
+		}
+	}
+	Get_Bc_email = Get_Bc_email.trim();
+	Get_Bc_shipmethod = ifnull(Get_Bc_Billing_address.get("shipping_method"),"");
+	if(!Get_Po_shipmethod.equals(Get_Bc_shipmethod))
+	{
+		info "Success";
+		EDI_verified = false;
+		Mismatched_list.add("Purchase Order has mismatched Ship method");
+		Edi_log_create.put("Ship_Method1",Get_Bc_shipmethod);
+		Mismatch_Object.put("Ship_Method",{"PO":Get_Po_shipmethod,"Actual":Get_Bc_shipmethod});
+	}
+	info "Get_Bc_email" + Get_Bc_email;
+	Get_Bc_phone = Get_Bc_phone.replaceAll("[^a-zA-Z0-9\-+ ]","");
+	info "Get_Bc_phone" + Get_Bc_phone;
+	Edi_log_create.put("Shipping_City1",Get_Bc_city);
+	Edi_log_create.put("Shipping_Code1",Get_Bc_zip);
+	Edi_log_create.put("Shipping_Company1",Get_Bc_company);
+	Edi_log_create.put("Shipping_Country1",Get_Bc_country);
+	Edi_log_create.put("Shipping_Email",Get_Bc_email);
+	Edi_log_create.put("Shipping_Phone",Get_Bc_phone);
+	Edi_log_create.put("Shipping_State1",Get_Bc_state);
+	Edi_log_create.put("Shipping_Street1",Get_Bc_street1);
+	Edi_log_create.put("Shipping_Street_2",Get_Bc_street2);
+	Edi_log_create.put("Shipping_First_Name1",Get_Bc_first_name);
+	Edi_log_create.put("Shipping_Last_Name1",Get_Bc_last_name);
+	if(!Po_shippingFirstname.equals(Get_Bc_first_name))
+	{
+		Mismatch_Object.put("Shipping_First_Name",{"PO":Po_shippingFirstname,"Actual":Get_Bc_first_name});
+	}
+	if(!Po_shippingLastname.equals(Get_Bc_last_name))
+	{
+		Mismatch_Object.put("Shipping_Last_Name",{"PO":Po_shippingLastname,"Actual":Get_Bc_last_name});
+	}
+	// 	special_char_list = {"(",")",";","!","@","#","&","*","=","|","<",">","?"," "};
+	// 	for each  char in special_char_list
+	// 	{
+	// 		Get_Bc_phone = Get_Bc_phone.remove(char);
+	// 	}
+	if(!Po_shippingPhone.equals(Get_Bc_phone))
+	{
+		Mismatch_Object.put("Shipping_Phone",{"PO":Po_shippingPhone,"Actual":Get_Bc_phone});
+	}
+	if(!Po_shippingCompany.equals(Get_Bc_company))
+	{
+		Mismatch_Object.put("Shipping_Company",{"PO":Po_shippingCompany,"Actual":Get_Bc_company});
+	}
+	if(!Po_shippingStreet.equals(Get_Bc_street1))
+	{
+		Mismatch_Object.put("Shipping_Street",{"PO":Po_shippingStreet,"Actual":Get_Bc_street1});
+	}
+	if(!Po_shippingStreet2.equals(Get_Bc_street2))
+	{
+		Mismatch_Object.put("Shipping_Street2",{"PO":Po_shippingStreet2,"Actual":Get_Bc_street2});
+	}
+	if(!Po_shippingCity.equals(Get_Bc_city))
+	{
+		Mismatch_Object.put("Shipping_City",{"PO":Po_shippingCity,"Actual":Get_Bc_city});
+	}
+	if(!Po_shippingState.equals(Get_Bc_state))
+	{
+		Mismatch_Object.put("Shipping_State",{"PO":Po_shippingState,"Actual":Get_Bc_state});
+	}
+	// 	Po_shippingCode = Po_shippingCode.trim();
+	// 	Get_Bc_zip = Get_Bc_zip.trim();
+	if(Po_shippingCode != Get_Bc_zip)
+	{
+		Mismatch_Object.put("Shipping_Code",{"PO":Po_shippingCode,"Actual":Get_Bc_zip});
+	}
+	if(!Po_shippingCountry.equals(Get_Bc_country))
+	{
+		Mismatch_Object.put("Shipping_Country",{"PO":Po_shippingCountry,"Actual":Get_Bc_country});
+	}
+	// 	if(!Po_shippingEmail.equals(Get_Bc_email))
+	// 	{
+	// 		Mismatch_Object.put("Shipping_Email",{"PO":Po_shippingEmail,"Actual":Get_Bc_email});
+	// 	}
+	info "Po shipping phone:" + Po_shippingPhone;
+	info "Get_Bc_phone" + Get_Bc_phone;
+	// 	if(Po_shippingPhone != Get_Bc_phone)
+	// 	{
+	// 		info "Phone mismatch!!";
+	// 	}
+	if(!Po_shippingFirstname.equals(Get_Bc_first_name) || !Po_shippingLastname.equals(Get_Bc_last_name) || !Po_shippingPhone.equals(Get_Bc_phone) || !Po_shippingCompany.equals(Get_Bc_company) || !Po_shippingStreet.equals(Get_Bc_street1) || !Po_shippingStreet2.equals(Get_Bc_street2) || !Po_shippingCity.equals(Get_Bc_city) || !Po_shippingState.equals(Get_Bc_state) || Po_shippingCode != Get_Bc_zip || !Po_shippingCountry.equals(Get_Bc_country))
+	{
+		info "Success";
+		EDI_verified = false;
+		Mismatched_list.add("Purchase order has mismatched Shipping address");
+	}
+	Bigcommerce_order_product = getUrl("https://api.bigcommerce.com/stores/" + Get_store_hash + "/v2/orders/" + Get_BC_OrderId + "/products",HeaderMap);
+	info "Bigcommerce_order_product" + Bigcommerce_order_product;
+	product_list = LIST();
+	product_count = 0;
+	for each  CRM_Po_product in Get_Po_product_details
+	{
+		product_count = product_count + 1;
+		CRM_Po_product = CRM_Po_product.toMap();
+		Get_CRM_product_code = "";
+		Get_CRM_po_product = CRM_Po_product.get("product");
+		if(!isNull(Get_CRM_po_product))
+		{
+			CRM_Po_productmap = Get_CRM_po_product.toMap();
+			Get_CRM_product_code = ifnull(CRM_Po_productmap.get("Product_Code"),"");
+		}
+		Mismatch_Type_List = list();
+		Mismatch_Object.put(product_count + ".Product_Name::" + CRM_Po_product.get("product").get("name"),Mismatch_Type_List);
+		ProductModule = zoho.crm.getRecordById("Products",CRM_Po_product.get("product").get("id").toLong());
+		product_sku_for_table = ProductModule.tomap().get("Product_Code");
+		vendor_sku_for_table = ifnull(ProductModule.tomap().get("Vendor_SKU"),ProductModule.tomap().get("Manufacturer_Part_Number"));
+		Product_CostPrice = ProductModule.tomap().get("Cost_Price").toDecimal();
+		//3106252000138196503
+		PO_ListPrice = CRM_Po_product.get("list_price").toDecimal();
+		if(Product_CostPrice.truncate(2) != PO_ListPrice.truncate(2))
+		{
+			Mismatched_list.add("Purchase Order Product List Price Mismatched with Product Cost Price");
+			ListPrice_Map = Map();
+			ListPrice_Map.put("Product_Vendor_Cost",{"PO":PO_ListPrice,"Actual":Product_CostPrice});
+			Mismatch_Type_List.add(ListPrice_Map);
+		}
+		crm_product_flag = 0;
+		bc_product_vendor_list = list();
+		bc_product_vendor_list.clear();
+		for each  bcorder_product in Bigcommerce_order_product
+		{
+			bcorder_product = bcorder_product.toMap();
+			info "bcorder_product" + bcorder_product;
+			// 			Get_option_uniqueid = bcorder_product.get("product_id") + "_" + Get_store_hash;
+			if(bcorder_product.get("parent_order_product_id") == null || bcorder_product.get("parent_order_product_id") == "null")
+			{
+				bcproduct_code = ifnull(bcorder_product.get("sku"),"");
+				bcproduct_type = bcorder_product.get("type");
+				BCproduct_quantity = bcorder_product.get("quantity");
+				BCproduct_id = bcorder_product.get("product_id");
+				Bc_orderproduct_Id = bcorder_product.get("id");
+				Get_po_productoption = ifnull(CRM_Po_product.get("product_description"),"");
+				info "Get_po_productoption:" + Get_po_productoption;
+				//commented by balaji on 2/1/2021
+				// 				Bigcommerce_Unique_ID = BCproduct_id + "_" + Get_store_hash;
+				// 				get_product_data = zoho.crm.searchRecords("Products","((Bigcommerce_Unique_ID:equals:" + Bigcommerce_Unique_ID + "))");
+				// 				if(get_product_data.isEmpty())
+				// 				{
+				// 					product_create_map = Map();
+				// 					product_create_map.put("product",bcorder_product);
+				// 					product_create_map.put("tokenArray",Get_store_hash);
+				// 					call_external_function = invokeurl
+				// 					[
+				// 						url :"https://www.1.door-pay.com/api/zohocrm/EdiStandardProductCreate"
+				// 						type :POST
+				// 						parameters:product_create_map
+				// 						connection:"crm_connection"
+				// 					];
+				// 				}
+				// 				get_product_data = zoho.crm.searchRecords("Products","((Bigcommerce_Unique_ID:equals:" + Bigcommerce_Unique_ID + "))");
+				// 				info "get_product_data" + get_product_data;
+				// 				info "BC_product_id" + get_product_data.get(0).tomap().get("id");
+				// 				BC_Product_vendor_id = get_product_data.get(0).tomap().get("Vendor_Name").get("id");
+				// 				info "BC_Product_vendor_id" + BC_Product_vendor_id;
+				// 				if(BC_Product_vendor_id == vendor_id)
+				// 				{
+				// 					bc_product_vendor_list.add(get_product_data.tomap().get("id"));
+				// 				}
+				if(!isNull(bcproduct_code) && Get_CRM_product_code == bcproduct_code)
+				{
+					if(bcproduct_code != Get_CRM_product_code)
+					{
+						// 						Mismatched_list.add("Product with sku " + bcproduct_code + "has mismatched SKU");
+						// 						SKU_Map = Map();
+						// 						SKU_Map.put("Product_SKU",{"PO":Get_CRM_product_code,"Actual":bcproduct_code});
+						// 						Mismatch_Type_List.add(SKU_Map);
+					}
+					info bcproduct_code;
+					crm_product_flag = 1;
+					Get_Po_product_Quantity = ifnull(CRM_Po_product.get("quantity"),"");
+					if(Get_Po_product_Quantity != BCproduct_quantity)
+					{
+						EDI_verified = false;
+						Mismatched_list.add("Product with sku " + Get_CRM_product_code + " mismatched Quantity");
+						Quantity_Map = Map();
+						Quantity_Map.put("Product_Quantity",{"PO":Get_Po_product_Quantity,"Actual":BCproduct_quantity});
+						Mismatch_Type_List.add(Quantity_Map);
+						//Mismatch_Object.put("Quantity",{"PO":Get_Po_product_Quantity,"Actual":BCproduct_quantity});
+					}
+					product_id = Map();
+					product_id.put("id",CRM_Po_product.get("product").get("id"));
+					product_map = Map();
+					product_map.put("Product_Name",product_id);
+					product_map.put("Quantity",BCproduct_quantity);
+					Get_product_listprice = CRM_Po_product.get("list_price");
+					Get_product_nettotal = Get_product_listprice * BCproduct_quantity;
+					Get_product_total = Get_product_nettotal;
+					Get_product_total = Get_product_total.toDecimal().round(2);
+					product_map.put("Amount",Get_product_total);
+					//if(bcorder_product.get("name") != CRM_Po_product.get("product_description"))
+					//{
+					//EDI_verified = false;
+					//Mismatched_list.add("Product with sku " + Get_CRM_product_code + " mismatched product description");
+					product_map.put("Total",Get_product_nettotal.toDecimal().round(2));
+					Get_product_discount = CRM_Po_product.get("Discount");
+					Get_product_tax = CRM_Po_product.get("Tax");
+					product_map.put("Tax",Get_product_tax);
+					product_map.put("List_Price",Get_product_listprice.round(2));
+					product_map.put("Discount",Get_product_discount);
+					BC_ProductOption = "";
+					if(BCproduct_id != 0)
+					{
+						Get_bcproduct_options = bcorder_product.get("product_options");
+						info "Get_bcproduct_options" + Get_bcproduct_options;
+						for each  Bcoption in Get_bcproduct_options
+						{
+							Dropprint = "";
+							get_product_option = null;
+							BC_Option_Value = ifnull(Bcoption.get("display_value"),"");
+							info "BC_Option_Value" + BC_Option_Value;
+							Bc_optionid = ifnull(Bcoption.get("id"),"");
+							for each  dropshipoption in Bigcommerce_order_product
+							{
+								info "dropship_name" + dropshipoption.get("name");
+								info "parent id" + dropshipoption.get("parent_order_product_id");
+								info "Bc_orderproduct_Id" + Bc_orderproduct_Id;
+								if(dropshipoption.get("name") == BC_Option_Value && dropshipoption.get("parent_order_product_id") == Bc_orderproduct_Id)
+								{
+									info "success";
+									Get_option_uniqueid = dropshipoption.get("product_id") + "_" + Get_store_hash;
+									info "Get_option_uniqueid" + Get_option_uniqueid;
+									get_product_option = zoho.crm.searchRecords("Products","((Bigcommerce_Unique_ID:equals:" + Get_option_uniqueid + "))");
+									info "get_product_dataa" + get_product_option;
+									break;
+								}
+							}
+							if(get_product_option.size() > 0 && !isNull(get_product_option))
+							{
+								get_product_option = get_product_option.get(0);
+								info "get_product_option first element:" + get_product_option;
+								if(get_product_option.containsKey("id"))
+								{
+									info "drop_print" + get_product_option.get("Dropship_Print");
+									Bc_product_Dropprint = ifnull(get_product_option.get("Dropship_Print"),"");
+									if(Bc_product_Dropprint == "No")
+									{
+										Dropprint = " _No";
+									}
+									Bc_prod_vendorsku = ifnull(get_product_option.get("Vendor_SKU"),"");
+									if(Bc_prod_vendorsku != "")
+									{
+										if(Bc_prod_vendorsku != 0)
+										{
+											Bc_prod_vendorsku = "(" + Bc_prod_vendorsku + ")";
+										}
+										else
+										{
+											Bc_prod_vendorsku = "";
+										}
+									}
+									BC_optionname = get_product_option.get("Product_Name");
+									if(BC_optionname.contains("$") == true)
+									{
+										Bcoptionlist = BC_optionname.toList("$");
+										info "tolist$ : " + Bcoptionlist;
+										Bcoptionlist = Bcoptionlist.get(1);
+										info Bcoptionlist;
+										Bcoptionlist = Bcoptionlist.toList(" ");
+										Bcoptionlist = Bcoptionlist.get(0);
+										if(Bcoptionlist.contains("+"))
+										{
+											Bcoptionlist = Bcoptionlist.getPrefix("+");
+										}
+										if(Bcoptionlist.getOccurenceCount(".") > 1)
+										{
+											Bcoptionval = Bcoptionlist.removeAllAlpha().removeLastOccurence(".").toDecimal();
+										}
+										else
+										{
+											Bcoptionval = Bcoptionlist.toDecimal();
+										}
+										info "todecimal: " + Bcoptionval;
+										if(Bc_product_Dropprint == "No" && Bcoptionval > 0)
+										{
+											Dropprint = " _Yes";
+										}
+										BC_Option_Value = BC_Option_Value.replaceAll("$"," " + Bc_prod_vendorsku + " $",true);
+									}
+								}
+							}
+							BC_ProductOption = BC_ProductOption + BC_Option_Value + Dropprint + "\n";
+						}
+					}
+					else
+					{
+						BC_Product_name = bcorder_product.get("name");
+						info "BC_Product_name" + BC_Product_name;
+						if(BC_Product_name.contains("::"))
+						{
+							BC_product_optionlist = BC_Product_name.getSuffix("::");
+							BC_product_optionlist = BC_product_optionlist.toList(",");
+							info "BC_product_optionlist" + BC_product_optionlist;
+							for each  bc_options in BC_product_optionlist
+							{
+								Dropprint = "";
+								optionname = bc_options;
+								if(optionname.contains("$") == true)
+								{
+									Bcoptionlist = optionname.toList("$");
+									Bcoptionlist = Bcoptionlist.get(1);
+									info Bcoptionlist;
+									Bcoptionlist = Bcoptionlist.toList(" ");
+									Bcoptionlist = Bcoptionlist.get(0);
+									if(Bcoptionlist.contains("+"))
+									{
+										Bcoptionlist = Bcoptionlist.getPrefix("+");
+									}
+									Bcoptionval = Bcoptionlist.toDecimal();
+									info Bcoptionval;
+									if(Bcoptionval > 0)
+									{
+										Dropprint = " _Yes";
+									}
+								}
+								BC_ProductOption = BC_ProductOption + optionname + Dropprint + "\n";
+							}
+						}
+					}
+					//}
+					info "temp bc option:" + BC_ProductOption;
+					product_map.put("Product_Description",BC_ProductOption);
+					product_list.add(product_map);
+					info "BC_ProductOption" + BC_ProductOption;
+					info "Get_po_productoption" + Get_po_productoption;
+					if(Get_po_productoption != BC_ProductOption)
+					{
+						EDI_verified = false;
+						Mismatched_list.add("Product with sku " + Get_CRM_product_code + " has mismatched product desciption");
+						BCprod_option_Map = Map();
+						BCprod_option_Map.put("Product_Description",{"PO":Get_po_productoption,"Actual":BC_ProductOption});
+						Mismatch_Type_List.add(BCprod_option_Map);
+					}
+				}
+			}
+		}
+		if(crm_product_flag == 0)
+		{
+			//EDI_verified = false;
+			//Mismatched_list.add("Product with sku " + bcproduct_code + " is not available in BC Order");
+		}
+		if(Mismatch_Type_List.size() > 0)
+		{
+			ProductID_Map = Map();
+			ProductID_Map.put("product_id",CRM_Po_product.get("product").get("id"));
+			prod_sku_map = Map();
+			prod_sku_map.put("product_SKU",product_sku_for_table);
+			vendor_sku_map = Map();
+			vendor_sku_map.put("vendor_SKU",vendor_sku_for_table);
+			Mismatch_Type_List.add(prod_sku_map);
+			Mismatch_Type_List.add(vendor_sku_map);
+			Mismatch_Type_List.add(ProductID_Map);
+		}
+		else
+		{
+			remove_key = list();
+			for each  obj_key in Mismatch_Object.keys()
+			{
+				if(obj_key.contains(CRM_Po_product.get("product").get("name")))
+				{
+					remove_key.add(obj_key);
+				}
+			}
+			for each  rem_key in remove_key
+			{
+				Mismatch_Object.remove(rem_key);
+			}
+		}
+	}
+	//Finding the Bc order Product Ids
+	bc_product_vendor_list = List();
+	MissingQuantity = Map();
+	MissingProductdescription = Map();
+	for each  Bc_product_detail in Get_So_product_details
+	{
+		Get_bc_product = Bc_product_detail.get("product");
+		if(!isNull(Get_bc_product))
+		{
+			Get_bc_product = Get_bc_product.toMap();
+			Bc_product_id = Get_bc_product.get("id");
+			Getting_product_Bc = zoho.crm.getRecordById("Products",Bc_product_id.toLong());
+			if(Getting_product_Bc.tomap().get("Vendor_Name").get("id") == Get_Purchase_Order.get("Vendor_Name").get("id"))
+			{
+				bc_product_vendor_list.add(Bc_product_id);
+				MissingProductdescription.put(Bc_product_id,Bc_product_detail.get("product_description"));
+				MissingQuantity.put(Bc_product_id,Bc_product_detail.get("quantity"));
+			}
+		}
+	}
+	info "start bc_vendor_list:" + bc_product_vendor_list;
+	info "start po product list:" + po_product_list;
+	Edi_log_create.put("MissingProductdes_Map",MissingProductdescription);
+	if(po_product_list.size() < bc_product_vendor_list.size())
+	{
+		Edi_log_create.put("MissingQuantity_Map",MissingQuantity);
+		Bc_missing_productlist = LIST();
+		Bc_missing_productlist.addAll(bc_product_vendor_list);
+		Bc_missing_productlist.removeAll(po_product_list);
+		// 		bc_product_vendor_list.removeAll(po_product_list);
+		if(Bc_missing_productlist.size() > 0)
+		{
+			//Mismatched_list.add("Dropship Order has missing products");
+			missing_product_list = list();
+			for each  miss_prod in Bc_missing_productlist
+			{
+				missing_product_map = Map();
+				Mismatched_list.add("Dropship Order has missing product(s)");
+				get_prod = zoho.crm.getRecordById("Products",miss_prod.toLong());
+				missing_product_map.put("Missing_Product",{"Actual":"Product Found","PO":"Product Not Found"});
+				missing_product_id_map = Map();
+				missing_product_id_map.put("product_id",miss_prod);
+				missing_product_list.add(missing_product_map);
+				missing_product_list.add(missing_product_id_map);
+				Mismatch_Object.put("Product_Name::" + get_prod.get("Product_Name"),missing_product_list);
+			}
+		}
+	}
+	//Removing additional products
+	if(po_product_list.size() > bc_product_vendor_list.size())
+	{
+		Bc_additional_productlist = List();
+		Bc_additional_productlist.addAll(po_product_list);
+		Bc_additional_productlist.removeAll(bc_product_vendor_list);
+		// 		po_product_list.removeAll(bc_product_vendor_list);
+		if(Bc_additional_productlist.size() > 0)
+		{
+			//Mismatched_list.add("Dropship Order has missing products");
+			missing_product_list = list();
+			for each  miss_prod in Bc_additional_productlist
+			{
+				missing_product_map = Map();
+				Mismatched_list.add("Dropship Order has additional product(s)");
+				get_prod = zoho.crm.getRecordById("Products",miss_prod.toLong());
+				missing_product_map.put("Additional_Product",{"Actual":"Extra Product Found","PO":"Product Found"});
+				missing_product_id_map = Map();
+				missing_product_id_map.put("product_id",miss_prod);
+				missing_product_list.add(missing_product_map);
+				missing_product_list.add(missing_product_id_map);
+				Mismatch_Object.put("Product_Name::" + get_prod.get("Product_Name"),missing_product_list);
+			}
+		}
+	}
+	info "Po product size:" + po_product_list.size();
+	info "Bc product vendor list:" + bc_product_vendor_list.size();
+	if(po_product_list.size() = bc_product_vendor_list.size())
+	{
+		Bc_additional_productlist = List();
+		Bc_additional_productlist.addAll(po_product_list);
+		Bc_additional_productlist.removeAll(bc_product_vendor_list);
+		if(Bc_additional_productlist.size() > 0)
+		{
+			//Mismatched_list.add("Dropship Order has missing products");
+			missing_product_list = list();
+			for each  miss_prod in Bc_additional_productlist
+			{
+				missing_product_map = Map();
+				Mismatched_list.add("Dropship Order has additional product(s)");
+				get_prod = zoho.crm.getRecordById("Products",miss_prod.toLong());
+				missing_product_map.put("Additional_Product",{"Actual":"Extra Product Found","PO":"Product Found"});
+				missing_product_id_map = Map();
+				missing_product_id_map.put("product_id",miss_prod);
+				missing_product_list.add(missing_product_map);
+				missing_product_list.add(missing_product_id_map);
+				Mismatch_Object.put("Product_Name::" + get_prod.get("Product_Name"),missing_product_list);
+			}
+		}
+		Bc_missing_productlist = LIST();
+		Bc_missing_productlist.addAll(bc_product_vendor_list);
+		Bc_missing_productlist.removeAll(po_product_list);
+		info "Bc_missing_productlist" + Bc_missing_productlist;
+		if(Bc_missing_productlist.size() > 0)
+		{
+			Edi_log_create.put("MissingQuantity_Map",MissingQuantity);
+			//Mismatched_list.add("Dropship Order has missing products");
+			missing_product_list = list();
+			for each  miss_prod in Bc_missing_productlist
+			{
+				missing_product_map = Map();
+				Mismatched_list.add("Dropship Order has missing product(s)");
+				get_prod = zoho.crm.getRecordById("Products",miss_prod.toLong());
+				missing_product_map.put("Missing_Product",{"Actual":"Product Found","PO":"Product not Found"});
+				missing_product_id_map = Map();
+				missing_product_id_map.put("product_id",miss_prod);
+				missing_product_list.add(missing_product_map);
+				missing_product_list.add(missing_product_id_map);
+				Mismatch_Object.put("Product_Name::" + get_prod.get("Product_Name"),missing_product_list);
+			}
+		}
+	}
+}
+info "EDI_verified" + EDI_verified;
+info "Mismatched_list" + Mismatched_list;
+if(EDI_verified == false && Mismatched_list.size() > 0)
+{
+	//return "Mismatched";	
+	//Sending Email Notification to the Orders team
+	Mismatached_data = "";
+	for each  mis_data in Mismatched_list
+	{
+		Mismatached_data = Mismatached_data + "* " + mis_data + "<br><br>";
+		//info mis_data;
+	}
+	Email_Content = "<br> Hello Orders Team, <br><br>A purchase order has been created with mismatched data <br><br>In order for  <b>" + Dropship_number + "</b>  to be EDI Verified,<br><br><b>Step #1)</b><br> Please visit <a href=\"https://crm.zoho.com/crm/org663942562/tab/PurchaseOrders/" + Purchase_Id + "\" target=\"_blank\" > <b>" + Dropship_number + "</b> </a> and update the following details:<br><br>" + Mismatached_data + "<br><br> Thanks, <br><b>Best Access Doors</b><br><br>";
+	mailmap = Map();
+	mailmap.put("to",{"balaji@bizappln.com","prabhu@bizappln.com","jegan@bizappln.com"});
+	mailmap.put("scope","Droship Notify");
+	mailmap.put("subject","Dropship Order #" + Dropship_number + " is created with mismatched data");
+	mailmap.put("body",Email_Content);
+	//bellow code will create 'Task' in CRM if Mismatched data found
+	// 	DataMap = Map();
+	// 	DataMap.put("Status","Not Started");
+	// 	DataMap.put("Priority","Normal");
+	// 	DataMap.put("Due_Date",zoho.currentdate.addDay(1));
+	// 	DataMap.put("Subject",Get_Purchase_Order.get("Vendor_Name").get("name") + " PO data mismatch");
+	// 	DataMap.put("Owner",3106252000026453004);
+	// 	DataMap.put("$se_module","Purchase_Orders");
+	// 	DataMap.put("What_Id",Get_Purchase_Order.get("Contact_Name").get("id").toLong());
+	// 	DataMap.put("Who_Id",Purchase_Id);
+	// 	DataMap.put("Description","Please check PO " + Dropship_number + " to match back the data. Mismatch type details: " + Mismatached_data);
+	// 	TaskData = zoho.crm.createRecord("Tasks",DataMap);
+	// 	info TaskData;
+	//
+	// 	info mailmap;
+	// mailres = postURL("https://1.door-pay.com/api/Office360Mail/sendreq",mailmap);
+	// info "mailres:" + mailres;
+	// if(Mismatched_list.isEmpty())
+	// {
+	// 	DataMap = Map();
+	// 	DataMap.put("Purchase_Order",Purchase_Id);
+	// 	DataMap.put("Subject","Correct Data");
+	// 	DataMap.put("Name",Purchase_Id.tostring());
+	// 	DataMap.put("Description","A purchase order has been created with correct data.");
+	// 	To_EDI_log = zoho.crm.createRecord("EDI_log",DataMap);
+	// }
+	// else
+	// {
+	// 	DataMap = Map();
+	// 	DataMap.put("Purchase_Order",Purchase_Id);
+	// 	DataMap.put("Subject","Mismatched Data");
+	// 	DataMap.put("Name",Purchase_Id.tostring());
+	// 	DataMap.put("Description","A purchase order has been created with mismatched data.Please update the following details:" + Mismatched_list);
+	// 	To_EDI_log = zoho.crm.createRecord("EDI_log",DataMap);
+	// }
+	// info To_EDI_log;
+}
+else
+{
+	//return "EDI Verified";
+}
+Edi_log_create.put("Product_Details1",product_list);
+Edi_log_create.put("Mismatch_List_Count",Mismatched_list.size());
+Edi_log_create.put("List_for_Auto_Correct",Mismatched_list);
+//
+items = Get_Purchase_Order.get("Product_Details");
+dropNo = Get_Purchase_Order.get("Dropship_Number");
+Edi_log_create.put("Name",dropNo);
+//Get_Salesorder_id = Get_Purchase_Order.get("Sales_Order").get("id");
+//Edi_log_create.put("Salesorder_Recid",Get_Salesorder_id);
+product_list = List();
+for each  po_prod in items
+{
+	Get_prod_crmid = po_prod.get("product").get("id");
+	product_id = Map();
+	product_id.put("id",Get_prod_crmid);
+	product_map = Map();
+	product_map.put("Product_Name",product_id);
+	Get_product_quantity = po_prod.get("quantity");
+	Get_product_listprice = po_prod.get("list_price");
+	Get_product_nettotal = po_prod.get("net_total");
+	Get_product_total = po_prod.get("total");
+	Get_product_total = Get_product_total.round(2);
+	Get_product_description = po_prod.get("product_description");
+	Get_product_discount = po_prod.get("Discount");
+	Get_product_tax = po_prod.get("Tax");
+	product_map.put("Quantity",Get_product_quantity);
+	product_map.put("Amount",Get_product_total);
+	product_map.put("Product_Description",Get_product_description);
+	product_map.put("Total",Get_product_nettotal.round(2));
+	product_map.put("Tax",Get_product_tax);
+	product_map.put("List_Price",Get_product_listprice.round(2));
+	product_map.put("Discount",Get_product_discount);
+	product_list.add(product_map);
+}
+Get_Po_accountname = "";
+Get_accountname = Get_Purchase_Order.get("Account_Name");
+if(!isNull(Get_accountname))
+{
+	Get_account_id = Get_accountname.get("id");
+	Get_Po_accountname = Get_accountname.get("name");
+	Edi_log_create.put("Account_Name",Get_account_id);
+}
+Grand_Total = Get_Purchase_Order.get("Grand_Total");
+Grand_Total = Grand_Total.round(2);
+Edi_log_create.put("Mismatched_Object_for_EDI_verification",Mismatch_Object);
+Edi_log_create.put("Product_Details",product_list);
+Edi_log_create.put("BC_Unique_Id",ifnull(Get_Purchase_Order.get("BC_Unique_Id"),""));
+Edi_log_create.put("Billing_City",ifnull(Get_Purchase_Order.get("Billing_City"),""));
+Edi_log_create.put("Billing_Code",ifnull(Get_Purchase_Order.get("Billing_Code"),""));
+Edi_log_create.put("Billing_Company1",ifnull(Get_Purchase_Order.get("Billing_Company"),""));
+Edi_log_create.put("Billing_Country",ifnull(Get_Purchase_Order.get("Billing_Country"),""));
+Edi_log_create.put("Billing_Email1",ifnull(Get_Purchase_Order.get("Billing_Email"),""));
+Edi_log_create.put("Billing_Phone1",ifnull(Get_Purchase_Order.get("Billing_Phone"),""));
+Edi_log_create.put("Billing_State",ifnull(Get_Purchase_Order.get("Billing_State"),""));
+Edi_log_create.put("Billing_Street",ifnull(Get_Purchase_Order.get("Billing_Street"),""));
+Edi_log_create.put("Billing_Street_21",ifnull(Get_Purchase_Order.get("Billing_Street_2"),""));
+Edi_log_create.put("Billing_First_Name",ifnull(Get_Purchase_Order.get("Billing_First_Name"),""));
+Edi_log_create.put("Billing_Last_Name",ifnull(Get_Purchase_Order.get("Billing_Last_Name"),""));
+Edi_log_create.put("Contact_Name",Get_Purchase_Order.get("Contact_Name").get("id"));
+Edi_log_create.put("Currency",ifnull(Get_Purchase_Order.get("Currency"),""));
+Edi_log_create.put("Dropship_Number",Get_Purchase_Order.get("Dropship_Number"));
+Edi_log_create.put("Dropship_Number1",Get_Purchase_Order.get("Dropship_Number"));
+Edi_log_create.put("Order_Comments",ifnull(Get_Purchase_Order.get("Order_Notes"),""));
+Edi_log_create.put("Order_Date",Get_Purchase_Order.get("Order_Date"));
+Edi_log_create.put("Order_Date1",Get_Purchase_Order.get("Order_Date"));
+Edi_log_create.put("Purchase_Order",Get_Purchase_Order.get("id"));
+Edi_log_create.put("Subject1",Get_Purchase_Order.get("Subject"));
+Edi_log_create.put("Subject2",Get_Purchase_Order.get("Subject"));
+Edi_log_create.put("Confirmation_Number",ifnull(Get_Purchase_Order.get("Confirmation_Number"),""));
+Edi_log_create.put("Confirmation_Number1",ifnull(Get_Purchase_Order.get("Confirmation_Number"),""));
+Edi_log_create.put("Vendor_Description",ifnull(Get_Purchase_Order.get("Description"),""));
+Edi_log_create.put("Vendor_Description1",ifnull(Get_Purchase_Order.get("Description"),""));
+Edi_log_create.put("Due_Date",ifnull(Get_Purchase_Order.get("Due_Date"),""));
+Edi_log_create.put("Due_Date1",ifnull(Get_Purchase_Order.get("Due_Date"),""));
+Edi_log_create.put("Order_Comments",ifnull(Get_Purchase_Order.get("Order_Notes"),""));
+Edi_log_create.put("Order_Comments1",ifnull(Get_Purchase_Order.get("Order_Notes"),""));
+Edi_log_create.put("Ship_Method",ifnull(Get_Purchase_Order.get("Ship_Method"),""));
+Edi_log_create.put("Ship_Method1",ifnull(Get_Purchase_Order.get("Ship_Method"),""));
+Edi_log_create.put("Shipping_City",ifnull(Get_Purchase_Order.get("Shipping_City"),""));
+Edi_log_create.put("Shipping_Code",ifnull(Get_Purchase_Order.get("Shipping_Code"),""));
+Edi_log_create.put("Shipping_Company",ifnull(Get_Purchase_Order.get("Shipping_Company"),""));
+Edi_log_create.put("Shipping_Country",ifnull(Get_Purchase_Order.get("Shipping_Country"),""));
+Edi_log_create.put("Shipping_Email1",ifnull(Get_Purchase_Order.get("Shipping_Email"),""));
+Edi_log_create.put("Shipping_Phone1",ifnull(Get_Purchase_Order.get("Shipping_Phone"),""));
+Edi_log_create.put("Shipping_State",ifnull(Get_Purchase_Order.get("Shipping_State"),""));
+Edi_log_create.put("Shipping_Street",ifnull(Get_Purchase_Order.get("Shipping_Street"),""));
+Edi_log_create.put("Shipping_Street_21",ifnull(Get_Purchase_Order.get("Shipping_Street_2"),""));
+Edi_log_create.put("Shipping_First_Name",ifnull(Get_Purchase_Order.get("Shipping_First_Name"),""));
+Edi_log_create.put("Shipping_Last_Name",ifnull(Get_Purchase_Order.get("Shipping_Last_Name"),""));
+Edi_log_create.put("Source",Get_Purchase_Order.get("Source"));
+//Edi_log_create.put("Staff_Notes",ifnull(Get_Purchase_Order.get("Staff_Notes"),""));
+//Edi_log_create.put("Staff_Notes1",ifnull(Get_Purchase_Order.get("Staff_Notes"),""));
+Edi_log_create.put("Store",Get_Purchase_Order.get("Store").get("id"));
+Edi_log_create.put("Store1",Get_Purchase_Order.get("Store").get("Name"));
+Edi_log_create.put("Vendor_Description",ifnull(Get_Purchase_Order.get("Description"),""));
+Edi_log_create.put("Vendor_Name",Get_Purchase_Order.get("Vendor_Name").get("id"));
+Edi_log_create.put("Vendor_Name1",Get_Purchase_Order.get("Vendor_Name").get("name"));
+//
+info "EDI_Map" + Edi_log_create;
+if(Mismatched_list.size() > 0)
+{
+	/* 	parameterMap = Map();
+	parameterMap.put("Po_Id",Purchase_Id);
+	parameterMap.put("Mismatched_data",Mismatched_list);
+	parameterMap.put("Correct_data",Edi_log_create);
+	parameterMap.put("Status","Mismatched");
+	parameterMap.put("Table_Object",Mismatch_Object);
+	info "parameterMap" + parameterMap;
+	Re_Check_EDI = invokeurl
+	[
+		url :"https://www.zohoapis.com/crm/v2/functions/edi_log_create/actions/execute?auth_type=oauth"
+		type :GET
+		parameters:parameterMap
+		connection:"crm_connection"
+	];
+	info "Re_Check_EDI" + Re_Check_EDI; */
+	//return "Mismatched";
+	//
+	Edi_log_create.put("Subject","Not Resolved");
+	Edi_log_create.put("Test_dropship_order",Test_order);
+	Edi_log_create.put("Description","A purchase order has been created with mismatched data.Please update the following details:" + Mismatched_list);
+	getEDI = zoho.crm.searchRecords("EDI_log","((Purchase_Order:equals:" + Purchase_Id + "))");
+	info "getEDI" + getEDI;
+	if(getEDI.size() == 0)
+	{
+		Create_edi_log = zoho.crm.createRecord("EDI_log",Edi_log_create);
+		info "Create_edi_log" + Create_edi_log;
+	}
+	else
+	{
+		EDI_Module_ID = getEDI.tomap().get("id");
+		Update_edi_log = zoho.crm.updateRecord("EDI_log",EDI_Module_ID.toLong(),Edi_log_create);
+		info "Update_edi_log" + Update_edi_log;
+	}
+	//info Create_edi_log;
+	Mismatacheddata = "";
+	for each  mis_data in Mismatched_list
+	{
+		Mismatacheddata = Mismatacheddata + "* " + mis_data + "<br><br>";
+		//info mis_data;
+	}
+	//
+	Email_Content = "<br> Hello Orders Team, <br><br>A dropship order has been created with mismatched data <br><br>In order for  <b>" + dropNo + "</b>  to be EDI Verified,<br><br><b>Step #1</b><br><br> Please visit  <a href=\"https://crm.zoho.com/crm/org663942562/tab/WebTab11\" target=\"_blank\" > <b> Order Management Dashboard </b> </a>   then find out dropship order# " + dropNo + " from Mismatched Dropship Orders report and update the following details:<br><br>" + Mismatacheddata + "<br> Please refer the below tables<br><b>";
+	Shipping_Email_Content = "";
+	if(!Edi_log_create.get("Shipping_First_Name").equals(Edi_log_create.get("Shipping_First_Name1")))
+	{
+		Shipping_Email_Content = Shipping_Email_Content + "<tr><td style='width: 59px;'><div>Shipping First Name<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Shipping_First_Name") + "<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Shipping_First_Name1") + "<br></div></td></tr>";
+	}
+	if(!Edi_log_create.get("Shipping_Last_Name").equals(Edi_log_create.get("Shipping_Last_Name1")))
+	{
+		Shipping_Email_Content = Shipping_Email_Content + "<tr><td style='width: 59px;'><div>Shipping Last Name<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Shipping_Last_Name") + "<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Shipping_Last_Name1") + "<br></div></td></tr>";
+	}
+	if(Edi_log_create.get("Shipping_Phone1") != null && Edi_log_create.get("Shipping_Phone") != null)
+	{
+		if(!Edi_log_create.get("Shipping_Phone1").equals(Edi_log_create.get("Shipping_Phone")))
+		{
+			Shipping_Email_Content = Shipping_Email_Content + "<tr><td style='width: 59px;'><div>Shipping Phone<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Shipping_Phone1") + "<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Shipping_Phone") + "<br></div></td></tr>";
+		}
+	}
+	if(Edi_log_create.get("Shipping_Email1") != null && Edi_log_create.get("Shipping_Email") != null)
+	{
+		if(!Edi_log_create.get("Shipping_Email1").equals(Edi_log_create.get("Shipping_Email")))
+		{
+			Shipping_Email_Content = Shipping_Email_Content + "<tr><td style='width: 59px;'><div>Shipping Email<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Shipping_Email1") + "<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Shipping_Email") + "<br></div></td></tr>";
+		}
+	}
+	if(Edi_log_create.get("Shipping_Company") != null && Edi_log_create.get("Shipping_Company1") != null)
+	{
+		if(!Edi_log_create.get("Shipping_Company").equals(Edi_log_create.get("Shipping_Company1")))
+		{
+			Shipping_Email_Content = Shipping_Email_Content + "<tr><td style='width: 59px;'><div>Shipping Company<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Shipping_Company") + "<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Shipping_Company1") + "<br></div></td></tr>";
+		}
+	}
+	if(!Edi_log_create.get("Shipping_Street").equals(Edi_log_create.get("Shipping_Street1")))
+	{
+		Shipping_Email_Content = Shipping_Email_Content + "<tr><td style='width: 59px;'><div>Shipping Street<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Shipping_Street") + "<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Shipping_Street1") + "<br></div></td></tr>";
+	}
+	if(Edi_log_create.get("Shipping_Street_21") != null && Edi_log_create.get("Shipping_Street_2") != null)
+	{
+		if(!Edi_log_create.get("Shipping_Street_21").equals(Edi_log_create.get("Shipping_Street_2")))
+		{
+			Shipping_Email_Content = Shipping_Email_Content + "<tr><td style='width: 59px;'><div>Shipping Street2<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Shipping_Street_21") + "<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Shipping_Street_2") + "<br></div></td></tr>";
+		}
+	}
+	if(!Edi_log_create.get("Shipping_City").equals(Edi_log_create.get("Shipping_City1")))
+	{
+		Shipping_Email_Content = Shipping_Email_Content + "<tr><td style='width: 59px;'><div>Shipping City<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Shipping_City") + "<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Shipping_City1") + "<br></div></td></tr>";
+	}
+	if(!Edi_log_create.get("Shipping_State").equals(Edi_log_create.get("Shipping_State1")))
+	{
+		Shipping_Email_Content = Shipping_Email_Content + "<tr><td style='width: 59px;'><div>Shipping State<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Shipping_State") + "<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Shipping_State1") + "<br></div></td></tr>";
+	}
+	if(!Edi_log_create.get("Shipping_Code").equals(Edi_log_create.get("Shipping_Code1")))
+	{
+		Shipping_Email_Content = Shipping_Email_Content + "<tr><td style='width: 59px;'><div>Shipping Code<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Shipping_Code") + "<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Shipping_Code1") + "<br></div></td></tr>";
+	}
+	if(!Edi_log_create.get("Shipping_Country").equals(Edi_log_create.get("Shipping_Country1")))
+	{
+		Shipping_Email_Content = Shipping_Email_Content + "<tr><td style='width: 59px;'><div>Shipping Code<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Shipping_Country") + "<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Shipping_Country1") + "<br></div></td></tr>";
+	}
+	if(Mismatched_list.contains("Purchase order has mismatched Shipping address"))
+	{
+		Email_Content = Email_Content + "<div><div><br></div><div><br></div><b>Shipping address details</b><div><br></div><div><br></div><table style='width: 100%; font-size: 10pt; font-family: Arial, Helvetica, sans-serif; border: 1px solid black; color: black;' border='1' cellspacing='2' cellpadding='2'><tbody><tr><td style='width: 59px;'><div>Field Name<br></div></td><td style='width: 99.3333px;'><div>Zoho Data(Mismatched)<br></div></td><td style='width: 99.3333px;'><div>Store Data(Correct)<br></div></td></tr>" + Shipping_Email_Content + "</tbody></table><div><br></div><div><br></div></div>";
+	}
+	Billing_Email_Content = "";
+	info "temp 1" + Edi_log_create.get("Billing_First_Name") + "temp 2" + Edi_log_create.get("Billing_First_Name1");
+	if(!Edi_log_create.get("Billing_First_Name").equals(Edi_log_create.get("Billing_First_Name1")))
+	{
+		Billing_Email_Content = Billing_Email_Content + "<tr><td style='width: 59px;'><div>Billing First Name<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Billing_First_Name") + "<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Billing_First_Name1") + "<br></div></td></tr>";
+	}
+	if(!Edi_log_create.get("Billing_Last_Name").equals(Edi_log_create.get("Billing_Last_Name1")))
+	{
+		Billing_Email_Content = Billing_Email_Content + "<tr><td style='width: 59px;'><div>Billing Last Name<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Billing_Last_Name") + "<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Billing_Last_Name1") + "<br></div></td></tr>";
+	}
+	if(Edi_log_create.get("Billing_Phone1") != null && Edi_log_create.get("Billing_Phone") != null)
+	{
+		if(!Edi_log_create.get("Billing_Phone1").equals(Edi_log_create.get("Billing_Phone")))
+		{
+			Billing_Email_Content = Billing_Email_Content + "<tr><td style='width: 59px;'><div>Billing Phone<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Billing_Phone1") + "<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Billing_Phone") + "<br></div></td></tr>";
+		}
+	}
+	if(Edi_log_create.get("Billing_Email1") != null && Edi_log_create.get("Billing_Email") != null)
+	{
+		if(!Edi_log_create.get("Billing_Email1").equals(Edi_log_create.get("Billing_Email")))
+		{
+			Billing_Email_Content = Billing_Email_Content + "<tr><td style='width: 59px;'><div>Billing Email<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Billing_Email1") + "<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Billing_Email") + "<br></div></td></tr>";
+		}
+	}
+	if(Edi_log_create.get("Billing_Company1") != null && Edi_log_create.get("Billing_Company1") != null)
+	{
+		if(!Edi_log_create.get("Billing_Company1").equals(Edi_log_create.get("Billing_Company1")))
+		{
+			Billing_Email_Content = Billing_Email_Content + "<tr><td style='width: 59px;'><div>Billing Company<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Billing_Company1") + "<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Billing_Company1") + "<br></div></td></tr>";
+		}
+	}
+	if(!Edi_log_create.get("Billing_Street").equals(Edi_log_create.get("Billing_Street1")))
+	{
+		Billing_Email_Content = Billing_Email_Content + "<tr><td style='width: 59px;'><div>Billing Street<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Billing_Street") + "<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Billing_Street1") + "<br></div></td></tr>";
+	}
+	if(Edi_log_create.get("Billing_Street_21") != null && Edi_log_create.get("Billing_Street_21") != null)
+	{
+		if(!Edi_log_create.get("Billing_Street_21").equals(Edi_log_create.get("Billing_Street_21")))
+		{
+			Billing_Email_Content = Billing_Email_Content + "<tr><td style='width: 59px;'><div>Billing Street2<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Billing_Street_21") + "<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Billing_Street_21") + "<br></div></td></tr>";
+		}
+	}
+	if(!Edi_log_create.get("Billing_City").equals(Edi_log_create.get("Billing_City1")))
+	{
+		Billing_Email_Content = Billing_Email_Content + "<tr><td style='width: 59px;'><div>Billing City<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Billing_City") + "<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Billing_City1") + "<br></div></td></tr>";
+	}
+	if(!Edi_log_create.get("Billing_State").equals(Edi_log_create.get("Billing_State1")))
+	{
+		Billing_Email_Content = Billing_Email_Content + "<tr><td style='width: 59px;'><div>Billing State<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Billing_State") + "<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Billing_State1") + "<br></div></td></tr>";
+	}
+	if(!Edi_log_create.get("Billing_Code").equals(Edi_log_create.get("Billing_Code1")))
+	{
+		Billing_Email_Content = Billing_Email_Content + "<tr><td style='width: 59px;'><div>Billing Code<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Billing_Code") + "<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Billing_Code1") + "<br></div></td></tr>";
+	}
+	if(!Edi_log_create.get("Billing_Country").equals(Edi_log_create.get("Billing_Country1")))
+	{
+		Billing_Email_Content = Billing_Email_Content + "<tr><td style='width: 59px;'><div>Billing Code<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Billing_Country") + "<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Billing_Country1") + "<br></div></td></tr>";
+	}
+	if(Mismatched_list.contains("Purchase order has mismatched Billing address"))
+	{
+		Email_Content = Email_Content + "<div><div><br></div><div><br></div><b>Billing address details</b><div><br></div><div><br></div><table style='width: 100%; font-size: 10pt; font-family: Arial, Helvetica, sans-serif; border: 1px solid black; color: black;' border='1' cellspacing='2' cellpadding='2'><tbody><tr><td style='width: 59px;'><div>Field Name<br></div></td><td style='width: 99.3333px;'><div>Zoho Data(Mismatched)<br></div></td><td style='width: 99.3333px;'><div>Store Data(Correct)<br></div></td></tr>" + Billing_Email_Content + "</tbody></table><div><br></div><div><br></div></div>";
+	}
+	if(Mismatched_list.contains("Purchase order has mismatched Ship method"))
+	{
+		Email_Content = Email_Content + "<div><div><br></div><div><br></div><b>Ship Method</b><div><br></div><div><br></div><table cellpadding='2' cellspacing='2' border='1' style='width: 100%; font-size: 10pt; font-family: Arial, Helvetica, sans-serif; border: 1px solid black; color: black;'><tbody><tr><td style='width: 59px;'><div>Field Name<br></div></td><td style='width: 99.3333px;'><div>Zoho Data(Mismatched)<br></div></td><td style='width: 99.3333px;'><div>Store Data(Correct)<br></div></td></tr><tr><td style='width: 59px;'><div>Ship Method</div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Ship_Method") + "<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Ship_Method1") + "<br></div></td></tr></tbody></table><div><br></div><div><br></div></div><div><br></div><div><br></div>";
+	}
+	if(Mismatched_list.contains("Purchase Order has mismatched store"))
+	{
+		Email_Content = Email_Content + "<div><div><br></div><div><br></div><div><br></div><div><br></div><table cellpadding='2' cellspacing='2' border='1' style='width: 100%; font-size: 10pt; font-family: Arial, Helvetica, sans-serif; border: 1px solid black; color: black;'><tbody><tr><td style='width: 59px;'><div>Field Name<br></div></td><td style='width: 99.3333px;'><div>Zoho Data(Mismatched)<br></div></td><td style='width: 99.3333px;'><div>Store Data(Correct)<br></div></td></tr><tr><td style='width: 59px;'><div>Store</div></td><td style='width: 99.3333px;'><div>" + Get_Purchase_Order.get("Store").get("Name") + "<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Store1") + "<br></div></td></tr></tbody></table><div><br></div><div><br></div></div><div><br></div><div><br></div>";
+	}
+	if(Mismatched_list.contains("Purchase Order has mismatched Order Comments"))
+	{
+		Email_Content = Email_Content + "<div><div><br></div><div><br></div><div><br></div><div><br></div><table cellpadding='2' cellspacing='2' border='1' style='width: 100%; font-size: 10pt; font-family: Arial, Helvetica, sans-serif; border: 1px solid black; color: black;'><tbody><tr><td style='width: 59px;'><div>Field Name<br></div></td><td style='width: 99.3333px;'><div>Zoho Data(Mismatched)<br></div></td><td style='width: 99.3333px;'><div>Store Data(Correct)<br></div></td></tr><tr><td style='width: 59px;'><div>Order Comments</div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Order_Comments") + "<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Order_Comments1") + "<br></div></td></tr></tbody></table><div><br></div><div><br></div></div><div><br></div><div><br></div>";
+	}
+	if(Mismatched_list.contains("Purchase Order has mismatched Staff Notes"))
+	{
+		Email_Content = Email_Content + "<div><div><br></div><div><br></div><div><br></div><div><br></div><table cellpadding='2' cellspacing='2' border='1' style='width: 100%; font-size: 10pt; font-family: Arial, Helvetica, sans-serif; border: 1px solid black; color: black;'><tbody><tr><td style='width: 59px;'><div>Field Name<br></div></td><td style='width: 99.3333px;'><div>Zoho Data(Mismatched)<br></div></td><td style='width: 99.3333px;'><div>Store Data(Correct)<br></div></td></tr><tr><td style='width: 59px;'><div>Staff Notes</div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Staff_Notes") + "<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Staff_Notes1") + "<br></div></td></tr></tbody></table><div><br></div><div><br></div></div><div><br></div><div><br></div>";
+	}
+	if(Mismatched_list.contains("Purchase Order has mismatched contact"))
+	{
+		Email_Content = Email_Content + "<div><div><br></div><div><br></div><div><br></div><div><br></div><table cellpadding='2' cellspacing='2' border='1' style='width: 100%; font-size: 10pt; font-family: Arial, Helvetica, sans-serif; border: 1px solid black; color: black;'><tbody><tr><td style='width: 59px;'><div>Field Name<br></div></td><td style='width: 99.3333px;'><div>Zoho Data(Mismatched)<br></div></td><td style='width: 99.3333px;'><div>Store Data(Correct)<br></div></td></tr><tr><td style='width: 59px;'><div>Contact<br></div></td><td style='width: 99.3333px;'><div>" + Get_Purchase_Order.get("Contact_Name").get("name") + "<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Contact_Name1") + "<br></div></td></tr></tbody></table><div><br></div><div><br></div></div><div><br></div><div><br></div>";
+	}
+	if(Mismatched_list.contains("Purchase Order has mismatched account"))
+	{
+		Email_Content = Email_Content + "<div><div><br></div><div><br></div><div><br></div><div><br></div><table cellpadding='2' cellspacing='2' border='1' style='width: 100%; font-size: 10pt; font-family: Arial, Helvetica, sans-serif; border: 1px solid black; color: black;'><tbody><tr><td style='width: 59px;'><div>Field Name<br></div></td><td style='width: 99.3333px;'><div>Zoho Data(Mismatched)<br></div></td><td style='width: 99.3333px;'><div>Store Data(Correct)<br></div></td></tr><tr><td style='width: 59px;'><div>Account<br></div></td><td style='width: 99.3333px;'><div>" + Get_Po_accountname + "<br></div></td><td style='width: 99.3333px;'><div>" + ifnull(Edi_log_create.getJSON("Account_Name1"),"") + "<br></div></td></tr></tbody></table><div><br></div><div><br></div></div><div><br></div><div><br></div>";
+	}
+	if(Mismatched_list.contains("Purchase Order has mismatched order date"))
+	{
+		Email_Content = Email_Content + "<div><div><br></div><div><br></div><div><br></div><div><br></div><table cellpadding='2' cellspacing='2' border='1' style='width: 100%; font-size: 10pt; font-family: Arial, Helvetica, sans-serif; border: 1px solid black; color: black;'><tbody><tr><td style='width: 59px;'><div>Field Name<br></div></td><td style='width: 99.3333px;'><div>CRM PO Mismatched Data(Mismatched)<br></div></td><td style='width: 99.3333px;'><div>Store Data(Correct)<br></div></td></tr><tr><td style='width: 59px;'><div>Order Date<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Order_Date") + "<br></div></td><td style='width: 99.3333px;'><div>" + Edi_log_create.get("Order_Date1") + "<br></div></td></tr></tbody></table><div><br></div><div><br></div></div><div><br></div><div><br></div>";
+	}
+	if(Mismatched_list.contains("Purchase Order Product List Price Mismatched with Product Cost Price"))
+	{
+		Get_Po_product_details = Get_Purchase_Order.get("Product_Details");
+		ListPrice_Email_Content = "";
+		for each  Po_product in Get_Po_product_details
+		{
+			po_product_CRM_id = Po_product.get("product").get("id");
+			ProductModule = zoho.crm.getRecordById("Products",po_product_CRM_id.toLong());
+			Product_CostPrice = ProductModule.tomap().get("Cost_Price").toDecimal();
+			PO_ListPrice = Po_product.get("list_price").toDecimal();
+			if(Product_CostPrice != PO_ListPrice)
+			{
+				ListPrice_Email_Content = ListPrice_Email_Content + "<tr><td style='width: 59px;'><div>" + ProductModule.tomap().get("Product_Name") + "<br></div></td><td style='width: 99.3333px;'><div>" + PO_ListPrice + "<br></div></td><td style='width: 99.3333px;'><div>" + Product_CostPrice + "<br></div></td></tr>";
+			}
+		}
+		Email_Content = Email_Content + "<div><div><br></div><div><br></div><b>Mismatched Product Price details</b><div><br></div><div><br></div><table style='width: 100%; font-size: 10pt; font-family: Arial, Helvetica, sans-serif; border: 1px solid black; color: black;' border='1' cellspacing='2' cellpadding='2'><tbody><tr><td style='width: 59px;'><div>Product<br></div></td><td style='width: 99.3333px;'><div>Store Price(Mismatched)<br></div></td><td style='width: 99.3333px;'><div>Zoho Price(Correct)<br></div></td></tr>" + ListPrice_Email_Content + "</tbody></table><div><br></div><div><br></div></div>";
+	}
+	Quantity_Email_Content = "";
+	Description_Email_Content = "";
+	quantity_flag = 0;
+	description_flag = 0;
+	keysList = list();
+	keysList = Mismatch_Object.keys();
+	info "keysList" + keysList;
+	for each  key in keysList
+	{
+		info "key" + keysList;
+		if(key.contains("::"))
+		{
+			Inside_List = list();
+			info "Tolist" + Mismatch_Object.get(key);
+			if(Mismatch_Object.get(key) != "")
+			{
+				Inside_List = Mismatch_Object.get(key).toList();
+			}
+			info "Inside_List" + Inside_List;
+			if(Inside_List.size() > 0)
+			{
+				for each  key_list in Inside_List
+				{
+					key_type = list();
+					key_type = key_list.toMap().keys();
+					info "key_type" + key_type;
+					for each  key_desc in key_type
+					{
+						if(key_desc.contains("Product_Quantity"))
+						{
+							quantity_flag = 1;
+							PO_quantity = key_list.toMap().get(key_desc).get("PO");
+							Actual_quantity = key_list.toMap().get(key_desc).get("Actual");
+							Quantity_Email_Content = Quantity_Email_Content + "<tr><td style='width: 59px;'><div>" + key.getSuffix("::") + "<br></div></td><td style='width: 99.3333px;'><div>" + PO_quantity + "<br></div></td><td style='width: 99.3333px;'><div>" + Actual_quantity + "<br></div></td></tr>";
+							//info "Quantity_Email_Content" + Quantity_Email_Content ;
+						}
+						if(key_desc.contains("Product_Description"))
+						{
+							description_flag = 1;
+							PO_description = key_list.toMap().get(key_desc).get("PO");
+							Actual_description = key_list.toMap().get(key_desc).get("Actual");
+							Description_Email_Content = Description_Email_Content + "<tr><td style='width: 59px;'><div>" + key.getSuffix("::") + "<br></div></td><td style='width: 99.3333px;'><div>" + PO_description + "<br></div></td><td style='width: 99.3333px;'><div>" + Actual_description + "<br></div></td></tr>";
+							//info "Description_Email_Content" + Description_Email_Content ;
+						}
+					}
+				}
+			}
+		}
+	}
+	if(quantity_flag == 1)
+	{
+		Email_Content = Email_Content + "<div><div><br></div><div><br></div><b>Mismatched Product Quantity details</b><div><br></div><div><br></div><table style='width: 100%; font-size: 10pt; font-family: Arial, Helvetica, sans-serif; border: 1px solid black; color: black;' border='1' cellspacing='2' cellpadding='2'><tbody><tr><td style='width: 59px;'><div>Product<br></div></td><td style='width: 99.3333px;'><div>Zoho Data(Mismatch)<br></div></td><td style='width: 99.3333px;'><div>Store Data(Correct)<br></div></td></tr>" + Quantity_Email_Content + "</tbody></table><div><br></div><div><br></div></div>";
+	}
+	if(description_flag == 1)
+	{
+		Email_Content = Email_Content + "<div><div><br></div><div><br></div><b>Mismatched Product Description details</b><div><br></div><div><br></div><table style='width: 100%; font-size: 10pt; font-family: Arial, Helvetica, sans-serif; border: 1px solid black; color: black;' border='1' cellspacing='2' cellpadding='2'><tbody><tr><td style='width: 59px;'><div>Product<br></div></td><td style='width: 99.3333px;'><div>Zoho Data(Mismatched)<br></div></td><td style='width: 99.3333px;'><div>Store Data(Correct)<br></div></td></tr>" + Description_Email_Content + "</tbody></table><div><br></div><div><br></div></div>";
+	}
+	Email_Content = Email_Content + "<br> Thanks, <br><b>Best Access Doors</b><br><br>";
+	mailmap = Map();
+	mailmap.put("to",{"balaji@bizappln.com","prabhu@bizappln.com","jegan@bizappln.com"});
+	mailmap.put("scope","Droship Notify");
+	mailmap.put("subject","Dropship Order #" + dropNo + " is created with mismatched data");
+	mailmap.put("body",Email_Content);
+	// 	mailres = postURL("https://1.door-pay.com/api/Office360Mail/sendreq",mailmap);
+	// 	info "mailres" + mailres;
+	DRO_Update_Map = Map();
+	DRO_Update_Map.put("EDI_Status","Mismatched");
+	UpdatePO = zoho.crm.updateRecord("Purchase_Orders",Purchase_Id,DRO_Update_Map);
+	DataMap = Map();
+	DataMap.put("Status","Not Started");
+	DataMap.put("Priority","Normal");
+	DataMap.put("Due_Date",zoho.currentdate.addDay(1));
+	DataMap.put("Subject",dropNo + "-" + Get_Purchase_Order.get("Vendor_Name").get("name") + " PO data mismatch");
+	DataMap.put("Owner",3106252000026453004);
+	DataMap.put("$se_module","Purchase_Orders");
+	DataMap.put("What_Id",Purchase_Id);
+	DataMap.put("Who_Id",Get_Purchase_Order.get("Contact_Name").get("id").toLong());
+	DataMap.put("Description","Please check PO " + dropNo + " in order management dashboard to match back the data");
+	// 	TaskData = zoho.crm.createRecord("Tasks",DataMap);
+}
+else
+{
+	/* 	parameterMap = Map();
+	parameterMap.put("Po_Id",Purchase_Id);
+	parameterMap.put("Mismatched_data","");
+	parameterMap.put("Correct_data",Edi_log_create);
+	parameterMap.put("Status","No Mismatched");
+	parameterMap.put("Table_Object","");
+	Re_Check_EDI = invokeurl
+	[
+		url :"https://www.zohoapis.com/crm/v2/functions/edi_log_create/actions/execute?auth_type=oauth"
+		type :GET
+		parameters:parameterMap
+		connection:"crm_connection"
+	];
+	info "Re_Check_EDI" + Re_Check_EDI; */
+	// 	return "EDI Verified";
+	//
+	Edi_log_create.put("Subject","EDI Verified");
+	Edi_log_create.put("EDI_Verified_Date_Time",zoho.currenttime);
+	Edi_log_create.put("Description","A purchase order has been created with correct data.");
+	Edi_log_create.put("Test_dropship_order",Test_order);
+	getEDI = zoho.crm.searchRecords("EDI_log","((Purchase_Order:equals:" + Purchase_Id + "))");
+	if(getEDI.size() == 0)
+	{
+		//Create_edi_log = zoho.crm.createRecord("EDI_log",Edi_log_create);
+	}
+	else
+	{
+		EDI_Module_ID = getEDI.tomap().get("id");
+		Update_edi_log = zoho.crm.updateRecord("EDI_log",EDI_Module_ID.toLong(),Edi_log_create);
+	}
+	//info Create_edi_log;
+	// 	DRO_Update_Map = Map();
+	// 	DRO_Update_Map.put("EDI_Status","EDI Verified");
+	// 	DRO_Update_Map.put("EDI_Verified",TRUE);
+	// 	UpdatePO = zoho.crm.updateRecord("Purchase_Orders",Purchase_Id,DRO_Update_Map);
+	//
+	send_vendor = false;
+	//Check duplicate salesorder
+	Get_Po_subject = Get_Purchase_Order.get("Subject");
+	if(Get_Po_Source.contains("BigCommerce"))
+	{
+		Get_all_salesorder = zoho.crm.searchRecords("Sales_Orders","(BigCommerce_Unique_ID:equals:" + Get_Po_bcunique_id + ")");
+		Get_all_So_count = Get_all_salesorder.size();
+	}
+	else if(Get_Po_Source.contains("Amazon"))
+	{
+		Get_all_salesorder = zoho.crm.searchRecords("Sales_Orders","(Subject:equals:" + Get_Po_subject + ")");
+		Get_all_So_count = Get_all_salesorder.size();
+	}
+	if(Get_all_So_count == 1)
+	{
+		Sales_Order_line_Item_count = Get_So_product_details.size();
+		Purchase_order_line_item_count = 0;
+		Getting_all_purchase_orders = zoho.crm.getRelatedRecords("Dropship_Orders","Sales_Orders",Get_Salesorder_id.toLong());
+		Purchase_order_list = LIST();
+		for each  each_purchase_order in Getting_all_purchase_orders
+		{
+			Purchase_order_list.add(each_purchase_order.get("id"));
+			Purchase_order_line_item_count = Purchase_order_line_item_count + each_purchase_order.get("Product_Details").size();
+		}
+		if(Purchase_order_line_item_count != Sales_Order_line_Item_count)
+		{
+			Dropshiporder_map = '';
+			for each  dropshiporder_Id in Purchase_order_list
+			{
+				Dropshiporder_map = Dropshiporder_map + "<li><a href=\"https://crm.zoho.com/crm/org663942562/tab/PurchaseOrders/" + dropshiporder_Id + "\" target=\"_blank\" ><b>" + dropshiporder_Id + "</b></a></li>";
+			}
+			Email_content = "<br> Hello Orders Team, <br><br>There is mismatch in product lineitems in the salesorder and associated dropship orders<br> <br>Please follow these 2 steps: <br><br> <b>Step #1)</b><br> Please visit below link and check the dropship orders<br>" + Dropshiporder_map + "</b> </a> <br><br><b>Step #2)</b><br> Then, Please visit <a href=\"https://crm.zoho.com/crm/org663942562/tab/SalesOrders/" + Get_Salesorder_id + "\" target=\"_blank\" > <b>" + Get_Po_subject + "</b> </a> and click <b> 'Regenerate Dropship Order'</b><br><br> Thanks, <br><b>Best Access Doors</b><br><br>";
+			mailmap = Map();
+			mailmap.put("to",{"balaji@bizappln.com","prabhu@bizappln.com","jegan@bizappln.com"});
+			// 				mailmap.put("cc",{"anthony@bestaccessdoors.com","citrigno@bestaccessdoors.com"});
+			// 				mailmap.put("bcc",{"tharmendheran@bizappln.com","balaji@bizappln.com"});
+			mailmap.put("scope","Droship Notify");
+			mailmap.put("subject","Lineitem mismatch in the salesorder and associated Dropship orders");
+			mailmap.put("body",Email_content);
+			// 	info mailmap;
+			mailres = postURL("https://1.door-pay.com/api/Office360Mail/sendreq",mailmap);
+			info "mailres:" + mailres;
+		}
+		else
+		{
+			send_vendor = true;
+			DRO_Update_Map = Map();
+			DRO_Update_Map.put("EDI_Status","EDI Verified");
+			DRO_Update_Map.put("EDI_Verified",TRUE);
+			UpdatePO = zoho.crm.updateRecord("Purchase_Orders",Purchase_Id,DRO_Update_Map);
+		}
+	}
+	else
+	{
+		Duplicate_SO_map = '';
+		info "Get_all_salesorder" + Get_all_salesorder;
+		for each  dup_so in Get_all_salesorder
+		{
+			Duplicate_SO_map = Duplicate_SO_map + "<li><a href=\"https://crm.zoho.com/crm/org663942562/tab/SalesOrders/" + dup_so.getJSON("id") + "\" target=\"_blank\" ><b>" + dup_so.getJSON("id") + "</b></a></li>";
+		}
+		info "temp 1" + Duplicate_SO_map;
+		Email_content = "<br> Hello Orders Team, <br><br>Duplicate salesorder has been created for the order " + Get_Po_store_name + " - " + Get_Po_subject + "<br> <br><br> Please visit below links and check the duplicate salesorder orders created<br><br>" + Duplicate_SO_map + "<br><br><br> Thanks, <br><b>Best Access Doors</b><br><br>";
+		mailmap = Map();
+		mailmap.put("to",{"balaji@bizappln.com","prabhu@bizappln.com","jegan@bizappln.com"});
+		// 				mailmap.put("cc",{"anthony@bestaccessdoors.com","citrigno@bestaccessdoors.com"});
+		// 				mailmap.put("bcc",{"tharmendheran@bizappln.com","balaji@bizappln.com"});
+		mailmap.put("scope","Droship Notify");
+		mailmap.put("subject","Duplicate salesorder created for " + Get_Po_store_name + " -" + Get_Po_subject);
+		mailmap.put("body",Email_content);
+		// 	info mailmap;
+		mailres = postURL("https://1.door-pay.com/api/Office360Mail/sendreq",mailmap);
+		info "mailres:" + mailres;
+	}
+	/* Created By Ezhil on 20 Feb 2021 */
+	/* Don't Send DSO to vendor if BC order comments not updated */
+	// 	bcOrderId = Get_Sales_Order.get("Bigcommerce_Order_ID");
+	// 	orderStoreName = Get_Sales_Order.get("Store").get("name");
+	// 	if(!isNull(orderStoreName))
+	// 	{
+	// 		bcStoreMap = Map();
+	// 		bcStoreMap.put("storename",orderStoreName);
+	// 		bcStoreAuth = invokeurl
+	// 		[
+	// 			url :"https://www.zohoapis.com/crm/v2/functions/get_bigcommerce_authorization/actions/execute?auth_type=oauth"
+	// 			type :GET
+	// 			parameters:bcStoreMap
+	// 			connection:"crm_connection"
+	// 		];
+	// 		info bcStoreAuth;
+	// 		if(!isNull(bcStoreAuth))
+	// 		{
+	// 			bcStoreAuthRes = bcStoreAuth.get("details").get("output");
+	// 			bcStoreAuthMap = bcStoreAuthRes.toMap();
+	// 			bcStoreHash = bcStoreAuthMap.get("Store_hash");
+	// 			bcStoreClient = bcStoreAuthMap.get("client secret");
+	// 			bcAuthToken = bcStoreAuthMap.get("Auth token");
+	// 			headerMap = Map();
+	// 			headerMap.put("Accept","application/json");
+	// 			headerMap.put("Content-Type","application/json");
+	// 			headerMap.put("X-Auth-Token",bcAuthToken);
+	// 			headerMap.put("X-Auth-Client",bcStoreClient);			
+	// 		}
+	// 	}
+	if(send_vendor == true && Test_order == false && Current_year == true)
+	{
+		if(Get_Po_storeid == "3106252000010045784" || Get_Po_storeid == "3106252000010045792" || Get_Po_storeid == "3106252000010045768" || Get_Po_storeid == "3106252000010045776" || Get_Po_storeid == "3106252000010045631" || Get_Po_storeid == "3106252000074978001" || Get_Po_storeid == "3106252000089580508" || Get_Po_storeid == "3106252000017424233" || Get_Po_storeid == "3106252000133488013")
+		{
+			info "inside send mail to vendor";
+		}
+	}
+}
+info "EDI_Map:" + Edi_log_create;
+info "EDI_Object" + Mismatch_Object;
+return "";
+}

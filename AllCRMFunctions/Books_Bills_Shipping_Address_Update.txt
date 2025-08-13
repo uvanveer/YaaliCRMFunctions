@@ -1,0 +1,240 @@
+string standalone.Books_Bills_Shipping_Address_Update()
+{
+/*
+Created By rpr
+Created On 23/July/2020
+Purpose : Updates the Shipping Address Of Bill from PO created from feb1
+should use (50 or <50) --> check for timeout issue || (30 or <30) --> to check its response  in single fetch due to execution limit including for each
+
+check for pagination - and update part
+*/
+organizationID = "666840843";
+overall_bills = invokeurl
+[
+	url :"https://books.zoho.com/api/v3/bills?organization_id=666840843&sort_column=date&sort_order=D&date_start=2020-02-01&date_end=2020-08-01&page=1&per_page=200"
+	type :GET
+	connection:"new_zoho_books"
+];
+// info overall_bills;
+if(overall_bills.get("message") == "success")
+{
+	if(overall_bills.get("bills").size() > 0)
+	{
+		bills_list = overall_bills.get("bills");
+		info bills_list.size();
+		for each  bill in overall_bills.get("bills")
+		{
+			if(bill.get("bill_id") == "1324986000040492428")
+			{
+				info "bill id " + bill.get("bill_id") + " --date " + bill.get("date") + " --bill status " + bill.get("status");
+				billID = bill.get("bill_id");
+				billDate = bill.get("date").toDate();
+				bill_data = zoho.books.getRecordsByID("bills",organizationID,bill.get("bill_id"));
+				// 			info bill_data;
+				bill_data = bill_data.get("bill");
+				poId = 0;
+				poIdList = bill_data.get("purchaseorder_ids");
+				if(poIdList != null && size(poIdList) > 0)
+				{
+					poId = poIdList.get(0);
+				}
+				info poId;
+				if(poId != 0)
+				{
+					poObj = zoho.books.getRecordsByID("purchaseorders",organizationID,poId);
+					info "Po Data " + poObj;
+					poObj = poObj.get("purchaseorder");
+					//customer /org name will be there 
+					updateMap = Map();
+					updateList = list();
+					deliveryAddressObj = poObj.get("delivery_address");
+					deliverToMap = Map();
+					if(poObj.get("delivery_customer_id") != null && poObj.get("delivery_customer_id") != "")
+					{
+						customerID = poObj.get("delivery_customer_id");
+						customerMap = Map();
+						customerMap.put("customfield_id",1324986000032066231);
+						customerMap.put("value",customerID);
+						updateList.add(customerMap);
+						deliverToMap.put("customfield_id",1324986000032089604);
+						deliverToMap.put("value","Customer");
+						updateList.add(deliverToMap);
+						orgNameMap = Map();
+						orgNameMap.put("customfield_id",1324986000032066014);
+						orgNameMap.put("value","");
+						updateList.add(orgNameMap);
+					}
+					else
+					{
+						orgNameMap = Map();
+						orgNameMap.put("customfield_id",1324986000032066014);
+						attention = ifnull(poObj.get("attention"),"");
+						orgNameMap.put("value",attention);
+						updateList.add(orgNameMap);
+						deliverToMap.put("customfield_id",1324986000032089604);
+						deliverToMap.put("value","Organization");
+						updateList.add(deliverToMap);
+						customerMap = Map();
+						customerMap.put("customfield_id",1324986000032066231);
+						customerMap.put("value","");
+						updateList.add(customerMap);
+					}
+					if(deliveryAddressObj != null && deliveryAddressObj != "")
+					{
+						address = ifnull(deliveryAddressObj.get("address"),"");
+						city = ifnull(deliveryAddressObj.get("city"),"");
+						state = ifnull(deliveryAddressObj.get("state"),"");
+						country = ifnull(deliveryAddressObj.get("country"),"");
+						zipCode = ifnull(deliveryAddressObj.get("zip"),"");
+						phone = ifnull(deliveryAddressObj.get("phone"),"");
+						//1324986000028371655
+						streetMap = Map();
+						streetMap.put("customfield_id",1324986000032066018);
+						streetMap.put("value",address);
+						updateList.add(streetMap);
+						cityMap = Map();
+						cityMap.put("customfield_id",1324986000032066026);
+						cityMap.put("value",city);
+						updateList.add(cityMap);
+						stateMap = Map();
+						stateMap.put("customfield_id",1324986000032066030);
+						stateMap.put("value",state);
+						updateList.add(stateMap);
+						countryMap = Map();
+						countryMap.put("customfield_id",1324986000032066138);
+						countryMap.put("value",country);
+						updateList.add(countryMap);
+						zipMap = Map();
+						zipMap.put("customfield_id",1324986000032066034);
+						zipMap.put("value",zipCode);
+						updateList.add(zipMap);
+						phoneMap = Map();
+						phoneMap.put("customfield_id",1324986000032066038);
+						phoneMap.put("value",phone);
+						updateList.add(phoneMap);
+						addressupdatePO = Map();
+						addressupdatePO.put("customfield_id",1324986000046463489);
+						addressupdatePO.put("value",true);
+						updateList.add(addressupdatePO);
+						info " --- ";
+						updateMap.put("custom_fields",updateList);
+						info " --- ";
+						info "updateMap " + updateMap;
+						updateBill = zoho.books.updateRecord("bills",organizationID,billID,updateMap.toString());
+						// 					updateBill = zoho.books.updateRecord("bills",organizationID,"1324986000032959003",updateMap.toString());
+						info " -- updateBill -- " + updateBill;
+					}
+				}
+			}
+		}
+	}
+}
+//-------------------------method with PO flow-----------------------------------
+// overall_purchaseorders = invokeurl
+// [
+// 	url :"https://books.zoho.com/api/v3/purchaseorders?organization_id=666840843&sort_column=date&sort_order=D&date_start=2020-02-01&date_end=2020-07-23&page=1&per_page=1&status=billed"
+// 	type :GET
+// 	connection:"new_zoho_books"
+// ];
+// if(overall_purchaseorders.get("message") == "success")
+// {
+// 	if(overall_purchaseorders.get("purchaseorders").size() > 0)
+// 	{
+// 		purchassorder_list = overall_purchaseorders.get("purchaseorders");
+// 		info "inside po loops ";
+// 		for each  single_po in purchassorder_list
+// 		{
+// 			info "PO id " + single_po.get("purchaseorder_id") + " date " + single_po.get("date") + " bill status " + single_po.get("billed_status");
+// 			poObj = zoho.books.getRecordsByID("purchaseorders",organizationID,single_po.get("purchaseorder_id"));
+// 			// 			info "Po Data " + poObj;
+// 			poObj = poObj.get("purchaseorder");
+// 			if(!isnull(poObj.get("bills")))
+// 			{
+// 				bills_List = poObj.get("bills");
+// 				for each  single_bill in bills_List
+// 				{
+// 					info "bills --> " + single_bill.get("bill_id");
+// 					//customer /org name will be there 
+// 					updateMap = Map();
+// 					updateList = list();
+// 					deliveryAddressObj = poObj.get("delivery_address");
+// 					// 					info deliveryAddressObj;
+// 					deliverToMap = Map();
+// 					if(poObj.get("delivery_customer_id") != null && poObj.get("delivery_customer_id") != "")
+// 					{
+// 						customerID = poObj.get("delivery_customer_id");
+// 						customerMap = Map();
+// 						customerMap.put("customfield_id",1324986000032066231);
+// 						customerMap.put("value",customerID);
+// 						updateList.add(customerMap);
+// 						deliverToMap.put("customfield_id",1324986000032089604);
+// 						deliverToMap.put("value","Customer");
+// 						updateList.add(deliverToMap);
+// 						orgNameMap = Map();
+// 						orgNameMap.put("customfield_id",1324986000032066014);
+// 						orgNameMap.put("value","");
+// 						updateList.add(orgNameMap);
+// 					}
+// 					else
+// 					{
+// 						orgNameMap = Map();
+// 						orgNameMap.put("customfield_id",1324986000032066014);
+// 						attention = ifnull(poObj.get("attention"),"");
+// 						orgNameMap.put("value",attention);
+// 						updateList.add(orgNameMap);
+// 						deliverToMap.put("customfield_id",1324986000032089604);
+// 						deliverToMap.put("value","Organization");
+// 						updateList.add(deliverToMap);
+// 						customerMap = Map();
+// 						customerMap.put("customfield_id",1324986000032066231);
+// 						customerMap.put("value","");
+// 						updateList.add(customerMap);
+// 					}
+// 					//delivery address
+// 					if(deliveryAddressObj != null && deliveryAddressObj != "")
+// 					{
+// 						address = ifnull(deliveryAddressObj.get("address"),"");
+// 						city = ifnull(deliveryAddressObj.get("city"),"");
+// 						state = ifnull(deliveryAddressObj.get("state"),"");
+// 						country = ifnull(deliveryAddressObj.get("country"),"");
+// 						zipCode = ifnull(deliveryAddressObj.get("zip"),"");
+// 						phone = ifnull(deliveryAddressObj.get("phone"),"");
+// 						//1324986000028371655
+// 						streetMap = Map();
+// 						streetMap.put("customfield_id",1324986000032066018);
+// 						streetMap.put("value",address);
+// 						updateList.add(streetMap);
+// 						cityMap = Map();
+// 						cityMap.put("customfield_id",1324986000032066026);
+// 						cityMap.put("value",city);
+// 						updateList.add(cityMap);
+// 						stateMap = Map();
+// 						stateMap.put("customfield_id",1324986000032066030);
+// 						stateMap.put("value",state);
+// 						updateList.add(stateMap);
+// 						countryMap = Map();
+// 						countryMap.put("customfield_id",1324986000032066138);
+// 						countryMap.put("value",country);
+// 						updateList.add(countryMap);
+// 						zipMap = Map();
+// 						zipMap.put("customfield_id",1324986000032066034);
+// 						zipMap.put("value",zipCode);
+// 						updateList.add(zipMap);
+// 						phoneMap = Map();
+// 						phoneMap.put("customfield_id",1324986000032066038);
+// 						phoneMap.put("value",phone + "-901");
+// 						updateList.add(phoneMap);
+// 						updateMap.put("custom_fields",updateList);
+// 					}
+// 					info updateMap;
+// 					info "updateMap " + updateMap;
+// 					// // 						updateBill = zoho.books.updateRecord("bills",organizationID,billID,updateMap.toString());
+// 					// 						updateBill = zoho.books.updateRecord("bills",organizationID,"1324986000032959003",updateMap.toString());
+// 					// 						info "updateBill " + updateBill;
+// 				}
+// 			}
+// 		}
+// 	}
+// }
+return "Completed Execution";
+}

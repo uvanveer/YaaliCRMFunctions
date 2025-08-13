@@ -1,0 +1,9 @@
+void automation.UpdateCloseStatusrelatedtask(Int task_id)
+{
+//  get_data = zoho.crm.getRecordById("Activities",task_id);
+//  //info get_data;
+// lead_name = get_data.get("What_Id").get("id");
+// //data = zoho.crm.getRecords("Activities").get(;
+// // info data.get("What_Id");
+// info  zoho.crm.getRelatedRecords(lead_name, "Activities",);
+}

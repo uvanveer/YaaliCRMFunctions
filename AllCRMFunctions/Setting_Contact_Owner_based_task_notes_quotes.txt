@@ -1,0 +1,184 @@
+string standalone.Setting_Contact_Owner_based_task_notes_quotes()
+{
+// get_contact = zoho.crm.getRecords("Contacts",1,100,{"cvid":3106252000115361164,"sort_by":"Created_Time","sort_order":"asc"});
+// for each  contact in get_contact
+// {
+// 	contactID = contact.get("id");
+// 	temp_map = Map();
+// 	temp_map.put("Processed_Contact_Owner",false);
+// 	update_response = zoho.crm.updateRecord("Contacts",contactID,temp_map,{"trigger":{}});
+// 	info update_response;
+// }
+//
+//
+get_contact = zoho.crm.getRecords("Contacts",1,50,{"cvid":3106252000115361155,"sort_by":"Created_Time","sort_order":"asc"});
+for each  contact in get_contact
+{
+	contactID = contact.get("id");
+	// contactID = 3106252000121068039;
+	contact = zoho.crm.getRecordById("Contacts",contactID);
+	info contact;
+	info contactID;
+	info "Trying to find the saleperson ID in Task";
+	// Starting - Workflow to get the owner name of first task created for a contact in Zoho CRM
+	get_Contact_related_activities = zoho.crm.getRelatedRecords("Tasks","Contacts",contactID,1,200);
+	sp_id = null;
+	sp_name = "";
+	resp_size = get_Contact_related_activities.size();
+	if(resp_size > 0)
+	{
+		sp_id = get_Contact_related_activities.get(resp_size - 1).get("Owner").get("id");
+		sp_name = get_Contact_related_activities.get(resp_size - 1).get("Owner").get("name");
+	}
+	if(resp_size == 200)
+	{
+		info "More than 200 Task getting next page";
+		get_Contact_related_activities = zoho.crm.getRelatedRecords("Tasks","Contacts",contactID,2,200);
+		sp_id = null;
+		sp_name = "";
+		resp_size = get_Contact_related_activities.size();
+		if(resp_size > 0)
+		{
+			sp_id = get_Contact_related_activities.get(resp_size - 1).get("Owner").get("id");
+			sp_name = get_Contact_related_activities.get(resp_size - 1).get("Owner").get("name");
+		}
+		if(resp_size == 200)
+		{
+			info "More than 400 Task getting next page";
+			get_Contact_related_activities = zoho.crm.getRelatedRecords("Tasks","Contacts",contactID,3,200);
+			sp_id = null;
+			sp_name = "";
+			resp_size = get_Contact_related_activities.size();
+			if(resp_size > 0)
+			{
+				sp_id = get_Contact_related_activities.get(resp_size - 1).get("Owner").get("id");
+				sp_name = get_Contact_related_activities.get(resp_size - 1).get("Owner").get("name");
+			}
+		}
+	}
+	info sp_id;
+	info sp_name;
+	// Ending - Workflow to get the owner name of first task created for a contact in Zoho CRM
+	if(sp_id == null)
+	{
+		info "Saleperson not found in Task checking Notes";
+		// Starting - Get Notes first Owner 
+		get_notes = zoho.crm.getRelatedRecords("Notes","Contacts",contactID,1,200);
+		notes_res_size = get_notes.size();
+		info notes_res_size;
+		if(notes_res_size > 0)
+		{
+			sp_id = get_notes.get(notes_res_size - 1).get("Owner").get("id");
+			sp_name = get_notes.get(notes_res_size - 1).get("Owner").get("name");
+		}
+		if(notes_res_size == 200)
+		{
+			info "More than 200 records foudn checking next page";
+			get_notes = zoho.crm.getRelatedRecords("Notes","Contacts",contactID,2,200);
+			notes_res_size = get_notes.size();
+			if(notes_res_size > 0)
+			{
+				sp_id = get_notes.get(notes_res_size - 1).get("Owner").get("id");
+				sp_name = get_notes.get(notes_res_size - 1).get("Owner").get("name");
+			}
+			if(notes_res_size == 200)
+			{
+				info "More than 400 records foudn checking next page";
+				get_notes = zoho.crm.getRelatedRecords("Notes","Contacts",contactID,3,200);
+				notes_res_size = get_notes.size();
+				if(notes_res_size > 0)
+				{
+					sp_id = get_notes.get(notes_res_size - 1).get("Owner").get("id");
+					sp_name = get_notes.get(notes_res_size - 1).get("Owner").get("name");
+				}
+			}
+		}
+		info "Notes Sales person ID: " + sp_id + "\n Notes Sales person Name: " + sp_name;
+		// Ending - Get Notes fist Owner
+	}
+	//
+	//
+	//
+	//
+	if(sp_id == null)
+	{
+		info "Saleperson not found in Task checking Notes";
+		coql_Quote = Map();
+		coql_Quote.put("select_query","select Contact_Name, Subject, Created_Time, Owner from Quotes where Contact_Name = " + contactID + " order by Created_Time asc");
+		quoteList = invokeurl
+		[
+			url :"https://www.zohoapis.com/crm/v2/coql"
+			type :POST
+			parameters:coql_Quote.tostring()
+			connection:"crm_connection"
+		];
+		QuoteData = quoteList.get("data");
+		if(QuoteData.size() > 0)
+		{
+			sp_id = QuoteData.get(0).get("Owner").get("id");
+		}
+		info "Quotes Sales person ID: " + sp_id;
+	}
+	temp_map = Map();
+	if(sp_id != null)
+	{
+		get_user = zoho.crm.getRecordById("users",sp_id);
+		// 		info get_user;
+		role_id = get_user.get("users").get(0).get("role").get("id");
+		role_name = get_user.get("users").get(0).get("role").get("name");
+		if(role_id != "3106252000003410174" && role_name != "Sales" && role_id != "3106252000000152052" && role_name != "Sales Fern")
+		{
+			info "Not Sales person skipping contact owner update";
+			sp_id = null;
+			temp_map.put("Permanent_Owner_Set",true);
+			// 			info "Set sp_id null";
+		}
+	}
+	if(sp_id != null)
+	{
+		if(contact.get("Owner").get("id") != sp_id)
+		{
+			temp_map.put("Owner",sp_id);
+			temp_map.put("Permanent_Owner_Set",true);
+		}
+		else
+		{
+			temp_map.put("Permanent_Owner_Set",true);
+			info "Same contect owner. Skiping update of contact owner.";
+		}
+	}
+	conv_CRM_admin_users = {"3106252000000147711","3106252000000147013","3106252000058241272","3106252000004512006","3106252000037701001","3106252000034223001","3106252000046672001","3106252000024966001","3106252000024492003"};
+	if(sp_id != null && conv_CRM_admin_users.contains(sp_id))
+	{
+		info "Update CRMAdmin as contact owner";
+		temp_map.put("Owner","3106252000004512006");
+		temp_map.put("Permanent_Owner_Set",false);
+	}
+	if(sp_id == null && conv_CRM_admin_users.contains(contact.get("Owner").get("id")))
+	{
+		info "Update CRMAdmin as contact owner";
+		temp_map.put("Owner","3106252000004512006");
+		temp_map.put("Permanent_Owner_Set",false);
+	}
+	else if(sp_id == null && !conv_CRM_admin_users.contains(contact.get("Owner").get("id")))
+	{
+		info "Update CRMAdmin as contact owner";
+		temp_map.put("Permanent_Owner_Set",true);
+	}
+	if(temp_map.get("Owner") == null)
+	{
+		temp_map.put("Secondary_Permanent_Contact_Owner",contact.get("Owner").get("id"));
+	}
+	else
+	{
+		temp_map.put("Secondary_Permanent_Contact_Owner",temp_map.get("Owner"));
+	}
+	temp_map.put("Processed_Contact_Owner",true);
+	temp_map.put("Previous_Owner_ID",contact.get("Owner").get("id"));
+	info temp_map;
+	update_response = zoho.crm.updateRecord("Contacts",contactID,temp_map,{"trigger":{}});
+	info update_response;
+	info "************************************";
+}
+return "";
+}

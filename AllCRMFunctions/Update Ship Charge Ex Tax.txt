@@ -1,0 +1,82 @@
+string standalone.updateShipChargeExTax()
+{
+tokenArray = Map();
+//Access_Doors_Canada
+tokenArray.put("ekrllr",{"6gpb9ztna3tsvxwdtwwo4fye6c234yu","r6nghg45pf6sei4xhbt4otklyzkd600"});
+//Best_Access_Doors_Canada
+tokenArray.put("jdq9dzd",{"im4ouy3gboed27ksptqm43roxyxoi9j","6020ggpten8oik8pyeud6zhw3a19rji"});
+//Best_Access_Doors
+tokenArray.put("73d62",{"6bmozc9y8turqqviijfkt5o6mbut6ic","jz4y6k2juxckhz78kcah0ri3zcjgom"});
+//Access_Doors_And_Panels
+tokenArray.put("d6xnuf",{"petu2tvugsv4m7c3i0tvgcxvllt5jzk","jfyktmsgp25t13fe3cvtqpm5vws7kig"});
+//Acudor_Access_Panels
+tokenArray.put("sy018d9yee",{"8dhmjz7rm1q4lagy8fords7mef59jrr","3zssshtvtwym5zq8ws7hc3npa8lde2"});
+//Max_Supply
+tokenArray.put("dh5771",{"bq023epaqceys9695vag8tgzlgjyf83","f2ivuekkxy32gurxtosfhlfkik5bdig"});
+//California_Access_Doors
+tokenArray.put("v5cbc8ee",{"4oz25yional9eu6h9dw2x4bhkjhw966","b0fu2egusdrr4im3jlwiwx1823170o4"});
+scheduleRecordID = 3106252000061961343;
+pageIndexRec = zoho.crm.getRecordById("Merger_Schedule",scheduleRecordID);
+lastpageIndex = ifnull(pageIndexRec.get("Contact_Import_5_Page"),"");
+if(lastpageIndex != "")
+{
+	//Page_count = lastpageIndex + 1;
+	Page_count = 1;
+	zcrmSo = zoho.crm.getRecords("Sales_Orders",Page_count,1,{"cvid":3106252000113843906,"sort_by":"Created_Time","sort_order":"asc"});
+	if(zcrmSo.size() > 0)
+	{
+		for each  so in zcrmSo
+		{
+			bcUniqueId = "";
+			response = "";
+			try 
+			{
+				bcUniqueId = so.get("BigCommerce_Unique_ID");
+				zcrmSoId = so.get("id");
+				bcorderId = bcUniqueId.getPrefix("_");
+				bcStoreId = bcUniqueId.getSuffix("_");
+				info "bcStoreId " + bcStoreId;
+				info "bcorderId " + bcorderId;
+				//fetch BC order shipping exclusive of tax
+				bcAuthToken = tokenArray.get(bcStoreId).get(0);
+				bcAuthClient = tokenArray.get(bcStoreId).get(1);
+				HeaderMap = Map();
+				HeaderMap.put("Accept","application/json");
+				HeaderMap.put("Content-Type","application/json");
+				HeaderMap.put("X-Auth-Token",bcAuthToken);
+				HeaderMap.put("X-Auth-Client",bcAuthClient);
+				bcdata = getUrl("https://api.bigcommerce.com/stores/" + bcStoreId + "/v2/orders/" + bcorderId,HeaderMap);
+				bcdata = bcdata.tomap();
+				info "BC RESP " + bcdata;
+				info "BC SHIPPING CHARGE EX TAX " + bcdata.get("shipping_cost_ex_tax");
+				if(bcdata.get("id") != null && bcdata.get("id") != "")
+				{
+					if(bcdata.get("shipping_cost_ex_tax") != null && bcdata.get("shipping_cost_ex_tax") != "")
+					{
+						shippingCostExTax = bcdata.get("shipping_cost_ex_tax");
+						updateZcrmSo = zoho.crm.updateRecord("Sales_Orders",zcrmSoId,{"Shipping_Cost_exc_tax":shippingCostExTax},{"trigger":{"workflow"}});
+						info "updateZcrmSo " + updateZcrmSo;
+					}
+				}
+				else
+				{
+					response = "BC ORDER NOT FOUND";
+				}
+			}
+ catch (e)
+			{				response = e;
+			}
+			if(response != "")
+			{
+				info "response " + response;
+				//create failure log
+				//failureLog = zoho.crm.createRecord("Duplicate_Moderation_Log",{"BC_ORDER_ID":bcUniqueId,"ZCRM_DS_ID":zcrmSoId,"REASON":response,"Log_Type":"Shipcharge Ex Update"});
+				//info " failureLog " + failureLog;
+			}
+		}
+		//updatePageIndex = zoho.crm.updateRecord("Merger_Schedule",scheduleRecordID,{"Contact_Import_5_Page":Page_count});
+		//info "updatePageIndex " + updatePageIndex;
+	}
+}
+return "";
+}

@@ -1,0 +1,120 @@
+string standalone.Update_Inv_Addresses()
+{
+Get_Pagination_details = zoho.crm.getRecordById("Tag_syncing_schedule","3106252000107238517");
+Page_Count = Get_Pagination_details.get("Function_Execution");
+Page_Count = Page_Count.toLong();
+Updated_Page_Count = Page_Count + 1;
+Update_log = Map();
+Update_log.put("Function_Execution",Updated_Page_Count.toString());
+Get_Updated_Page = zoho.crm.updateRecord("Tag_syncing_schedule","3106252000107238517",Update_log);
+info Get_Updated_Page;
+// Page_Count = 1;
+Record_count = 20;
+Get_data = getUrl("https://www.zohoapis.com/books/v3/invoices?page=" + Page_Count + "&per_page=" + Record_count + "&sort_column=date&sort_order=A&date_start=2020-05-01&date_end=2020-06-01&organization_id=666840843",{"Authorization":"Zoho-authtoken 62821be1f52aaa5a1e3c658edba059cf"});
+info Get_data;
+Get_Invoices = Get_data.get("invoices");
+for each  rec in Get_Invoices
+{
+	Inv_map = rec.toMap();
+	Get_Inv_Id = Inv_map.get("invoice_id");
+	info Get_Inv_Id;
+	Get_Inv_details = zoho.books.getRecordsByID("invoices","666840843",Get_Inv_Id);
+	// 	info Get_Inv_details;
+	Get_salesorder_details = Get_Inv_details.get("invoice").get("salesorders");
+	if(Get_salesorder_details.size() > 0)
+	{
+		Salesorder_map = Get_salesorder_details.toMap();
+		Get_salesorder_Id = Salesorder_map.get("salesorder_id");
+		info Get_salesorder_Id;
+		Get_salesorder_data = zoho.books.getRecordsByID("salesorders","666840843",Get_salesorder_Id);
+		info Get_salesorder_data;
+		Get_shipping_address = Get_salesorder_data.get("salesorder").get("shipping_address");
+		Get_shippingaddress_street = Get_shipping_address.get("address");
+		Get_shippingaddress_street2 = Get_shipping_address.get("street2");
+		Get_shippingaddress_city = Get_shipping_address.get("city");
+		Get_shippingaddress_state = Get_shipping_address.get("state");
+		Get_shippingaddress_country = Get_shipping_address.get("country");
+		Get_shippingaddress_Code = Get_shipping_address.get("zip");
+		Get_shippingaddress_phone = Get_shipping_address.get("phone");
+		Get_shippingaddress_fax = Get_shipping_address.get("fax");
+		Get_Billing_address = Get_salesorder_data.get("salesorder").get("billing_address");
+		Get_Billingaddress_street = Get_Billing_address.get("address");
+		Get_Billingaddress_street2 = Get_Billing_address.get("street2");
+		Get_Billingaddress_city = Get_Billing_address.get("city");
+		Get_Billingaddress_state = Get_Billing_address.get("state");
+		Get_Billingaddress_country = Get_Billing_address.get("country");
+		Get_Billingaddress_code = Get_Billing_address.get("zip");
+		Get_Billingaddress_Phone = Get_Billing_address.get("phone");
+		Get_Billingaddress_fax = Get_Billing_address.get("fax");
+		Update_billing_address = Map();
+		Update_billing_address.put("address",Get_Billingaddress_street);
+		Update_billing_address.put("street2",Get_Billingaddress_street2);
+		Update_billing_address.put("city",Get_Billingaddress_city);
+		Update_billing_address.put("state",Get_Billingaddress_state);
+		Update_billing_address.put("country",Get_Billingaddress_country);
+		Update_billing_address.put("zip",Get_Billingaddress_code);
+		Update_billing_address.put("phone",Get_Billingaddress_Phone);
+		Update_billing_address.put("fax",Get_Billingaddress_fax);
+		json_Billingmap = Map();
+		json_Billingmap.put("JSONString",Update_billing_address);
+		info "Update_map" + json_Billingmap;
+		headers_map = Map();
+		headers_map.put("Authorization","Zoho-authtoken 62821be1f52aaa5a1e3c658edba059cf");
+		Update_billing = invokeurl
+		[
+			url :"https://www.zohoapis.com/books/v3/invoices/" + Get_Inv_Id + "/address/billing"
+			type :PUT
+			parameters:json_Billingmap
+			headers:headers_map
+		];
+		info "Update_Bill_data" + Update_billing;
+		Update_shipping_address = Map();
+		Update_shipping_address.put("address",Get_shippingaddress_street);
+		Update_shipping_address.put("street2",Get_shippingaddress_street2);
+		Update_shipping_address.put("city",Get_shippingaddress_city);
+		Update_shipping_address.put("state",Get_shippingaddress_state);
+		Update_shipping_address.put("country",Get_shippingaddress_country);
+		Update_shipping_address.put("zip",Get_shippingaddress_Code);
+		Update_shipping_address.put("phone",Get_shippingaddress_phone);
+		Update_shipping_address.put("fax",Get_shippingaddress_fax);
+		Json_shippingmap = Map();
+		Json_shippingmap.put("JSONString",Update_shipping_address);
+		info "update_map:" + Json_shippingmap;
+		Update_shipping = invokeurl
+		[
+			url :"https://www.zohoapis.com/books/v3/invoices/" + Get_Inv_Id + "/address/shipping"
+			type :PUT
+			parameters:Json_shippingmap
+			headers:headers_map
+		];
+		// 		Update_ship_data = PutUrl("https://books.zoho.com/api/v3/invoices/" + Get_Inv_Id + "/address/shipping?&organization_id=666840843",{"Authorization":"Zoho-authtoken 62821be1f52aaa5a1e3c658edba059cf"},Json_shippingmap);
+		info "Update_ship_data" + Update_shipping;
+		logMap = Map();
+		logMap.put("Name","Books Invoices Address");
+		logMap.put("SalesOrder_Record_ID",Get_Inv_Id.toString());
+		logMap.put("SalesOrder_Request",Update_billing);
+		logMap.put("SO_Workflow_Name","Update INV address");
+		logMap.put("SalesOrder_Response",Update_shipping);
+		end_time = now.toLong();
+		logMap.put("Start_Time",end_time.toString());
+		logMap.put("End_Time",end_time.toString());
+		Create_log = zoho.crm.createRecord("Sales_Order_PO_Log",logMap);
+		info "log:" + Create_log;
+	}
+	else
+	{
+		logMap = Map();
+		logMap.put("Name","Books Invoices Address");
+		logMap.put("SalesOrder_Record_ID",Get_Inv_Id.toString());
+		logMap.put("SalesOrder_Request","");
+		logMap.put("SO_Workflow_Name","Update Inv address - Salesorder Not associated");
+		logMap.put("SalesOrder_Response","");
+		end_time = now.toLong();
+		logMap.put("Start_Time",end_time.toString());
+		logMap.put("End_Time",end_time.toString());
+		Create_log = zoho.crm.createRecord("Sales_Order_PO_Log",logMap);
+		info "temp:" + Create_log;
+	}
+}
+return "";
+}

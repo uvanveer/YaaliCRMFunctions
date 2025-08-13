@@ -1,0 +1,90 @@
+map validation_rule.Restrict_Cancel_status_for_shipped_Orders(String crmAPIRequest)
+{
+/* The snippet below shows you how to get a list of fields, their values from a MAP object. The fields’ values can be obtained from the same MAP object.                                                  */
+entityMap = crmAPIRequest.toMap().get("record");
+/* The example below demonstrates how a field’s value (email) can be obtained from a MAP object. Here, entityMap - Map Object, Email - Field's API name
+Sample entityMap= {'Email': 'xxx@xxx.com', 'Last_Name': 'xxx'};                                   */
+Get_shipment_Id = entityMap.get("Shipment_Id");
+Get_ship_date = entityMap.get("Ship_Date");
+Get_tracking_number = entityMap.get("Tracking_Number");
+Get_carrier = entityMap.get("Carrier");
+Get_Source = entityMap.get("Source");
+Get_status = entityMap.get("Status");
+Amazon_Carrier_Code = entityMap.get("Amazon_Carrier_Code");
+Update_Tracking_Feed_ID = entityMap.get("Update_Tracking_Feed_ID");
+Get_dropship_subject = entityMap.get("Subject");
+Get_crm_rec_Id = entityMap.get("id");
+response = Map();
+if(!isNull(Get_Source))
+{
+	if(Get_Source == "BigCommerce")
+	{
+		if(!isNull(Get_tracking_number) && !isNull(Get_ship_date) && !isNull(Get_carrier) && Get_status == "Cancelled")
+		{
+			response.put('status','error');
+			response.put('message','The Order is already shipped');
+			Get_loginuser = zoho.loginuser;
+			body = "<br> Hello Orders Team, <br><br> An already shipped Order has been tried to be Cancelled by " + Get_loginuser + "<br><br>Please visit <a href=\"https://crm.zoho.com/crm/org663942562/tab/PurchaseOrders/" + Get_crm_rec_Id + "\" target=\"_blank\" >" + Get_dropship_subject + " </a> Dropship Order for reference <br><br> Thanks, <br><br><b>Best Access Doors</b><br><br>";
+			mailmap = Map();
+			mailmap.put("to",{"po@bestaccessdoors.com"});
+			mailmap.put("cc",{"notifications@bestaccessdoors.com","zyarina@bestaccessdoors.com"});
+			mailmap.put("bcc",{"dinesh@bizappln.com","tharmendheran@bizappln.com","sankar@bizappln.com","balaji@bizappln.com"});
+			mailmap.put("scope","Droship Notify");
+			mailmap.put("subject","Already Shipped Dropship Order with Subject" + Get_dropship_subject + " has been tried to be Cancelled");
+			mailmap.put("body",body);
+			// 	info mailmap;
+			mailres = postURL("https://1.door-pay.com/api/Office360Mail/sendreq",mailmap);
+			info "mailres:" + mailres;
+		}
+		else
+		{
+			response.put('status','success');
+		}
+	}
+	else if(Get_Source == "Amazon Store")
+	{
+		if(!isNull(Amazon_Carrier_Code) && !isNull(Update_Tracking_Feed_ID) && Get_status == "Cancelled")
+		{
+			response.put('status','error');
+			response.put('message','The Order is already shipped!!');
+			Get_loginuser = zoho.loginuser;
+			body = "<br> Hello Orders Team, <br><br> An already shipped Order has been tried to be Cancelled by " + Get_loginuser + "<br><br>Please visit <a href=\"https://crm.zoho.com/crm/org663942562/tab/PurchaseOrders/" + Get_crm_rec_Id + "\" target=\"_blank\" >" + Get_dropship_subject + " </a> Dropship Order for reference <br><br> Thanks, <br><br><b>Best Access Doors</b><br><br>";
+			mailmap = Map();
+			mailmap.put("to",{"po@bestaccessdoors.com"});
+			mailmap.put("cc",{"notifications@bestaccessdoors.com","zyarina@bestaccessdoors.com"});
+			mailmap.put("bcc",{"dinesh@bizappln.com","tharmendheran@bizappln.com","sankar@bizappln.com","balaji@bizappln.com"});
+			mailmap.put("scope","Droship Notify");
+			mailmap.put("subject","Already Shipped Dropship Order with Subject" + Get_dropship_subject + " has been tried to be Cancelled");
+			mailmap.put("body",body);
+			// 	info mailmap;
+			mailres = postURL("https://1.door-pay.com/api/Office360Mail/sendreq",mailmap);
+			info "mailres:" + mailres;
+		}
+		else
+		{
+			response.put('status','success');
+		}
+	}
+	else
+	{
+		response.put('status','error');
+		response.put('message','Unknown Order Source!!');
+	}
+}
+else
+{
+	response.put('status','error');
+	response.put('message','Order Source not available!!');
+}
+// response = Map();
+/* ---------------------------------------------------------------------------------------------- */
+/* Start writing your code here to perform the necessary field validation                         */
+/* ---------------------------------------------------------------------------------------------- */
+/* If the code identifies a validation error, set the status and alert message as shown below:    */
+//response.put('status','error');
+//response.put('message', '<your message(100 characters)>');
+/* If there are no errors found during validation, set the status as shown below:                 */
+// response.put('status','success');
+/* ---------------------------------------------------------------------------------------------- */
+return response;
+}

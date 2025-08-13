@@ -1,0 +1,37 @@
+void automation.Reset_Permanent_Contact_Owner(Int contact_id)
+{
+get_contact = zoho.crm.getRecordById("contacts",contact_id);
+permanent_owner_set_flag = get_contact.get("Permanent_Owner_Set");
+previous_permanent_owner = get_contact.get("Secondary_Permanent_Contact_Owner");
+if(permanent_owner_set_flag == true && !isnull(previous_permanent_owner))
+{
+	info "Reset the Perm Owner";
+	temp_map = Map();
+	temp_map.put("Owner",previous_permanent_owner);
+	update_response = zoho.crm.updateRecord("Contacts",contact_id,temp_map,{"trigger":{}});
+	info update_response;
+}
+if(permanent_owner_set_flag == false)
+{
+	get_user = zoho.crm.getRecordById("users",get_contact.get("Owner").get("id"));
+	if(get_user.containKey("users") == true)
+	{
+		if(get_user.get("users").size() > 0)
+		{
+			get_user_data = get_user.get("users").get(0);
+			role_name = get_user_data.get("role").get("name");
+			user_status = get_user_data.get("status");
+			if((role_name == "Sales" || role_name == "Sales Fern") && user_status == "active")
+			{
+				info "Setting the Perm Owner";
+				temp_map = Map();
+				temp_map.put("Permanent_Owner_Set",true);
+				temp_map.put("Secondary_Permanent_Contact_Owner",get_contact.get("Owner").get("id"));
+				update_response = zoho.crm.updateRecord("Contacts",contact_id,temp_map,{"trigger":{}});
+				info update_response;
+				info "Completed Setting Perm Owner";
+			}
+		}
+	}
+}
+}

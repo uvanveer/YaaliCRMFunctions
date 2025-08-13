@@ -1,0 +1,44 @@
+string standalone.Setting_Account_Name_In_Deals(Int page)
+{
+get_deals = zoho.crm.getRecords("Potentials",page,100,{"cvid":3106252000122037028,"sort_by":"Created_Time","sort_order":"asc"});
+// info get_deals;
+for each  deal in get_deals
+{
+	if(deal.get("Contact_Name") != null)
+	{
+		get_deal_contact = deal.get("Contact_Name").get("id");
+		// 	info get_deal_contact;
+		get_contact = zoho.crm.getRecordById("Contacts",get_deal_contact);
+		// 	info get_contact;
+		if(get_contact.keys().contains("status"))
+		{
+			if(get_contact.get("status") == "failure")
+			{
+				info "Contact Not found";
+			}
+		}
+		else
+		{
+			if(get_contact.get("Account_Name") != null)
+			{
+				account_id = get_contact.get("Account_Name").get("id");
+				deal_update_map = Map();
+				deal_update_map.put("Account_Name",account_id);
+				info deal_update_map;
+				update_response = zoho.crm.updateRecord("Potentials",deal.get("id"),deal_update_map,{"trigger":{}});
+				info update_response;
+			}
+			else
+			{
+				info "Skipping!!!";
+			}
+		}
+	}
+	else
+	{
+		info "Skipping!!!";
+	}
+	info "**********************************";
+}
+return "";
+}

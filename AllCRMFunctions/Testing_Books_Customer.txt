@@ -1,0 +1,13 @@
+string standalone.Testing_Books_Customer()
+{
+// Org_Id = "666840843";
+// Get_Books_salesorder = zoho.books.getRecordsByID("salesorders", Org_Id, "1324986000032577373");
+// info Get_Books_salesorder;
+// Get_customer_id = Get_Books_salesorder.get("salesorder").get("customer_id");
+// Get_customer = zoho.books.getRecordsByID("contacts", Org_Id, Get_customer_id);
+// info Get_customer;
+entered_email = "123";
+Contacts_data = zoho.crm.searchRecords("Contacts","(Email:equals:" + entered_email + ")");
+info Contacts_data.size();
+return "";
+}

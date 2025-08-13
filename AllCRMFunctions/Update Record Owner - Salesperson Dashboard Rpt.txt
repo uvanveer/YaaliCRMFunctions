@@ -1,0 +1,45 @@
+void automation.Update_Record_Owner_SalespersonDashboardRpt(String rec_id)
+{
+// RecordDetails = zoho.crm.getRecords("Salesperson_Dashboard_Rpt",1, 200, {"cvid":3106252000115456062});
+RecordDetails = zoho.crm.getRecordById("Salesperson_Dashboard_Rpt",rec_id);
+// for each RecordDetails in AllData
+// {
+userId = RecordDetails.get("RecordID");
+RecId = RecordDetails.get("id");
+email_id = RecordDetails.get("Email");
+if(email_id != "" && userId != "" && RecId != "")
+{
+	userSearch = zoho.crm.getRecordById("users",userId);
+	if(userSearch.size() > 0)
+	{
+		userSearch = userSearch.toMap();
+		if(userSearch.containKey("users"))
+		{
+			userList = userSearch.get("users");
+			for each  user in userList
+			{
+				userStatus = user.get("status");
+				if(userStatus == "active")
+				{
+					correctUserId = user.get("id");
+					up = zoho.crm.updateRecord("Salesperson_Dashboard_Rpt",RecId,{"Owner":userId,"User_Status":userStatus},{"trigger":{}});
+					info up;
+				}
+				else
+				{
+					up = zoho.crm.updateRecord("Salesperson_Dashboard_Rpt",RecId,{"User_Status":userStatus},{"trigger":{}});
+					info up;
+				}
+			}
+		}
+	}
+}
+// sendmail
+// [
+// 	from :zoho.loginuserid
+// 	to :"barani@bizappln.com"
+// 	subject :"Function update"
+// 	message :"Checking workflow trigger multople times"
+// ]
+// // }
+}

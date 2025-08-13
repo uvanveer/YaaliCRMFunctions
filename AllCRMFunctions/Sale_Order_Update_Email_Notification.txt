@@ -1,0 +1,57 @@
+void automation.Sale_Order_Update_Email_Notification(Int saleOrderId,String saleOrderStatus,String orderChannel)
+{
+/* Created By Ezhil on 07 July 2020 */
+/* Send an email alert for the sales order was updated but respective PO was sent */
+/* Returned, Refunded, Partially Returned, Dropshipped, Sent */
+if(!orderChannel.equals("Amazon Store"))
+{
+	purchaseOrderList = zoho.crm.getRelatedRecords("Dropship_Orders","Sales_Orders",saleOrderId);
+	if(purchaseOrderList.size() > 0)
+	{
+		emailSendUrl = "https://1.door-pay.com/api/Office360Mail/v2/sendreq";
+		emailToken = "59AACEAFB2CE53271A6048D2D385D4C800587C0D047F8B07958934F710AE5D7891FB4EC28BB2FA684F638630E9EF76F7D19D22EE9A20EE892625DC2FCEDCD976";
+		emailListData = list();
+		emailList = list();
+		saleOrderUrl = "https://crm.zoho.com/crm/org663942562/tab/SalesOrders/" + saleOrderId;
+		// purchaseOrderUrl = "https://crm.zoho.com/crm/org663942562/tab/PurchaseOrders/" + purchaseOrderId;
+		emailSubject = "CRM Saleorder Status Updated Notification";
+		emailBody = "<div>Hi,<br></div><div><br></div><div>We have identified a sale order with status : " + saleOrderStatus + ".<br><br>Sales Order URL :&nbsp;" + saleOrderUrl + "</div><div><br></div><div>Kindly please check respective dropship orders.&nbsp;<br></div><div><br></div><div>Thanks.</div>";
+		emailList.add("dinesh@bizappln.com");
+		emailList.add("tharmendheran@bizappln.com");
+		emailList.add("balaji@bizappln.com");
+		emailList.add("pooja@bizappln.com");
+		emailList.add("ganesh@bizappln.com");
+		emailList.add("ragul.r@bizappln.com");
+		emailList.add("surya.k@bizappln.com");
+		emailList.add("vijay.vr@bizappln.com");
+		/*emailList.add("notifications@bestaccessdoors.com");
+		emailList.add("dev@bestaccessdoors.com");
+		emailList.add("zyarina@bestaccessdoors.com");*/
+		// 	emailList.add("anthony@bestaccessdoors.com");
+		// 	emailList.add("citrigno@bestaccessdoors.com");
+		mailArrayDataObject = Map();
+		mailArrayDataObject.put("to",emailList);
+		mailArrayDataObject.put("subject",emailSubject);
+		mailArrayDataObject.put("body",emailBody);
+		mailArrayDataObject.put("Scope","Sales Order Update email");
+		emailListData.add(mailArrayDataObject);
+		mailMap = Map();
+		mailMap.put("MailArray",emailListData);
+		mailMap.put("Authtoken",emailToken);
+		// Header
+		BADAuthorization = zoho.crm.getOrgVariable("OAuthHashCode");
+		emailHeader = Map();
+		emailHeader.put("content-type","application/json");
+		emailHeader.put("BADAuthorization",BADAuthorization);
+		response = invokeurl
+		[
+			url :emailSendUrl
+			type :POST
+			parameters:mailMap.toString()
+			headers:emailHeader
+			detailed:false
+		];
+		info response;
+	}
+}
+}

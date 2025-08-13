@@ -1,0 +1,75 @@
+string standalone.testinsertsalesorder()
+{
+//info zoho.crm.getRecords("Quotes");
+info zoho.crm.searchRecords("Quotes","00PR2121");
+// //zoho.crm.getRecordById("Stores", <NUMBER
+// //info zoho.crm.getRecords("Stores");
+// // workflow = Map();
+// // workflow.put("trigger",{"workflow"});
+// overall_map = Map();
+// getmap = Map();
+// // data_map1 = Map();
+// data_map2 = Map();
+// getlist = List();
+// // triggerlist = List();
+// /**************lead**************/
+// // data_map1.put("Company","testforrestrictbestaccessdoors");
+// // data_map1.put("Last_Name","TestingyaaliLastname");
+// // data_map1.put("Email","testtyaali@bestaccessdoors.com");
+// /**************Contact**************/
+// data_map2.put("Mailing_Country","testforrestrictbestaccessdoors");
+// data_map2.put("Last_Name","TestingyaaliLastname");
+// data_map2.put("First_Name","TestingyaaliFirstname");
+// data_map2.put("Email","testyaaliignore@bestaccessdoors.com");
+// /**************Vendor**************/
+// // data_map2.put("Vendor_Name","Testingyaalivendorname");
+// // data_map2.put("Email","testtyaali@bestaccessdoors.com");
+// getlist.add(data_map2);
+// // //getlist.add(data_map2);
+// // triggerlist.add("workflow");
+// getmap.put("data",getlist);
+// // getmap.put("trigger",triggerlist);
+// overall_map.put(getmap);
+// //info overall_map ;
+// response = invokeurl
+// [
+// 	url :"https://www.zohoapis.com/crm/v2/Contacts"
+// 	type :POST
+// 	parameters:overall_map.toString()
+// 	connection:"crm_connection"
+// ];
+// info "response" + response;
+// // 			mp = Map();
+// // 			mp.put("$se_module","SalesOrder");
+// // 			mp.put("What_Id",saleorder_id);
+// // 			//mp.put("Who_Id",lead_id);
+// // 			mp.put("Owner",user2);
+// // 			mp.put("Due_Date",zoho.currentdate);
+// // 			mp.put("Subject","Sales Order Added with @bestaccessdoors.com domain");
+// // 			create_Task = zoho.crm.createRecord("Tasks",mp,workflow);
+// // leadinfo = {"Company":"testforrestrictbestaccessdoors","Last_Name":"TestLastname","Email":"testt1@bestaccessdoors.com","Billing_Email":"testt2@bestaccessdoors.com","Contact_Email":"testt3@bestaccessdoors.com"};
+// // response = zoho.crm.createRecord("Leads",leadinfo,workflow);
+// // contactinfo = {"Mailing_Country":"India","Last_Name":"PQR","First_Name":"PQR","Billing Email":"testbilling@bestaccessdoors.com","Account_Name":"testaccountforrestrictbestaccessdoors"};
+// // response = zoho.crm.createRecord("Contacts",contactinfo,workflow);
+// // vendor_info = {"Vendor_Name":"testvendor","Email":"testvendor@bestaccessdoors.com"};
+// // response = zoho.crm.createRecord("Vendors",vendor_info,workflow);
+// //info response;
+// // dataa = {"data":{{"Company":"CheckCompany","Email":"Check@bestaccessdoors.com","First_Name":"Flower","Full_Name":"Flower Garden"}}};
+// // link_data = "https://www.zohoapis.com/crm/v2/Leads/0ef1faa04b6ff592a9382ee7016484be/dataa";
+// // info link_data;
+// // mp = Map();
+// // //mp.put("$se_module","Leads");
+// // //mp.put("What_Id",lead_id);
+// // //mp.put("Who_Id",Get_contact_id);
+// // mp.put("Owner",3106252000000147711);
+// // mp.put("Due_Date",zoho.currentdate);
+// //  			mp.put("Subject","testforbestaccessdoors");
+// // // 			mp.put("Call_Purpose","Prospecting");
+// // // 			mp.put("Call_Start_Time",Get_call_starttime);
+// // workflow = Map();
+// // workflow.put("trigger",{"workflow"});
+// // create_Task = zoho.crm.createRecord("Tasks",mp,workflow);
+// // info create_Task;
+// // get_task_id = create_Task.get("id");
+return "";
+}

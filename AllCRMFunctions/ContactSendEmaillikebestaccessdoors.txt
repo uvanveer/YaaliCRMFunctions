@@ -1,0 +1,125 @@
+void automation.ContactSendEmaillikebestaccessdoors(String contact_id)
+{
+/**********Develop Info***************
+//https://trello.com/c/PZbXAW4E/3735-urgent-re-90937903-deprecating-activities-module-crm-announcement#comment-650330e1b25457d5fcf04cd2
+Added By : Anitha
+Added date : 26/08/2020
+Last modified date : 26/08/2020
+Purpose of code : Restricting the email contains "bestaccessdoors.com" in contact Module .
+****************** Start*******************/
+// contact_info = zoho.crm.getRecordById("Contacts",contact_id);
+// //info contact_info;
+// // UserMap = Map();
+// // UserMap.put("carlo", 3106252000000147013);
+// // UserMap.put("antony", 3106252000000147711);
+// user1 = 3106252000000147013;
+// user2 = 3106252000138625046;
+// /****************Get Email******************/
+// email_val = ifnull(contact_info.get("Email"),"");
+// billing_email_val = ifnull(contact_info.get("Billing_Email"),"");
+// contact_email_val = ifnull(contact_info.get("Contact_Email"),"");
+// // info "inside";
+// // info "Email"+email_val ;
+// // info "Contact Email"+contact_email_val ;
+// // info "Billing Email"+billing_email_val ;
+// if(email_val != "" || billing_email_val != "" || contact_email_val != "")
+// {
+// 	//if(!isNull(email_val) || !isNull(billing_email_val) || !isNull(contact_email_val))
+// 	//{
+// 	/****************Create Task for antony******************/
+// 	if(email_val.containsIgnoreCase("bestaccessdoors.com") || billing_email_val.containsIgnoreCase("bestaccessdoors.com") || contact_email_val.containsIgnoreCase("bestaccessdoors.com"))
+// 	{
+// 		workflow = Map();
+// 		workflow.put("trigger",{"workflow"});
+// 		mp1 = Map();
+// 		mp1.put("$se_module","Contacts");
+// 		//mp1.put("What_Id",contact_id);
+// 		mp1.put("Who_Id",contact_id);
+// 		mp1.put("Owner",user1);
+// 		mp1.put("Due_Date",zoho.currentdate);
+// 		mp1.put("Subject","Contact Added with @bestaccessdoors.com domain");
+// 		// 		create_Task1 = zoho.crm.createRecord("Tasks",mp1,workflow);
+// 		//info create_Task1;
+// 		/****************Create Task for carlo******************/
+// 		mp = Map();
+// 		mp.put("$se_module","Contacts");
+// 		//mp.put("What_Id",contact_id);
+// 		mp.put("Who_Id",contact_id);
+// 		mp.put("Owner",user1);
+// 		mp.put("Due_Date",zoho.currentdate);
+// 		mp.put("Subject","Contact Added with @bestaccessdoors.com domain");
+// 		create_Task = zoho.crm.createRecord("Tasks",mp,workflow);
+// 		/****************Get Task ID******************/
+// 		get_task_id = create_Task.get("id");
+// 		/****************Create Task and CRM Link******************/
+// 		if(!isNull(get_task_id))
+// 		{
+// 			//task_link = "https://crm.zoho.com/crm/org663942562/tab/Activities/" + get_task_id + "?sub_module=Tasks";
+// 			task_link = "https://crm.zoho.com/crm/org663942562/tab/Tasks/" + get_task_id;
+// 		}
+// 		crm_link = "https://crm.zoho.com/crm/org663942562/tab/Contacts/" + contact_id + "";
+// 		/****************Create body content******************/
+// 		email_data = "";
+// 		if(email_val.contains("bestaccessdoors.com"))
+// 		{
+// 			if(isNull(email_data))
+// 			{
+// 				email_data = "Email : " + email_val;
+// 			}
+// 			else if(!isNull(email_data))
+// 			{
+// 				email_data = email_data + "<br> Email : " + email_val;
+// 			}
+// 		}
+// 		else if(billing_email_val.contains("bestaccessdoors.com"))
+// 		{
+// 			if(isNull(email_data))
+// 			{
+// 				email_data = "Billing Email : " + billing_email_val;
+// 			}
+// 			else if(!isNull(email_data))
+// 			{
+// 				email_data = email_data + "<br> Billing Email : " + billing_email_val;
+// 			}
+// 		}
+// 		else if(contact_email_val.contains("bestaccessdoors.com"))
+// 		{
+// 			//info email_val + "chk cond cont email" ;
+// 			if(isNull(email_data))
+// 			{
+// 				email_data = "Contact Email : " + contact_email_val;
+// 			}
+// 			else if(!isNull(email_data))
+// 			{
+// 				email_data = email_data + "<br> Contact Email : " + contact_email_val;
+// 			}
+// 		}
+// 		//	info "emaill"+email_data ;
+// 		boady = "<br> Hello, <br><br> A Contact was created with an @bestaccessdoor.com <br>" + email_data + "<br><br>Please see <b>" + crm_link + "</b><br><br>A Task has been created in CRM as well to approve or modify this Contact.<br> <b>" + task_link + "  </b><br><br> Thanks, <br><b>Best Access Doors ADMIN</b><br><br>";
+// 		BADAuthorization = zoho.crm.getOrgVariable("OAuthHashCode");
+// 		header_map = Map();
+// 		header_map.put("Content-Type","application/json");
+// 		header_map.put("BADAuthorization",BADAuthorization);
+// 		mailmap = Map();
+// 		mailmap.put("to",{"citrigno@bestaccessdoors.com"});
+// 		mailmap.put("cc",{"pooja@bizappln.com","anitha@bizappln.com","dinesh@bizappln.com","vijay.vr@bizappln.com"});
+// 		//mailmap.put("cc",{"vijay.vr@bizappln.com"});
+// 		//mailmap.put("cc",{"anitha@bizappln.com"});
+// 		//mailmap.put("cc",{"dinesh@bizappln.com"});
+// 		// 			mailmap.put("cc",{"dinesh@bizappln.com"});
+// 		//mailmap.put("to",{"po@bestaccessdoors.com"});
+// 		//mailmap.put("cc",{"anthony@bestaccessdoors.com","citrigno"});
+// 		//mailmap.put("bcc",{"tharmendheran@bizappln.com","balaji"});
+// 		mailmap.put("scope","EmailCheck");
+// 		//mailmap.put("subject","New Product from BC Store " + storename.replaceAll("_"," ") + " Added to Zoho for Order " + lead_id);
+// 		mailmap.put("subject",'Contact Added with @bestaccessdoors.com domain');
+// 		mailmap.put("body",boady);
+// 		// 	info mailmap;
+// 		mailres = postURL("https://1.door-pay.com/api/Office360Mail/sendreq",mailmap,header_map);
+// 		info "mailres:" + mailres;
+// 		/****************Delete the Contact record******************/
+// 		delResp = zoho.crm.invokeConnector("crm.delete",Map:String({"module":"Contacts","id":contact_id}));
+// 	}
+// 	//}
+// }
+}

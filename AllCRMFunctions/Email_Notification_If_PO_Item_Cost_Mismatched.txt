@@ -1,0 +1,83 @@
+void automation.Email_Notification_If_PO_Item_Cost_Mismatched(String purchaseOrderId)
+{
+/* Created By Ezhil on 14 August 2020 */
+/* Send an email alert if the PO line item cose mismatches */
+dropshipOrderInfo = zoho.crm.getRecordById("Purchase_Orders",purchaseOrderId);
+info dropshipOrderInfo;
+dropshipOrderStatus = dropshipOrderInfo.get("Status");
+if(dropshipOrderStatus != null)
+{
+	if(!dropshipOrderStatus.equals("Cancelled"))
+	{
+		productsArray = dropshipOrderInfo.get("Product_Details");
+		for each  poProductInfo in productsArray
+		{
+			poItemPrice = poProductInfo.get("list_price");
+			poItemQty = poProductInfo.get("quantity");
+			productId = poProductInfo.get("product").get("id");
+			productInfo = zoho.crm.getRecordById("Products",productId);
+			itemCostPrice = productInfo.get("Cost_Price");
+			if(itemCostPrice != null)
+			{
+				info "PO Item Cost Price : " + poItemPrice;
+				itemCostPrice = toDecimal(itemCostPrice).round(2);
+			}
+			poItemPrice = toDecimal(poItemPrice).round(2);
+			info "PO Item Cost Price : " + poItemPrice;
+			info "Item Cost Price : " + itemCostPrice;
+			if(!isNull(itemCostPrice) && !isNull(poItemPrice))
+			{
+				if(!itemCostPrice.equals(poItemPrice))
+				{
+					tableData = "<div><br><table style='width: 100%; font-size: 10pt; font-family: Arial, Helvetica, sans-serif; border: 1px solid black; color: black;' border='1' cellspacing='2' cellpadding='2'> <tbody> <tr> <td style='width: 149px;'> <div>PO Item Price<br></div> </td> <td style='width: 149px;'> <div> Item Cost Price <br></div> </td> </tr>";
+					tableData = tableData + "<tr> <td style='width: 149px;'>" + poItemPrice + "<br></td> <td style='width: 149px;'> <div>" + itemCostPrice + "<br></div> </td> </tr>";
+					tableData = tableData + "</tbody> </table><br><br> </div> <div><br></div>";
+					emailSendUrl = "https://1.door-pay.com/api/Office360Mail/v2/sendreq";
+					emailToken = "59AACEAFB2CE53271A6048D2D385D4C800587C0D047F8B07958934F710AE5D7891FB4EC28BB2FA684F638630E9EF76F7D19D22EE9A20EE892625DC2FCEDCD976";
+					emailListData = list();
+					emailList = list();
+					purchaseOrderUrl = "https://crm.zoho.com/crm/org663942562/tab/PurchaseOrders/" + purchaseOrderId;
+					emailSubject = "CRM Purchase Order Cost Price Mismatched Notification";
+					emailBody = "<div>Hi Anthony,<br></div><div><br></div><div>We have identified a purchase order which has mismatched cost price value.<br><br></div><div>Purchase Order URL :&nbsp;" + purchaseOrderUrl + "<br></div> " + tableData + "<div><br></div><div>Thanks.</div>";
+					emailList.add("dinesh@bizappln.com");
+					emailList.add("ganesh@bizappln.com");
+					emailList.add("vijay.vr@bizappln.com");
+					// 			emailList.add("tharmendheran@bizappln.com");
+					emailList.add("balaji@bizappln.com");
+					emailList.add("pooja@bizappln.com");
+					emailList.add("surya.k@bizappln.com");
+					emailList.add("ragul.r@bizappln.com");
+					emailList.add("notifications@bestaccessdoors.com");
+					emailList.add("dev@bestaccessdoors.com");
+					emailList.add("zyarina@bestaccessdoors.com");
+					// 			emailList.add("anthony@bestaccessdoors.com");
+					// 			emailList.add("citrigno@bestaccessdoors.com");
+					mailArrayDataObject = Map();
+					mailArrayDataObject.put("to",emailList);
+					mailArrayDataObject.put("subject",emailSubject);
+					mailArrayDataObject.put("body",emailBody);
+					mailArrayDataObject.put("Scope","Send mail notification if cost item mismatched");
+					emailListData.add(mailArrayDataObject);
+					mailMap = Map();
+					mailMap.put("MailArray",emailListData);
+					mailMap.put("Authtoken",emailToken);
+					// Header
+					BADAuthorization = zoho.crm.getOrgVariable("OAuthHashCode");
+					emailHeader = Map();
+					emailHeader.put("content-type","application/json");
+					emailHeader.put("BADAuthorization",BADAuthorization);
+					response = invokeurl
+					[
+						url :emailSendUrl
+						type :POST
+						parameters:mailMap.toString()
+						headers:emailHeader
+						detailed:false
+					];
+					info response;
+				}
+			}
+		}
+	}
+}
+}

@@ -1,0 +1,87 @@
+void automation.one_time_books_dup_invoice_delete()
+{
+booksOrgId = 666840843;
+bcOrderUniqueId = "1447_ekrllr";
+id = 1324986000010578444;
+// payment_list = getUrl("https://books.zoho.com/api/v3/customerpayments?organization_id=666840843&customer_id=1324986000010578444",{"Authorization":"Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2"});
+// info payment_list.get("customerpayments").size();
+// if(payment_list.get("message") == "success")
+// {
+// 	if(payment_list.get("customerpayments").size() > 0)
+// 	{
+// 		for each  Invpayment in payment_list.get("customerpayments")
+// 		{
+// 			if(Invpayment.get("customer_id") == id)
+// 			{
+// 				info Invpayment.get("payment_id")+ " - "+ Invpayment.get("customer_id");
+// 				paymentId =Invpayment.get("payment_id");
+// 					paymentDelUrl = "https://books.zoho.com/api/v3/customerpayments/" + paymentId + "?organization_id=" + booksOrgId;
+// 					info "Delete Payment URL : " + paymentDelUrl;
+// 					deletePayment = invokeurl
+// 					[
+// 						url :paymentDelUrl
+// 						type :DELETE
+// 						connection:"new_zoho_books"
+// 					];
+// 					info deletePayment;
+// 					info "\n -------- <br> \n";
+// 			}
+// 		}
+// 	}
+// }
+// 1324986000010578444
+// https://books.zoho.com/api/v3/customerpayments?organization_id=10234695
+//----------------------------------------------------------------------------------------
+searchInvoice = Map();
+searchInvoice.put("cf_bigcommerce_unique_id",bcOrderUniqueId);
+booksInvoiceInfo = zoho.books.getRecords("invoices",booksOrgId,searchInvoice);
+// 		info booksInvoiceInfo;
+if(booksInvoiceInfo.get("message").equals("success"))
+{
+	invoiceList = booksInvoiceInfo.get("invoices");
+	info "Incoice Size : " + invoiceList.size();
+	// 			payment delete
+	// 			searchPayment = Map();
+	// 			searchPayment.put("cf_bigcommerce_unique_id",bcOrderUniqueId);
+	// 			booksPaymentInfo = zoho.books.getRecords("customerpayments",booksOrgId,searchPayment);
+	// 			if(booksPaymentInfo.get("message").equals("success"))
+	// 			{
+	// 				paymentList = booksPaymentInfo.get("customerpayments");
+	// 				for each  paymentInfoData in paymentList
+	// 				{
+	// 					paymentId = paymentInfoData.get("payment_id");
+	// 					paymentDelUrl = "https://books.zoho.com/api/v3/customerpayments/" + paymentId + "?organization_id=" + booksOrgId;
+	// 					info "Delete Payment URL : " + paymentDelUrl + " <--> Payment Size : " + paymentList.size();
+	// 					deletePayment = invokeurl
+	// 					[
+	// 						url :paymentDelUrl
+	// 						type :DELETE
+	// 						connection:"new_zoho_books"
+	// 					];
+	// 					info deletePayment;
+	// 					info "\n -------- <br> \n";
+	// 				}
+	// 			}	
+	// 			info "\n\n <br><br>";
+	count = 0;
+	for each  invoiceInfoData in invoiceList
+	{
+		count = count + 1;
+		if(invoiceInfoData.get("customer_id") == id)
+		{
+			info invoiceInfoData;
+			invoiceId = invoiceInfoData.get("invoice_id");
+			invoiceDelUrl = "https://books.zoho.com/api/v3/invoices/" + invoiceId + "?organization_id=" + booksOrgId;
+			info "Delete Invoice URL : " + invoiceDelUrl + " Invoice Size : " + invoiceList.size();
+			deleteInvoice = invokeurl
+			[
+				url :invoiceDelUrl
+				type :DELETE
+				connection:"new_zoho_books"
+			];
+			info deleteInvoice;
+			info "----------\n<br>";
+		}
+	}
+}
+}

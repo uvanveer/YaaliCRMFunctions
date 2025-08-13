@@ -1,0 +1,103 @@
+string standalone.Acudor_USA_Invoice_to_Bill_with_PDF(String crmAPIRequest)
+{
+orgId = 666840843;
+crm_api_map = crmAPIRequest.toMap();
+body = Map();
+/*body.put("Name","yaalibizapp");
+body.put("PO_response",crmAPIRequest);
+upte = zoho.crm.createRecord("Sales_Order_PO_Log",body);*/
+params = crm_api_map.get("body");
+bill_no = ifnull(params.getJSON("bill_no"),"");
+page_count = ifnull(params.getJSON("page_count"),"");
+info page_count;
+invoice_date = ifnull(params.get("invoice_date"),"");
+/*if(invoice_date.size() != 0)
+{
+	invoice_date = ifnull(invoice_date.get("0").get("formatted"),"");
+}
+else
+{
+	invoice_date = "";
+}*/
+po_no = ifnull(params.get("po_no"),"");
+// po_no = ifnull(po_no_list.get(count).get("key_0"),"");
+tax_data = ifnull(params.getJSON("tax_data"),0.0);
+/*if(invoice_date_map.size() != 0)
+{
+	tax_data = ifnull(tax_data.get("0").get("key_0"),0.0);
+}
+else
+{
+	tax_data = 0.0;
+}*/
+//shipping_cost_map = ifnull(params.get("shipping_cost"),Map());
+//shipping_cost = ifnull(shipping_cost_map.get("key_0"),0.0);
+shipping_cost = ifnull(params.get("shipping_cost"),0.0);
+if(shipping_cost == "")
+{
+	shipping_cost = 0.0;
+}
+attachment_link = ifnull(params.get("media_link_original"),"");
+searchresult = "";
+po_no_str = List();
+try 
+{
+	//checkBillNoHas = 
+	//if(po_no_map.size() > 0)
+	//{
+	//for each  each_po in po_no_map
+	//{
+	//po_no = ifnull(each_po.get("key_0"),"");
+	//po_no_str.add(po_no);
+	data = "select Bill_No,Po_No,Po_No_acudor,Po_No_cendrex,Vendor_Name from Bill_Parser where (Po_No_acudor like '%" + po_no + "%')LIMIT 200";
+	coql_map = Map();
+	coql_map.put("select_query",data);
+	info coql_map;
+	info "barani";
+	maillist = invokeurl
+	[
+		url :"https://www.zohoapis.com/crm/v2/coql"
+		type :POST
+		parameters:coql_map.tostring()
+		connection:"crm_connection"
+	];
+	info maillist.get("data").size();
+	if(maillist.get("data").size() > 0)
+	{
+		searchresult = "true";
+	}
+	//}
+	if(searchresult == "true")
+	{
+		info "enter";
+	}
+	else
+	{
+		if(page_count == 1)
+		{
+			createMap = Map();
+			createMap.put("Name",po_no);
+			createMap.put("Bill_No",bill_no);
+			createMap.put("Invoice_Date",invoice_date);
+			createMap.put("Po_No_acudor",po_no);
+			createMap.put("Tax_Data",tax_data.tostring());
+			createMap.put("Shipping_cost",shipping_cost.tostring());
+			createMap.put("Media_Link_Orginal",attachment_link);
+			createMap.put("Retry_Count",0);
+			createMap.put("Bill_Parser_Request",crmAPIRequest.trim());
+			createMap.put("Bill_Parser_ID",params.get("id"));
+			createMap.put("Document_ID",params.get("document_id"));
+			createMap.put("File_Name",params.get("file_name"));
+			createMap.put("Vendor_Name",3106252000066213556);
+			createResonse = zoho.crm.createRecord("Bill_Parser",createMap,{"trigger":{"workflow"}});
+			info createResonse;
+		}
+	}
+	//}
+}
+catch (e)
+{
+}
+//return createResonse;
+return "";
+}

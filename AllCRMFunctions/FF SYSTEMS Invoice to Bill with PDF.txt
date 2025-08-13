@@ -1,0 +1,192 @@
+string standalone.FF_SYSTEMS_Invoice_to_Bill_with_PDF(String crmAPIRequest)
+{
+test_mode = false;
+orgId = 666840843;
+crm_api_map = crmAPIRequest.toMap();
+params = crm_api_map.get("body");
+if(test_mode == true)
+{
+	params = {"id":"59856404b7b7243280232c4f557b861d","document_id":"0c54af0738e644c8acbac1245e56992c","remote_id":"","file_name":"Inv_63144_from_FF_Systems_Inc_20540.pdf","media_link":"https:\/\/api.docparser.com\/v1\/document\/media\/ysCBfikMEwDtnwEk8GbB9d8qww4RAaIbTWGlAKNee2NYqFsmcpV7J7nDvA7Ls2D3k3-Bpy7jQSoIiM-wjBc_MDR_1JlUdmKiPrsYAJSLVh0","media_link_original":"https:\/\/api.docparser.com\/v1\/document\/media\/ysCBfikMEwDtnwEk8GbB9d8qww4RAaIbTWGlAKNee2NYqFsmcpV7J7nDvA7Ls2D3k3-Bpy7jQSoIiM-wjBc_MDR_1JlUdmKiPrsYAJSLVh0\/original","media_link_data":"https:\/\/api.docparser.com\/v1\/document\/media\/ysCBfikMEwDtnwEk8GbB9d8qww4RAaIbTWGlAKNee2NYqFsmcpV7J7nDvA7Ls2D3k3-Bpy7jQSoIiM-wjBc_MDR_1JlUdmKiPrsYAJSLVh0\/data","uploaded_at":"2024-04-15T14:14:31+00:00","processed_at":"2024-04-15T14:14:32+00:00","invoice_date":{"formatted":"2024-04-12"},"bill_no":"63144","po_no":{"match":"550442"},"xshipping_cost":{"match":"69.23"},"tax_data":{"match":"$0.00"},"shipping_cost":"69.23"};
+}
+bill_no = ifnull(params.getJSON("bill_no"),"");
+invoice_date_map = ifnull(params.get("invoice_date"),Map());
+invoice_date = ifnull(invoice_date_map.get("formatted"),"");
+po_no_map = ifnull(params.get("po_no"),Map());
+po_no = ifnull(po_no_map.get("match"),"");
+tax_data_map = ifnull(params.getJSON("tax_data"),Map());
+tax_data = ifnull(tax_data_map.get("match").getSuffix("$"),0.0);
+//tax_data_map.get("match");
+if(tax_data == "")
+{
+	tax_data = 0.0;
+}
+// shipping_cost_map = ifnull(params.get("shipping_cost"),Map());
+// shipping_cost = ifnull(shipping_cost_map.get("match"),0.0);
+// if(shipping_cost == "")
+// {
+// 	shipping_cost = 0.0;
+// }
+shipping_cost = ifnull(params.get("shipping_cost"),0.0);
+if(shipping_cost == "")
+{
+	shipping_cost = 0.0;
+}
+attachment_link = ifnull(params.get("media_link_original"),"");
+/**
+ * Test Data
+ */
+// po_no = "Testing-09";
+// tax_data = 10.0;
+// shipping_cost = 20.0;
+/**
+ * End of Test Data
+ */
+/**
+ * Attachment Link and File Stream
+ */
+if(attachment_link != "")
+{
+	attachment_link = attachment_link.replaceAll("\\","");
+	attach_file = invokeurl
+	[
+		url :attachment_link
+	];
+	attach_file.setParamName("attachment");
+	info attach_file;
+}
+/*
+	Process Purchase Order
+*/
+if(po_no != "")
+{
+	po_resps = invokeurl
+	[
+		url :"https://www.zohoapis.com/books/v3/purchaseorders?organization_id=" + orgId + "&purchaseorder_number=" + zoho.encryption.urlEncode(po_no)
+		type :GET
+		connection:"mailparserzoho"
+	];
+	// 	info po_resps;   
+	if(!po_resps.get("purchaseorders").isEmpty())
+	{
+		po_order_resp = po_resps.get("purchaseorders").get(0);
+		// Get PO Details
+		po_full_details = invokeurl
+		[
+			url :"https://www.zohoapis.com/books/v3/purchaseorders/" + po_order_resp.get("purchaseorder_id") + "?organization_id=" + orgId
+			type :GET
+			connection:"mailparserzoho"
+		];
+		if(test_mode == false)
+		{
+			// Mark PO Open
+			po_open_resp = invokeurl
+			[
+				url :"https://www.zohoapis.com/books/v3/purchaseorders/" + po_order_resp.get("purchaseorder_id") + "/status/open?organization_id=" + orgId
+				type :POST
+				connection:"mailparserzoho"
+			];
+			info po_open_resp;
+			// Mark PO Billed
+			po_open_resp = invokeurl
+			[
+				url :"https://www.zohoapis.com/books/v3/purchaseorders/" + po_order_resp.get("purchaseorder_id") + "/status/billed?organization_id=" + orgId
+				type :POST
+				connection:"mailparserzoho"
+			];
+			info po_open_resp;
+		}
+		po_full_detail = po_full_details.get("purchaseorder");
+		bill_map = Map();
+		bill_line_items = list();
+		// Processing PO Items
+		tax_percentage = 0.0;
+		shipping_found = 0;
+		for each  po_line_item in po_full_detail.get("line_items")
+		{
+			bill_line_item = Map();
+			bill_line_item.put("item_id",po_line_item.get("item_id"));
+			bill_line_item.put("account_id",po_line_item.get("account_id"));
+			// usa. 1324986000026491986   Canada. 1324986000026509004
+			if(po_line_item.get("item_id") == "1324986000026491986" && shipping_cost.toDecimal() > 0.0)
+			{
+				shipping_found = 1;
+				bill_line_item.put("rate",shipping_cost);
+			}
+			else
+			{
+				bill_line_item.put("rate",po_line_item.get("rate"));
+			}
+			bill_line_item.put("quantity",po_line_item.get("quantity"));
+			bill_line_item.put("tax_id",po_line_item.get("tax_id"));
+			bill_line_item.put("item_order",po_line_item.get("item_order"));
+			bill_line_item.put("description",po_line_item.get("description"));
+			bill_line_item.put("name",po_line_item.get("name"));
+			bill_line_items.add(bill_line_item);
+		}
+		info shipping_cost;
+		if(shipping_cost.toDecimal() > 0.0 && shipping_found == 0)
+		{
+			bill_line_item = Map();
+			bill_line_item.put("item_id","1324986000026491986");
+			// usa.  1324986000026491974 canada 1324986000026491980   Account ID
+			// Now usa.  1324986000067828502 canada 1324986000067828582   Account ID
+			bill_line_item.put("account_id","1324986000067828502");
+			bill_line_item.put("rate",shipping_cost);
+			bill_line_item.put("quantity",1);
+			bill_line_items.add(bill_line_item);
+		}
+		// info tax_data;
+		new_custom_fields_list = list();
+		custom_field_sales_tax_found = 0;
+		if(tax_data.toDecimal() > 0.0)
+		{
+			temp_custom_field_map = {"customfield_id":"1324986000040485278","index":4,"label":"Sales Tax","placeholder":"cf_sales_tax","value":tax_data.toDecimal()};
+			new_custom_fields_list.add(temp_custom_field_map);
+			bill_map.put("custom_fields",new_custom_fields_list);
+		}
+		info bill_line_items;
+		bill_map.put("vendor_id",po_full_detail.get("vendor_id"));
+		bill_map.put("purchaseorder_ids",{po_full_detail.get("purchaseorder_id")});
+		bill_map.put("status","draft");
+		bill_map.put("current_sub_status","draft");
+		bill_map.put("bill_number",bill_no);
+		bill_map.put("date",invoice_date);
+		if(invoice_date != "")
+		{
+			bill_map.put("due_date",invoice_date.toDate().addDay(30).toString("yyyy-MM-dd"));
+		}
+		bill_map.put("payment_terms_label","Net 30");
+		bill_map.put("reference_number",po_no);
+		bill_map.put("currency_id",po_full_detail.get("currency_id"));
+		bill_map.put("line_items",bill_line_items);
+		info "Bill Map " + bill_map;
+		// Creating Bill using API
+		if(test_mode == false)
+		{
+			bill_params = {"JSONString":bill_map};
+			bill_resp = invokeurl
+			[
+				url :"https://www.zohoapis.com/books/v3/bills?organization_id=" + orgId
+				type :POST
+				parameters:bill_params
+				connection:"mailparserzoho"
+			];
+			info bill_resp;
+			if(bill_resp.get("code") == 0)
+			{
+				bill_id = bill_resp.get("bill").get("bill_id");
+				info bill_id;
+				file_resp = invokeurl
+				[
+					url :"https://www.zohoapis.com/books/v3/bills/" + bill_id + "/attachment?organization_id=" + orgId
+					type :POST
+					files:attach_file
+					connection:"mailparserzoho"
+				];
+				info file_resp;
+			}
+		}
+	}
+}
+return "";
+}

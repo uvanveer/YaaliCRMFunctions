@@ -1,0 +1,129 @@
+string standalone.CENDREX_Invoice_to_Bill_with_PDF(String crmAPIRequest)
+{
+orgId = 666840843;
+crm_api_map = crmAPIRequest.toMap();
+params = crm_api_map.get("body");
+bill_no = ifnull(params.getJSON("bill_no"),"");
+invoice_date_map = ifnull(params.get("invoice_date"),Map());
+invoice_date = ifnull(invoice_date_map.get("formatted"),"");
+po_no_map = ifnull(params.get("po_no"),list());
+//po_no = ifnull(po_no_map.get("match"),"");
+tax_data_map = ifnull(params.getJSON("tax_data"),Map());
+tax_data = ifnull(tax_data_map.get("match"),0.0);
+if(tax_data == "")
+{
+	tax_data = 0.0;
+}
+shipping_cost_map = ifnull(params.get("shipping_cost"),Map());
+//shipping_cost_map
+Verify_Shipping = endsWith(shipping_cost_map,"_");
+info Verify_Shipping;
+shipping_cost_0 = 0.0;
+shipping_cost_1 = 0.0;
+shipping_cost_2 = 0.0;
+shipping_cost_3 = 0.0;
+shipping_cost_4 = 0.0;
+shipping_cost_5 = 0.0;
+if(Verify_Shipping == true)
+{
+	shipping_costList = shipping_cost_map.toList("_");
+	checked = shipping_costList.getOccurenceCount(",");
+	if(checked == 0)
+	{
+		shipping_cost = shipping_costList;
+	}
+	if(checked == 1)
+	{
+		shipping_cost_0 = shipping_costList.getPrefix(",");
+		shipping_cost_1 = shipping_costList.getSuffix(",");
+		shipping_cost_2 = shipping_cost_1.getPrefix(",");
+		shipping_cost = toDecimal(shipping_cost_0) + toDecimal(shipping_cost_1);
+	}
+	if(checked == 2)
+	{
+		shipping_cost_0 = shipping_costList.getPrefix(",");
+		shipping_cost_1 = shipping_costList.getSuffix(",");
+		shipping_cost_2 = shipping_cost_1.getPrefix(",");
+		shipping_cost_3 = shipping_cost_1.getSuffix(",");
+		shipping_cost = toDecimal(shipping_cost_0) + toDecimal(shipping_cost_2) + toDecimal(shipping_cost_3);
+	}
+	if(checked == 3)
+	{
+		shipping_cost_0 = shipping_costList.getPrefix(",");
+		shipping_cost_1 = shipping_costList.getSuffix(",");
+		shipping_cost_2 = shipping_cost_1.getPrefix(",");
+		shipping_cost_3 = shipping_cost_1.getSuffix(",");
+		shipping_cost_4 = shipping_cost_3.getPrefix(",");
+		shipping_cost_5 = shipping_cost_3.getSuffix(",");
+		shipping_cost = toDecimal(shipping_cost_0) + toDecimal(shipping_cost_2) + toDecimal(shipping_cost_4) + toDecimal(shipping_cost_5);
+	}
+}
+else
+{
+	shipping_cost = 0.0;
+}
+info shipping_cost;
+attachment_link = ifnull(params.get("media_link_original"),"");
+po_no_str = List();
+count = 0;
+searchresult = "";
+try 
+{
+	//checkBillNoHas = 
+	if(po_no_map.size() > 0)
+	{
+		po_no_map = po_no_map.toList();
+		for each  each_po in po_no_map
+		{
+			//po_no = each_po;
+			po_no = ifnull(each_po.get("match"),"");
+			po_no_str.add(po_no);
+			data = "select Bill_No,Po_No,Po_No_acudor,Po_No_cendrex,Vendor_Name from Bill_Parser where (Po_No_cendrex like '%" + po_no + "%') LIMIT 200";
+			coql_map = Map();
+			coql_map.put("select_query",data);
+			info coql_map;
+			info "barani";
+			maillist = invokeurl
+			[
+				url :"https://www.zohoapis.com/crm/v2/coql"
+				type :POST
+				parameters:coql_map.tostring()
+				connection:"crm_connection"
+			];
+			info maillist.get("data").size();
+			if(maillist.get("data").size() > 0)
+			{
+				searchresult = "true";
+			}
+		}
+		if(searchresult == "true")
+		{
+			createResonse = "Rec Not Created";
+		}
+		else
+		{
+			createResonse = "Rec Creation enter";
+			createMap = Map();
+			createMap.put("Name",po_no);
+			createMap.put("Bill_No",bill_no);
+			createMap.put("Invoice_Date",invoice_date);
+			createMap.put("Po_No_cendrex",po_no_map);
+			createMap.put("Tax_Data",tax_data.tostring());
+			createMap.put("Shipping_cost",shipping_cost.tostring());
+			createMap.put("Media_Link_Orginal",attachment_link);
+			createMap.put("Retry_Count",0);
+			createMap.put("Bill_Parser_Request",crmAPIRequest.trim());
+			createMap.put("Bill_Parser_ID",params.get("id"));
+			createMap.put("Document_ID",params.get("document_id"));
+			createMap.put("File_Name",params.get("file_name"));
+			createMap.put("Vendor_Name",3106252000028031047);
+			createResonse = zoho.crm.createRecord("Bill_Parser",createMap,{"trigger":{"workflow"}});
+			info createResonse;
+		}
+	}
+}
+catch (e)
+{
+}
+return createResonse;
+}

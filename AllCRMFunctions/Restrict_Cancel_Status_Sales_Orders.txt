@@ -1,0 +1,47 @@
+map validation_rule.Restrict_Cancel_Status_Sales_Orders(String crmAPIRequest)
+{
+/* The snippet below shows you how to get a list of fields, their values from a MAP object. The fields’ values can be obtained from the same MAP object.                                                  */
+entityMap = crmAPIRequest.toMap().get("record");
+/* The example below demonstrates how a field’s value (email) can be obtained from a MAP object. Here, entityMap - Map Object, Email - Field's API name
+Sample entityMap= {'Email': 'xxx@xxx.com', 'Last_Name': 'xxx'};                                   */
+// email = entityMap.get("Email");
+Get_salesOrder_Id = entityMap.get("id");
+Get_sales_Order_status = entityMap.get("Status");
+searchdropship = zoho.crm.searchRecords("Purchase_Orders","Sales_Order:equals:" + Get_salesOrder_Id);
+Cancel_count = 1;
+response = Map();
+if(searchdropship.size() > 0)
+{
+	for each  dropship_order in searchdropship.toList()
+	{
+		Get_status = dropship_order.get("Status");
+		if(Get_status == "Cancelled")
+		{
+			Cancel_count = 0;
+		}
+	}
+	if(Cancel_count == 1 && (Get_sales_Order_status == "Cancelled" || Get_sales_Order_status == "Canceled"))
+	{
+		response.put('status','error');
+		response.put('message','Please Cancel all the associated Dropship Orders!!');
+	}
+	else
+	{
+		response.put('status','success');
+	}
+}
+else
+{
+	response.put('status','success');
+}
+/* ---------------------------------------------------------------------------------------------- */
+/* Start writing your code here to perform the necessary field validation                         */
+/* ---------------------------------------------------------------------------------------------- */
+/* If the code identifies a validation error, set the status and alert message as shown below:    */
+//response.put('status','error');
+//response.put('message', '<your message(100 characters)>');
+/* If there are no errors found during validation, set the status as shown below:                 */
+// response.put('status','success');
+/* ---------------------------------------------------------------------------------------------- */
+return response;
+}

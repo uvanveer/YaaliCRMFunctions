@@ -1,0 +1,252 @@
+string standalone.Items_coa_update6()
+{
+OrganizationID = "666840843";
+Record_count = 25;
+Get_Pagination_details = zoho.crm.getRecordById("Tag_syncing_schedule","3106252000107238517");
+Page_Count = Get_Pagination_details.get("Function_Execution");
+Page_Count = Page_Count.toLong();
+Updated_Page_Count = Page_Count + 1;
+Update_log = Map();
+Update_log.put("Function_Execution",Updated_Page_Count.toString());
+Get_Updated_Page = zoho.crm.updateRecord("Tag_syncing_schedule","3106252000107238517",Update_log);
+info Get_Updated_Page;
+if(Page_Count <= 1250)
+{
+	Get_all_items = getUrl("https://books.zoho.com/api/v3/items?page=" + Page_Count + "&per_page=" + Record_count + "&organization_id=666840843&sort_column=name&sort_order=A",{"Authorization":"Zoho-authtoken 62821be1f52aaa5a1e3c658edba059cf"});
+	info Get_all_items;
+	Get_Books_items = Get_all_items.get("items");
+	for each  Books_Item in Get_Books_items
+	{
+		Books_Item_map = Books_Item.toMap();
+		Get_item_id = ifnull(Books_Item_map.get("item_id"),"");
+		try 
+		{
+			Get_purchase_account_id = "";
+			Get_item_crmid = "";
+			vendor_currency = "";
+			Store_currency = "";
+			Get_account_name = "";
+			Get_account_name = ifnull(Books_Item_map.get("account_name"),"");
+			Get_purchase_account_id = ifnull(Books_Item_map.get("purchase_account_id"),"");
+			Get_item_crmid = ifnull(Books_Item_map.get("cf_crmrecorid"),"");
+			Get_store_name = ifnull(Books_Item_map.get("cf_bigcommerce_store_name"),"");
+			Get_vendor_name = ifnull(Books_Item_map.get("cf_vendor_name"),"");
+			Books_Item_Map = Map();
+			logMap = Map();
+			logMap.put("Name","Books Product COA Oct");
+			logMap.put("Record_Identifier",Get_item_id.toString());
+			if(!isNull(Get_vendor_name) && Get_vendor_name != "")
+			{
+				if(Get_vendor_name == "Elmdor Canada")
+				{
+					vendor_currency = "CAD";
+				}
+				if(Get_vendor_name == "Babcock Davis")
+				{
+					vendor_currency = "USD";
+				}
+				if(Get_vendor_name == "Milcor")
+				{
+					vendor_currency = "USD";
+				}
+				if(Get_vendor_name == "Williams Brothers USA")
+				{
+					vendor_currency = "USD";
+				}
+				if(Get_vendor_name == "Williams Brothers Canada")
+				{
+					vendor_currency = "CAD";
+				}
+				if(Get_vendor_name == "Wind-lock USA")
+				{
+					vendor_currency = "USD";
+				}
+				if(Get_vendor_name == "Wind-lock Canada")
+				{
+					vendor_currency = "USD";
+				}
+				if(Get_vendor_name == "DGM Enterprises")
+				{
+					vendor_currency = "CAD";
+				}
+				if(Get_vendor_name == "gomzi")
+				{
+					vendor_currency = "CAD";
+				}
+				if(Get_vendor_name == "PrecisionLadders")
+				{
+					vendor_currency = "USD";
+				}
+				if(Get_vendor_name == "Acudor Canada")
+				{
+					vendor_currency = "USD";
+				}
+				if(Get_vendor_name == "Elmdor USA")
+				{
+					vendor_currency = "USD";
+				}
+				if(Get_vendor_name == "Karp Associates")
+				{
+					vendor_currency = "USD";
+				}
+				if(Get_vendor_name == "FF Systems Inc USA")
+				{
+					vendor_currency = "USD";
+				}
+				if(Get_vendor_name == "MIFAB USA")
+				{
+					vendor_currency = "USD";
+				}
+				if(Get_vendor_name == "JL Industries")
+				{
+					vendor_currency = "USD";
+				}
+				if(Get_vendor_name == "Acudor USA")
+				{
+					vendor_currency = "USD";
+				}
+				if(Get_vendor_name == "Cendrex")
+				{
+					vendor_currency = "USD";
+				}
+				if(Get_vendor_name == "Elmdor UAE")
+				{
+					vendor_currency = "USD";
+				}
+				if(Get_vendor_name == "FF Systems Canada")
+				{
+					vendor_currency = "USD";
+				}
+				if(Get_vendor_name == "Castle")
+				{
+					vendor_currency = "USD";
+				}
+				if(Get_vendor_name == "Bilco")
+				{
+					vendor_currency = "USD";
+				}
+				if(Get_vendor_name == "MIFAB Canada")
+				{
+					vendor_currency = "USD";
+				}
+				if(Get_vendor_name == "Omni Containment")
+				{
+					vendor_currency = "USD";
+				}
+				if(Get_vendor_name == "StrikeFirst")
+				{
+					vendor_currency = "CAD";
+				}
+				if(vendor_currency == "")
+				{
+					logMap.put("Vendor_Name",Get_vendor_name);
+					logMap.put("Vendor_Response","Vendor name mismatch");
+				}
+				else
+				{
+					if(!isNull(Get_purchase_account_id) && Get_purchase_account_id != "")
+					{
+						if(vendor_currency == "CAD")
+						{
+							if(Get_purchase_account_id != "1324986000000034003")
+							{
+								Books_Item_Map.put("purchase_account_id",1324986000000034003);
+							}
+						}
+						if(vendor_currency == "USD")
+						{
+							if(Get_purchase_account_id != "1324986000025149419")
+							{
+								Books_Item_Map.put("purchase_account_id",1324986000025149419);
+							}
+						}
+					}
+					else
+					{
+						logMap.put("Vendor_Name",Get_vendor_name);
+						logMap.put("Vendor_Response","Purchase coa not associated");
+					}
+				}
+			}
+			else
+			{
+				logMap.put("Vendor_Response","Vendor name not available");
+			}
+			//Compare store name
+			if(!isNull(Get_store_name) && Get_store_name != "")
+			{
+				if(Get_store_name == "Best_Access_Doors")
+				{
+					Store_currency = "USD";
+				}
+				if(Get_store_name == "Access_Doors_And_Panels")
+				{
+					Store_currency = "USD";
+				}
+				if(Get_store_name == "Best_Access_Doors_Canada")
+				{
+					Store_currency = "CAD";
+				}
+				if(Get_store_name == "Acudor_Access_Panels")
+				{
+					Store_currency = "USD";
+				}
+				if(Get_store_name == "Access_Doors_Canada")
+				{
+					Store_currency = "CAD";
+				}
+				if(Get_store_name == "Max_Supply")
+				{
+					Store_currency = "USD";
+				}
+				if(Get_store_name == "California_Access_Doors")
+				{
+					Store_currency = "USD";
+				}
+				if(Store_currency != "")
+				{
+					if(Store_currency == "CAD")
+					{
+						if(Get_account_name != "Sales - CAD")
+						{
+							Books_Item_Map.put("account_id",1324986000000000388);
+						}
+					}
+					if(Store_currency == "USD")
+					{
+						if(Get_account_name != "SALES - USD")
+						{
+							Books_Item_Map.put("account_id",1324986000024553072);
+						}
+					}
+				}
+				else
+				{
+					logMap.put("Store_Name",Get_store_name);
+					logMap.put("Store_Response","Store name mismatched");
+				}
+			}
+			else
+			{
+				logMap.put("Store_Response","Store name not available");
+			}
+			if(Books_Item_Map.size() > 0)
+			{
+				Update_Books_Item = zoho.books.updateRecord("Items",OrganizationID,Get_item_id,Books_Item_Map);
+				info "Update" + Update_Books_Item;
+				logMap.put("Request",Books_Item_Map);
+				logMap.put("Response",Update_Books_Item);
+			}
+			Create_log = zoho.crm.createRecord("Books_sync",logMap);
+		}
+ catch (error)
+		{			logMap = Map();
+			logMap.put("Name","Books Product COA Oct");
+			logMap.put("Record_Identifier",Get_item_id.toString());
+			logMap.put("Error_Log",error);
+			Create_log = zoho.crm.createRecord("Books_sync",logMap);
+		}
+	}
+}
+return "";
+}

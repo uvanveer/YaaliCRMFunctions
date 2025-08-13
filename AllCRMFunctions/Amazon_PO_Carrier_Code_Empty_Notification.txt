@@ -1,0 +1,43 @@
+void automation.Amazon_PO_Carrier_Code_Empty_Notification(Int purchaseOrderId,String carrierName)
+{
+/* Created By Ezhil on 01 Secptember 2020 */
+/* Send an email alert for the amazon purchase order was having empty amazon carrier code */
+if(carrierName != null && carrierName != "")
+{
+	emailListData = list();
+	emailList = list();
+	emailSendUrl = "https://1.door-pay.com/pq/m/sendMailNotification.php";
+	emailToken = "59AACEAFB2CE53271A6048D2D385D4C800587C0D047F8B07958934F710AE5D7891FB4EC28BB2FA684F638630E9EF76F7D19D22EE9A20EE892625DC2FCEDCD976";
+	purchaseOrderUrl = "https://crm.zoho.com/crm/org663942562/tab/PurchaseOrders/" + purchaseOrderId;
+	emailSubject = "Amazon Purchase Order Carrier Code Update Notification";
+	emailBody = "<div>Hi Team, <br></div><div><br></div><div>We have identified an amazon purchase order, carrier was filled in carrier field instead of that you must fill it in Amazon Carrier code Field. <br><br>Sales Order URL :&nbsp;" + purchaseOrderUrl + "</div><div><br></div><div>Thanks.</div>";
+	// 	emailList.add("ezhil@bizappln.com");
+	emailList.add("dinesh@bizappln.com");
+	emailList.add("tharmendheran@bizappln.com");
+	emailList.add("balaji@bizappln.com");
+	emailList.add("pooja@bizappln.com");
+	emailList.add("notifications@bestaccessdoors.com");
+	emailList.add("dev@bestaccessdoors.com");
+	emailList.add("zyarina@bestaccessdoors.com");
+	mailArrayDataObject = Map();
+	mailArrayDataObject.put("MailTo",emailList);
+	mailArrayDataObject.put("Subject",emailSubject);
+	mailArrayDataObject.put("Message",emailBody);
+	emailListData.add(mailArrayDataObject);
+	mailMap = Map();
+	mailMap.put("MailArray",emailListData);
+	mailMap.put("Authtoken",emailToken);
+	// Header
+	emailHeader = Map();
+	emailHeader.put("content-type","application/json");
+	response = invokeurl
+	[
+		url :emailSendUrl
+		type :POST
+		parameters:mailMap.toString()
+		headers:emailHeader
+		detailed:false
+	];
+	info response;
+}
+}

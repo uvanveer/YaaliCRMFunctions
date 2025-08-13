@@ -1,0 +1,30 @@
+void schedule.Send_PO_Not_Created_Followup()
+{
+/* Created By Ezhil on 13 August 2020 */
+/* Sent an email alert if the dropship order not created */
+pageList = {1,2};
+// x=[1];
+// for each rec in x
+// {pageList ={rec};
+for each  pageNo in pageList
+{
+	salesOrderList = zoho.crm.getRecords("Sales_Orders",pageNo,200);
+	for each  saleOrderObj in salesOrderList
+	{
+		saleOrderId = saleOrderObj.get("id");
+		purchaseOrderList = zoho.crm.getRelatedRecords("Dropship_Orders","Sales_Orders",saleOrderId);
+		if(purchaseOrderList.size() = 0)
+		{
+			baseUrl = "https://www.zohoapis.com/crm/v2/functions/rk_createdropshiporder/actions/execute?auth_type=apikey&zapikey=1003.84f6b88f042b49549074d50113dae2b6.276cb261a9b7531fe717d6f7d26c7d09&id" + saleOrderId;
+			paramsMap = Map();
+			createDropResponse = invokeurl
+			[
+				url :baseUrl
+				type :POST
+				parameters:paramsMap.tostring()
+				connection:"crm_connection"
+			];
+		}
+	}
+}
+}

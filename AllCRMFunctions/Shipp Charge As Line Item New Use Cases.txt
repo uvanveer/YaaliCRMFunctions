@@ -1,0 +1,146 @@
+string standalone.shippChargeAsLineItemZb()
+{
+tokenArray = Map();
+//Access_Doors_Canada
+tokenArray.put("ekrllr",{"6gpb9ztna3tsvxwdtwwo4fye6c234yu","r6nghg45pf6sei4xhbt4otklyzkd600"});
+//Best_Access_Doors_Canada
+tokenArray.put("jdq9dzd",{"im4ouy3gboed27ksptqm43roxyxoi9j","6020ggpten8oik8pyeud6zhw3a19rji"});
+//Best_Access_Doors
+tokenArray.put("73d62",{"6bmozc9y8turqqviijfkt5o6mbut6ic","jz4y6k2juxckhz78kcah0ri3zcjgom"});
+//Access_Doors_And_Panels
+tokenArray.put("d6xnuf",{"petu2tvugsv4m7c3i0tvgcxvllt5jzk","jfyktmsgp25t13fe3cvtqpm5vws7kig"});
+//Acudor_Access_Panels
+tokenArray.put("sy018d9yee",{"8dhmjz7rm1q4lagy8fords7mef59jrr","3zssshtvtwym5zq8ws7hc3npa8lde2"});
+//Max_Supply
+tokenArray.put("dh5771",{"bq023epaqceys9695vag8tgzlgjyf83","f2ivuekkxy32gurxtosfhlfkik5bdig"});
+//California_Access_Doors
+tokenArray.put("v5cbc8ee",{"4oz25yional9eu6h9dw2x4bhkjhw966","b0fu2egusdrr4im3jlwiwx1823170o4"});
+scheduleRecordID = 3106252000061961343;
+pageIndexRec = zoho.crm.getRecordById("Merger_Schedule",scheduleRecordID);
+lastpageIndex = ifnull(pageIndexRec.get("Last_Import_2_ID"),"");
+if(lastpageIndex != "")
+{
+	Page_count = lastpageIndex + 1;
+	info "Page_count " + Page_count;
+	Record_count = 10;
+	orgId = "666840843";
+	Get_data = invokeurl
+	[
+		url :"https://www.zohoapis.com/books/v3/invoices?page=" + Page_count + "&per_page=" + Record_count + "&organization_id=" + orgId + "&filter_by=Status.Draft&sort_column=created_time&sort_order=A"
+		type :GET
+		connection:"zohobooks_crmaccounts"
+	];
+	Invoice_list = List();
+	info "Get_data " + Get_data;
+	Get_Invoices = Get_data.get("invoices");
+	//info "Get_Invoices "+Get_Invoices;
+	//below code added by Pooja - Yaali
+	//Purpose: Updates shipping as line item in zoho books Invoice
+	for each  invoice in Get_Invoices
+	{
+		Invoice_Id = invoice.get("invoice_id");
+		info " Invoice_Id " + Invoice_Id;
+		bcUniqueID = "";
+		shippChargeAvailable = false;
+		updateMap = Map();
+		//Invoice_Id = 1324986000026414704;
+		shipItemUSInc = 1324986000026491965;
+		shipItemCADInc = 1324986000026491995;
+		lineItemList = list();
+		Get_Invoice_data = zoho.books.getRecordsByID("Invoices",orgId,Invoice_Id);
+		info "Get_Invoice_data " + Get_Invoice_data;
+		invoiceInfo = Get_Invoice_data.get("invoice");
+		//shipping charge
+		shippingCharge = ifnull(invoiceInfo.get("shipping_charge"),0);
+		if(invoiceInfo.get("custom_field_hash") != null && invoiceInfo.get("custom_field_hash") != "")
+		{
+			bcUniqueID = invoiceInfo.get("custom_field_hash").get("cf_bigcommerce_unique_id");
+		}
+		if(bcUniqueID != "")
+		{
+			//bcOrderID = ifnull(invoiceInfo.get(""),0);
+			bcOrderID = bcUniqueID.getPrefix("_");
+			storeID = bcUniqueID.getSuffix("_");
+			//fetch BC order shipping exclusive of tax
+			bcAuthToken = tokenArray.get(storeID).get(0);
+			bcAuthClient = tokenArray.get(storeID).get(1);
+			HeaderMap = Map();
+			HeaderMap.put("Accept","application/json");
+			HeaderMap.put("Content-Type","application/json");
+			HeaderMap.put("X-Auth-Token",bcAuthToken);
+			HeaderMap.put("X-Auth-Client",bcAuthClient);
+			bcdata = getUrl("https://api.bigcommerce.com/stores/" + storeID + "/v2/orders/" + bcOrderID,HeaderMap);
+			if(bcdata.get("shipping_cost_ex_tax") != null && bcdata.get("shipping_cost_ex_tax") != "")
+			{
+				shippingCostExTax = bcdata.get("shipping_cost_ex_tax");
+				if(bcdata.get("shipping_cost_tax") != null && bcdata.get("shipping_cost_tax") != "")
+				{
+					shippingCostTax = bcdata.get("shipping_cost_tax");
+					//check invoice currency
+					if(invoiceInfo != null && invoiceInfo != "")
+					{
+						if(shippingCharge > 0)
+						{
+							//no need to check line item for shipping charge
+							shippChargeAvailable = true;
+						}
+						lineItemInfo = invoiceInfo.get("line_items");
+						for each  rec_lineitem in lineItemInfo
+						{
+							lineItemMap = Map();
+							lineItemId = rec_lineitem.get("line_item_id");
+							itemId = rec_lineitem.get("item_id");
+							if(lineItemId == shipItemUSInc || lineItemId == shipItemCADInc)
+							{
+								//check tax is applied
+								taxPercentage = rec_lineitem.get("tax_percentage");
+							}
+							//bcyRate=rec_lineitem.get("bcy_rate");
+							//rate=rec_lineitem.get("rate");
+							//qty=rec_lineitem.get("quantity");
+							lineItemMap.put("line_item_id",lineItemId);
+							lineItemMap.put("item_id",itemId);
+							//lineItemMap.put("bcy_rate", bcyRate);
+							//lineItemMap.put("rate", rate);
+							//lineItemMap.put("quantity", qty);
+							lineItemList.add(lineItemMap);
+						}
+						if(invoiceInfo.get("currency_code").equalsIgnoreCase("USD"))
+						{
+							shippingChargeUSD = Map();
+							shippingChargeUSD.put("item_id",shipItemUSInc);
+							shippingChargeUSD.put("rate",shippingCharge);
+							shippingChargeUSD.put("quantity",1);
+							lineItemList.add(shippingChargeUSD);
+						}
+						else if(invoiceInfo.get("currency_code").equalsIgnoreCase("CAD"))
+						{
+							shippingChargeCAD = Map();
+							shippingChargeCAD.put("item_id",shipItemCADInc);
+							shippingChargeCAD.put("rate",shippingCharge);
+							shippingChargeCAD.put("quantity",1);
+							lineItemList.add(shippingChargeCAD);
+						}
+						updateMap.put("line_items",lineItemList);
+						updateMap.put("shipping_charge",0);
+						updateMap.put("reason","In order to update shipping charge as line item");
+						updateInvoice = zoho.books.updateRecord("invoices",orgId,Invoice_Id,updateMap);
+						info "updateInvoice " + updateInvoice;
+					}
+				}
+			}
+			else
+			{
+				response = "Shipping charge exclusive of tax is empty";
+			}
+		}
+		else
+		{
+			response = "BC ORDER ID NOT AVAILABLE";
+		}
+	}
+	updatePageIndex = zoho.crm.updateRecord("Merger_Schedule",scheduleRecordID,{"Last_Import_2_ID":Page_count});
+	info "updatePageIndex" + updatePageIndex;
+}
+return "";
+}

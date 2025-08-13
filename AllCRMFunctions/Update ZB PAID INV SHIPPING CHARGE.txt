@@ -1,0 +1,268 @@
+string standalone.updateZbPaidInvShippingCharge()
+{
+tokenArray = Map();
+//Access_Doors_Canada
+tokenArray.put("ekrllr",{"6gpb9ztna3tsvxwdtwwo4fye6c234yu","r6nghg45pf6sei4xhbt4otklyzkd600"});
+//Best_Access_Doors_Canada
+tokenArray.put("jdq9dzd",{"im4ouy3gboed27ksptqm43roxyxoi9j","6020ggpten8oik8pyeud6zhw3a19rji"});
+//Best_Access_Doors
+tokenArray.put("73d62",{"6bmozc9y8turqqviijfkt5o6mbut6ic","jz4y6k2juxckhz78kcah0ri3zcjgom"});
+//Access_Doors_And_Panels
+tokenArray.put("d6xnuf",{"petu2tvugsv4m7c3i0tvgcxvllt5jzk","jfyktmsgp25t13fe3cvtqpm5vws7kig"});
+//Acudor_Access_Panels
+tokenArray.put("sy018d9yee",{"8dhmjz7rm1q4lagy8fords7mef59jrr","3zssshtvtwym5zq8ws7hc3npa8lde2"});
+//Max_Supply
+tokenArray.put("dh5771",{"bq023epaqceys9695vag8tgzlgjyf83","f2ivuekkxy32gurxtosfhlfkik5bdig"});
+//California_Access_Doors
+tokenArray.put("v5cbc8ee",{"4oz25yional9eu6h9dw2x4bhkjhw966","b0fu2egusdrr4im3jlwiwx1823170o4"});
+scheduleRecordID = 3106252000061961343;
+pageIndexRec = zoho.crm.getRecordById("Merger_Schedule",scheduleRecordID);
+lastpageIndex = ifnull(pageIndexRec.get("Last_Import_2_ID"),"");
+if(lastpageIndex != "")
+{
+	//Page_count = lastpageIndex + 1;
+	Page_count = 1;
+	info "Page_count " + Page_count;
+	Record_count = 10;
+	orgId = "666840843";
+	Get_data = invokeurl
+	[
+		url :"https://books.zoho.com/api/v3/invoices?page=" + Page_count + "&per_page=" + Record_count + "&organization_id=" + orgId + "&filter_by=Status.paid&sort_column=created_time&sort_order=A"
+		type :GET
+		connection:"zohobooks_crmaccounts"
+	];
+	Invoice_list = List();
+	info "Get_data " + Get_data;
+	Get_Invoices = Get_data.get("invoices");
+	//info "Get_Invoices "+Get_Invoices;
+	//below code added by Pooja - Yaali
+	//Purpose: Updates shipping as line item in zoho books Invoice
+	for each  invoice in Get_Invoices
+	{
+		Invoice_Id = invoice.get("invoice_id");
+		info " Invoice_Id " + Invoice_Id;
+		response = "";
+		deletePayment = false;
+		Paymentupdate = Map();
+		updateMap = Map();
+		//Invoice_Id = 1324986000026414704;
+		shipItemUSInc = 1324986000026491965;
+		shipItemCADInc = 1324986000026491995;
+		lineItemList = list();
+		Get_Invoice_data = zoho.books.getRecordsByID("Invoices",orgId,Invoice_Id);
+		info "Get_Invoice_data " + Get_Invoice_data;
+		invoiceInfo = Get_Invoice_data.get("invoice");
+		bcUniqueID = "";
+		//shipping charge
+		shippingCharge = ifnull(invoiceInfo.get("shipping_charge"),0);
+		if(invoiceInfo.get("custom_field_hash") != null && invoiceInfo.get("custom_field_hash") != "")
+		{
+			bcUniqueID = invoiceInfo.get("custom_field_hash").get("cf_bigcommerce_unique_id");
+		}
+		if(bcUniqueID != "")
+		{
+			//bcOrderID = ifnull(invoiceInfo.get(""),0);
+			bcOrderID = bcUniqueID.getPrefix("_");
+			storeID = bcUniqueID.getSuffix("_");
+			//fetch BC order shipping exclusive of tax
+			bcAuthToken = tokenArray.get(storeID).get(0);
+			bcAuthClient = tokenArray.get(storeID).get(1);
+			HeaderMap = Map();
+			HeaderMap.put("Accept","application/json");
+			HeaderMap.put("Content-Type","application/json");
+			HeaderMap.put("X-Auth-Token",bcAuthToken);
+			HeaderMap.put("X-Auth-Client",bcAuthClient);
+			bcdata = getUrl("https://api.bigcommerce.com/stores/" + storeID + "/v2/orders/" + bcOrderID,HeaderMap);
+			if(bcdata.get("shipping_cost_ex_tax") != null && bcdata.get("shipping_cost_ex_tax") != "")
+			{
+				shippingCostExTax = bcdata.get("shipping_cost_ex_tax");
+				//check invoice currency
+				if(invoiceInfo != null && invoiceInfo != "")
+				{
+					if(shippingCharge > 0)
+					{
+						if(invoiceInfo.get("currency_code").equalsIgnoreCase("USD") || invoiceInfo.get("currency_code").equalsIgnoreCase("CAD"))
+						{
+							//fetch list of payment made for invoice
+							paymentMade = invokeurl
+							[
+								url :"https://books.zoho.com/api/v3/invoices/" + Invoice_Id + "/payments?organization_id=666840843"
+								type :GET
+								connection:"zohobooks_crmaccounts"
+							];
+							if(paymentMade.get("code") == 0)
+							{
+								payments = paymentMade.get("payments");
+								if(payments.size() > 1)
+								{
+									response = "More Than One Payment Made For the Invoice";
+								}
+								else if(payments.size() == 1)
+								{
+									paymentId = payments.get(0).get("payment_id");
+									//fetch a payment made
+									customerPayment = zoho.books.getRecordsByID("customerpayments",orgId,paymentId);
+									if(customerPayment.get("code") == 0)
+									{
+										cusPaymentInfo = customerPayment.get("payment");
+										if(cusPaymentInfo.get("invoices").size() > 1)
+										{
+											response = "More than one Invoice associated with this payment. PAYMENT ID : " + paymentId;
+										}
+										else if(cusPaymentInfo.get("invoices").size() == 1)
+										{
+											if(cusPaymentInfo.get("payment_refunds").size() == 0)
+											{
+												exchangeRate = cusPaymentInfo.get("exchange_rate");
+												paidAmount = cusPaymentInfo.get("amount");
+												bankCharges = cusPaymentInfo.get("bank_charges");
+												//Payment update map
+												Paymentupdate.put("customer_id",cusPaymentInfo.get("customer_id"));
+												Paymentupdate.put("payment_mode",cusPaymentInfo.get("payment_mode"));
+												Paymentupdate.put("amount",cusPaymentInfo.get("amount"));
+												Paymentupdate.put("account_id",cusPaymentInfo.get("account_id"));
+												invoicemap = Map();
+												invoicemap.put("invoice_id",Invoice_Id);
+												invoicemap.put("amount_applied",cusPaymentInfo.get("amount"));
+												Paymentupdate.put("invoices",invoicemap.toList());
+												Paymentupdate.put("reference_number",cusPaymentInfo.get("reference_number"));
+												Paymentupdate.put("date",cusPaymentInfo.get("date"));
+												Paymentupdate.put("description",cusPaymentInfo.get("description"));
+												//Paymentupdate.put("gateway_transaction_id",gateway_trans_id);
+												Paymentupdate.put("last_four_digits",cusPaymentInfo.get("last_four_digits"));
+												Paymentupdate.put("tax_account_id",cusPaymentInfo.get("tax_account_id"));
+												Paymentupdate.put("tax_account_name",cusPaymentInfo.get("tax_account_name"));
+												/*customfieldmap2 = Map();
+												customfieldmap2.put("label","Fax Number");
+												customfieldmap2.put("value",fax_number);
+												custom_fields.add(customfieldmap2); */
+												if(cusPaymentInfo.get("custom_field_hash") != null && cusPaymentInfo.get("custom_field_hash") != "")
+												{
+													customFieldsData = cusPaymentInfo.get("custom_field_hash");
+													custom_fields = List();
+													//store name
+													customfieldmap1 = Map();
+													customfieldmap1.put("label","Store Name");
+													customfieldmap1.put("value",ifnull(customFieldsData.get("cf_store_name"),""));
+													custom_fields.add(customfieldmap1);
+													//BC Unique ID
+													customfieldmap = Map();
+													customfieldmap.put("label","Bigcommerce Unique ID");
+													customfieldmap.put("value",ifnull(customFieldsData.get("cf_bigcommerce_unique_id"),""));
+													custom_fields.add(customfieldmap);
+													//payment gateway
+													customfieldmap2 = Map();
+													customfieldmap2.put("label","Payment Gatway");
+													customfieldmap2.put("value",ifnull(customFieldsData.get("cf_payment_gatway"),""));
+													custom_fields.add(customfieldmap2);
+													//Payment Transaction Id
+													customfieldmap3 = Map();
+													customfieldmap3.put("label","Payment Transaction Id");
+													customfieldmap3.put("value",ifnull(customFieldsData.get("cf_payment_transaction_id"),""));
+													custom_fields.add(customfieldmap3);
+													//Stripe PO
+													customfieldmap4 = Map();
+													customfieldmap4.put("label","Stripe PO");
+													customfieldmap4.put("value",ifnull(customFieldsData.get("cf_stripe_po"),""));
+													custom_fields.add(customfieldmap4);
+													Paymentupdate.put("custom_fields",custom_fields.toList());
+													info "Paymentupdate" + Paymentupdate;
+												}
+												deletePayment = true;
+											}
+											else
+											{
+												response = "Refund Applied For Payment. PAYMENT ID : " + paymentId;
+											}
+										}
+									}
+									else
+									{
+										response = "Unable To Fetch Payment Made. PAYMENT ID : " + paymentId;
+									}
+								}
+							}
+							else
+							{
+								response = "Unable To Fetch List Of Payment Made For an Invoice";
+							}
+						}
+						else
+						{
+							response = "New Currency Code Found. Currency : " + invoiceInfo.get("currency_code");
+						}
+						if(deletePayment)
+						{
+							//delete payment
+							deletePayment = invokeurl
+							[
+								url :"https://books.zoho.com/api/v3/customerpayments/" + paymentId + "?organization_id=" + orgId
+								type :DELETE
+								connection:"zohobooks_crmaccounts"
+							];
+							if(deletePayment.get("code") == 0)
+							{
+								lineItemInfo = invoiceInfo.get("line_items");
+								for each  rec_lineitem in lineItemInfo
+								{
+									lineItemMap = Map();
+									lineItemId = rec_lineitem.get("line_item_id");
+									itemId = rec_lineitem.get("item_id");
+									//bcyRate=rec_lineitem.get("bcy_rate");
+									//rate=rec_lineitem.get("rate");
+									//qty=rec_lineitem.get("quantity");
+									lineItemMap.put("line_item_id",lineItemId);
+									lineItemMap.put("item_id",itemId);
+									//lineItemMap.put("bcy_rate", bcyRate);
+									//lineItemMap.put("rate", rate);
+									//lineItemMap.put("quantity", qty);
+									lineItemList.add(lineItemMap);
+								}
+								if(invoiceInfo.get("currency_code").equalsIgnoreCase("USD"))
+								{
+									shippingChargeUSD = Map();
+									shippingChargeUSD.put("item_id",shipItemUSInc);
+									shippingChargeUSD.put("rate",shippingCostExTax);
+									shippingChargeUSD.put("quantity",1);
+									lineItemList.add(shippingChargeUSD);
+								}
+								else if(invoiceInfo.get("currency_code").equalsIgnoreCase("CAD"))
+								{
+									shippingChargeCAD = Map();
+									shippingChargeCAD.put("item_id",shipItemCADInc);
+									shippingChargeCAD.put("rate",shippingCostExTax);
+									shippingChargeCAD.put("quantity",1);
+									lineItemList.add(shippingChargeCAD);
+								}
+								updateMap.put("line_items",lineItemList);
+								updateMap.put("shipping_charge",0);
+								updateMap.put("reason","In order to update shipping charge as line item");
+								updateInvoice = zoho.books.updateRecord("invoices",orgId,Invoice_Id,updateMap);
+								info "updateInvoice " + updateInvoice;
+								//create payment
+								createpayment = zoho.books.createRecord("Customerpayments",orgId,Paymentupdate);
+								info "createpayment" + createpayment;
+							}
+							else
+							{
+								response = "Unable To Delete the payment made. " + paymentId;
+							}
+						}
+					}
+				}
+			}
+			else
+			{
+				response = "Shipping charge exclusive of tax is empty";
+			}
+		}
+		else
+		{
+			response = "BC ORDER ID NOT AVAILABLE";
+		}
+	}
+	updatePageIndex = zoho.crm.updateRecord("Merger_Schedule",scheduleRecordID,{"Last_Import_2_ID":Page_count});
+	info "updatePageIndex" + updatePageIndex;
+}
+return "";
+}

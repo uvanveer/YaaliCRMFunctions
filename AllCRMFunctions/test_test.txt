@@ -1,0 +1,22 @@
+string standalone.test_test()
+{
+// values1 = zoho.loginuser;
+// info values1;
+// va = 1;
+// va2 = 1;
+// if(va == 1 && va2 == 1 && zoho.loginuser != "yaer")
+// {
+// 	info 1233;
+// }
+// else
+// {
+// 	info 1;
+// }
+// return "";
+carrier1 = "Estes";
+carrier12 = carrier1.toString().replaceAll("\(","\\(").replaceAll("\)","\\)");
+info "carrier12" + carrier12;
+response = zoho.crm.searchRecords("BC_Carrier_List","(BC_Carrier_Name:equals:" + carrier12 + ")");
+info "response" + response;
+return "";
+}

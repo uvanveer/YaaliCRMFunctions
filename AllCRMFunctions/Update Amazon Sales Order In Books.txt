@@ -1,0 +1,52 @@
+string standalone.Update_Amazon_Sales_Order_In_Books()
+{
+/* Created By Ezhil on 21 July 2020 */
+// Update amazon sales order in books with tax details
+// recordsList = zoho.crm.searchRecords("Sales_Orders","Source:equals:Amazon Store",1,200);
+loggerId = "3106252000110408208";
+Get_module_data = zoho.crm.getRecordById("BooksCOAUpdate",loggerId);
+pageCount = Get_module_data.get("Page_Count");
+recordCount = Get_module_data.get("Record_Count");
+pageCount = pageCount.toLong();
+// recordsList = zoho.crm.searchRecords("Sales_Orders","((Source:equals:Amazon Store)and(Is_Synced_To_Books:equals:false))",pageCount,recordCount);
+coql_map = Map();
+coql_map.put("select_query","select Status,Source, Is_Synced_To_Books from Sales_Orders where (((Is_Synced_To_Books = false) and (Source = 'Amazon Store'))and (Status != 'Canceled')) LIMIT " + recordCount + " OFFSET " + pageCount);
+recordsList = invokeurl
+[
+	url :"https://www.zohoapis.com/crm/v2/coql"
+	type :POST
+	parameters:coql_map.tostring()
+	connection:"crm_connection"
+];
+info "Record Size : " + recordsList.get("data").size();
+for each  saleOrderInfo in recordsList.get("data")
+{
+	// info saleOrderInfo;
+	crmSaleOrderId = saleOrderInfo.get("id");
+	orderid = Map();
+	orderid.put("crmOrderId",crmSaleOrderId);
+	response = invokeurl
+	[
+		url :"https://www.1.door-pay.com/api/zohocrm/updateOrder"
+		type :POST
+		parameters:orderid
+		detailed:true
+	];
+	info crmSaleOrderId + " status : " + saleOrderInfo.get("Is_Synced_To_Books") + " " + saleOrderInfo.get("Status");
+}
+/*
+if(recordsList.size() == 0)
+{
+	pageCount = 0;
+}
+else 
+{
+	pageCount = pageCount + 1;
+}
+*/
+pageCount = pageCount + 1;
+Record_Update_map = Map();
+Record_Update_map.put("Page_Count",pageCount.toString());
+// Update_record = zoho.crm.updateRecord("BooksCOAUpdate",loggerId,Record_Update_map);
+return "";
+}

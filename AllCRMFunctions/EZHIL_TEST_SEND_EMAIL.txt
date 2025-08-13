@@ -1,0 +1,40 @@
+string standalone.EZHIL_TEST_SEND_EMAIL(String data)
+{
+// emailSendUrl = "https://1.door-pay.com/pq/m/sendMailNotification.php";
+// emailToken = "59AACEAFB2CE53271A6048D2D385D4C800587C0D047F8B07958934F710AE5D7891FB4EC28BB2FA684F638630E9EF76F7D19D22EE9A20EE892625DC2FCEDCD976";
+// emailListData = list();
+// emailList = list();
+// emailSubject = "CRM Function Test";
+// emailBody = "Function Executed : " + data;
+// emailList.add("ezhil@bizappln.com");
+// mailArrayDataObject = Map();
+// mailArrayDataObject.put("MailTo",emailList);
+// mailArrayDataObject.put("Subject",emailSubject);
+// mailArrayDataObject.put("Message",emailBody);
+// emailListData.add(mailArrayDataObject);
+// mailMap = Map();
+// mailMap.put("MailArray",emailListData);
+// mailMap.put("Authtoken",emailToken);
+// // Header
+// emailHeader = Map();
+// emailHeader.put("content-type","application/json");
+// response = invokeurl
+// [
+// 	url :emailSendUrl
+// 	type :POST
+// 	parameters:mailMap.toString()
+// 	headers:emailHeader
+// 	detailed:false
+// ];
+// info response;
+// info zoho.crm.getRecordById("Sales_Orders",3106252000121112456);
+// res = "{\"Code\":202,\"message\":\"mail has sent\"}";
+// info res.getJSON("Code");
+val = zoho.crm.getRecordById("Sales_Orders",3106252000422278069);
+// info val;/.
+product = val.get("Product_Details");
+info product;
+var = product.containKey("Product_Code");
+info var;
+return "";
+}

@@ -1,0 +1,198 @@
+void automation.Verify_PO_Created_With_Vendor_Respective_Item(String purchaseOrderId)
+{
+/* Created By Ezhil on 14 August 2020 */
+/* Send an email alert if the PO not created with vendor respective items. */
+dropshipOrderInfo = zoho.crm.getRecordById("Purchase_Orders",purchaseOrderId);
+//info dropshipOrderInfo ;
+SF = dropshipOrderInfo.get("status");
+//info SF ;
+if(SF != "failure")
+{
+	//info SF ;
+	dropshipOrderStatus = dropshipOrderInfo.get("Status");
+	dropshipOrderSource = dropshipOrderInfo.get("Source");
+	//info dropshipOrderStatus ;
+	if(!dropshipOrderStatus.equals("Cancelled") && !dropshipOrderSource.equals("Amazon Store"))
+	{
+		productsArray = dropshipOrderInfo.get("Product_Details");
+		poProductInfo = productsArray.get(0);
+		productId = poProductInfo.get("product").get("id");
+		productInfo = zoho.crm.getRecordById("Products",productId);
+		Vendor_name = productInfo.get("Vendor_Name");
+		if(Vendor_name != null)
+		{
+			productVendor = productInfo.get("Vendor_Name").get("name");
+			productVendorId = productInfo.get("Vendor_Name").get("id");
+			if(productVendor != null && productVendor != "")
+			{
+				saleOrderId = dropshipOrderInfo.get("Sales_Order").get("id");
+				saleOrderInfo = zoho.crm.getRecordById("Sales_Orders",saleOrderId);
+				if(saleOrderInfo != null)
+				{
+					productList = saleOrderInfo.get("Product_Details").toJSONList();
+					info productList;
+					vendorMap = Map();
+					for each  saleOrderProduct in productList
+					{
+						if(saleOrderProduct.get("quantity") > 0)
+						{
+							soProductQty = saleOrderProduct.get("quantity");
+							soProductId = saleOrderProduct.get("product").get("id");
+							saleOrderProductInfo = zoho.crm.getRecordById("Products",soProductId);
+							soVendorName = saleOrderProductInfo.get("Vendor_Name");
+							soVendorId = saleOrderProductInfo.get("Vendor_Name").get("id");
+							// info "So Product Id : "+soProductId;
+							if(!isNull(soVendorName))
+							{
+								if(vendorMap.containKey(soVendorId))
+								{
+									exisVendorProductList = list();
+									singleProduct = Map();
+									singleProduct.put("product_id",soProductId);
+									singleProduct.put("product_qty",soProductQty);
+									exisVendorProductList = vendorMap.get(soVendorId);
+									exisVendorProductList.add(singleProduct);
+								}
+								else
+								{
+									vendorProductList = list();
+									singleProduct = Map();
+									singleProduct.put("product_id",soProductId);
+									singleProduct.put("product_qty",soProductQty);
+									vendorProductList.add(singleProduct);
+									vendorMap.put(soVendorId,vendorProductList);
+								}
+							}
+						}
+					}
+				}
+				//info vendorMap;
+				//	info "Product Array : "+productsArray;
+				if(vendorMap.containKey(productVendorId))
+				{
+					currentPoActualItemList = vendorMap.get(productVendorId);
+					actualPoItemCount = currentPoActualItemList.size();
+					if(actualPoItemCount != productsArray.size())
+					{
+						// PO Item count mismatched
+						emailSendUrl = "https://1.door-pay.com/api/Office360Mail/v2/sendreq";
+						emailToken = "59AACEAFB2CE53271A6048D2D385D4C800587C0D047F8B07958934F710AE5D7891FB4EC28BB2FA684F638630E9EF76F7D19D22EE9A20EE892625DC2FCEDCD976";
+						emailListData = list();
+						emailList = list();
+						saleOrderUrl = "https://crm.zoho.com/crm/org663942562/tab/SalesOrders/" + saleOrderId;
+						purchaseOrderUrl = "https://crm.zoho.com/crm/org663942562/tab/PurchaseOrders/" + purchaseOrderId;
+						emailSubject = "Wrong vendor used for Purchase order";
+						emailBody = "<div>Hi,<br></div><div><br></div><div>We have identified a purchase order which is not created respective with vendor. Kindly please check the below orders.<br><br>Sales Order URL :&nbsp;" + saleOrderUrl + "</div><div><br></div><div>Purchase Order URL :&nbsp;" + purchaseOrderUrl + "<br></div><div><br></div><div>Thanks.</div>";
+						emailList.add("dinesh@bizappln.com");
+						emailList.add("prabhu@bizappln.com");
+						emailList.add("jegan@bizappln.com");
+						emailList.add("tharmendheran@bizappln.com");
+						emailList.add("yogesh@bizappln.com");
+						emailList.add("mohan@bizappln.com");
+						emailList.add("bharathi@bizappln.com");
+						emailList.add("balaji@bizappln.com");
+						emailList.add("notifications@bestaccessdoors.com");
+						emailList.add("dev@bestaccessdoors.com");
+						emailList.add("zyarina@bestaccessdoors.com");
+						emailList.add("pooja@bizappln.com");
+						mailArrayDataObject = Map();
+						mailArrayDataObject.put("to",emailList);
+						mailArrayDataObject.put("subject",emailSubject);
+						mailArrayDataObject.put("body",emailBody);
+						mailArrayDataObject.put("Scope","Verify_PO_Created_With_Vendor");
+						emailListData.add(mailArrayDataObject);
+						mailMap = Map();
+						mailMap.put("MailArray",emailListData);
+						mailMap.put("Authtoken",emailToken);
+						// Header
+						BADAuthorization = zoho.crm.getOrgVariable("OAuthHashCode");
+						emailHeader = Map();
+						emailHeader.put("content-type","application/json");
+						emailHeader.put("BADAuthorization",BADAuthorization);
+						response = invokeurl
+						[
+							url :emailSendUrl
+							type :POST
+							parameters:mailMap.toString()
+							headers:emailHeader
+							detailed:false
+						];
+						info response;
+					}
+					else
+					{
+						info "PO Created with correct vendor and items";
+					}
+					/*
+			poItemCounter = 0;
+			for each  currentPoItem in currentPoActualItemList
+			{
+				currentPoItemId = currentPoItem.get("product_id");
+				currentPoItemQty = currentPoItem.get("product_qty");
+				for each  poProductObj in productsArray
+				{
+					poItemId = poProductObj.get("product").get("id");
+					poItemQty = poProductObj.get("quantity");
+					
+					info "Checking PO Item ID : " + currentPoItemId + " & Qty : " + currentPoItemQty;
+					info "Checking SO Item ID : " + poItemId + " & Qty : " + poItemQty;
+					if(currentPoItemId == poItemId && currentPoItemQty == poItemQty)
+					{
+						info "matched";
+						poItemCounter = poItemCounter + 1;
+					}
+				}
+			}
+			info "Current PO Item List : "+ actualPoItemCount;
+			info "Actual PO Item List : "+ poItemCounter;
+			if(actualPoItemCount != poItemCounter)
+			{
+				// PO Item count mismatched
+				emailSendUrl = "https://1.door-pay.com/pq/m/sendMailNotification.php";
+				emailToken = "59AACEAFB2CE53271A6048D2D385D4C800587C0D047F8B07958934F710AE5D7891FB4EC28BB2FA684F638630E9EF76F7D19D22EE9A20EE892625DC2FCEDCD976";
+				emailListData = list();
+				emailList = list();
+				saleOrderUrl = "https://crm.zoho.com/crm/org663942562/tab/SalesOrders/" + saleOrderId;
+				purchaseOrderUrl = "https://crm.zoho.com/crm/org663942562/tab/PurchaseOrders/" + purchaseOrderId;
+				emailSubject = "Wrong vendor used for Purchase order";
+				emailBody = "<div>Hi Anthony,<br></div><div><br></div><div>We have identified a purchase order which is not created respective with vendor. Kindly please check the below orders.<br><br>Sales Order URL :&nbsp;" + saleOrderUrl + "</div><div><br></div><div>Purchase Order URL :&nbsp;" + purchaseOrderUrl + "<br></div><div><br></div><div>Thanks.</div>";
+				emailList.add("ezhil@bizappln.com");
+// 				emailList.add("dinesh@bizappln.com");
+// 				emailList.add("tharmendheran@bizappln.com");
+// 				emailList.add("balaji@bizappln.com");
+// 				emailList.add("notifications@bestaccessdoors.com");
+// 				emailList.add("dev@bestaccessdoors.com");
+// 				emailList.add("zyarina@bestaccessdoors.com");
+// 				emailList.add("pooja@bizappln.com");
+				mailArrayDataObject = Map();
+				mailArrayDataObject.put("MailTo",emailList);
+				mailArrayDataObject.put("Subject",emailSubject);
+				mailArrayDataObject.put("Message",emailBody);
+				emailListData.add(mailArrayDataObject);
+				mailMap = Map();
+				mailMap.put("MailArray",emailListData);
+				mailMap.put("Authtoken",emailToken);
+				// Header
+				emailHeader = Map();
+				emailHeader.put("content-type","application/json");
+				response = invokeurl
+				[
+					url :emailSendUrl
+					type :POST
+					parameters:mailMap.toString()
+					headers:emailHeader
+					detailed:false
+				];
+				info response;
+			}
+			*/
+				}
+			}
+		}
+	}
+}
+else
+{
+	info "failure";
+}
+}

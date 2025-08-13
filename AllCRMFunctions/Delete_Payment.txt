@@ -1,0 +1,51 @@
+string standalone.Delete_Payment()
+{
+Page_Count = 1;
+Record_count = 10;
+Get_data = getUrl("https://www.zohoapis.com/books/v3/vendorpayments?page=" + Page_Count + "&per_page=" + Record_count + "&payment_number=115&organization_id=666840843",{"Authorization":"Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2"});
+info Get_data;
+Get_vendor_payment = Get_data.get("vendorpayments");
+vendor_payment_map = Get_vendor_payment.toMap();
+Get_all_billnumbers = vendor_payment_map.get("bill_numbers");
+// info Get_all_billnumbers;
+Bills_list = LIST();
+Amount = 0;
+count = 0;
+for each  rec_bill in Get_all_billnumbers
+{
+	if(rec_bill.contains("Old"))
+	{
+		Get_bill_details = getUrl("https://www.zohoapis.com/books/v3/bills?page=" + Page_Count + "&per_page=" + Record_count + "&bill_number=" + rec_bill + "&organization_id=666840843",{"Authorization":"Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2"});
+		// 	info Get_bill_details;
+		Get_bill_data = Get_bill_details.get("bills");
+		Bill_map = Get_bill_data.toMap();
+		Get_Bill_id = Bill_map.get("bill_id");
+		info Get_Bill_id;
+		Get_bill_payments = getUrl("https://www.zohoapis.com/books/v3/bills/" + Get_Bill_id + "/payments?organization_id=666840843",{"Authorization":"Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2"});
+		info Get_bill_payments;
+		Get_payments = Get_bill_payments.get("payments");
+		if(Get_payments.size() > 0)
+		{
+			payment_map = Get_payments.toMap();
+			// 	info Get_payments;
+			Get_payment_id = payment_map.get("bill_payment_id");
+			info Get_payment_id;
+			header_data = Map();
+			header_data.put("Authorization","Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2");
+			delete_payment = invokeurl
+			[
+				url :"https://www.zohoapis.com/books/v3/bills/" + Get_Bill_id + "/payments/" + Get_payment_id + "?organization_id=666840843"
+				type :DELETE
+				headers:header_data
+			];
+			info delete_payment;
+			count = count + 1;
+		}
+	}
+	if(count == 5)
+	{
+		break;
+	}
+}
+return "";
+}

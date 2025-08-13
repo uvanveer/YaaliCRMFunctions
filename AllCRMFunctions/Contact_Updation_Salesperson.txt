@@ -1,0 +1,51 @@
+string button.Contact_Updation_Salesperson(String Contact_Id)
+{
+Contact_URL = "https://crm.zoho.com/crm/org663942562/tab/Contacts/" + Contact_Id;
+CRM_contact = zoho.crm.getRecordById("Contacts",Contact_Id);
+info CRM_contact;
+Get_Owner_details = CRM_contact.get("Owner").get("name");
+info Get_Owner_details;
+loginuser = zoho.loginuserid;
+fetchemp = zoho.creator.getRecords("zoho_zoho1502","quotes","All_Employees","Email==\"" + zoho.loginuserid + "\"",1,200,"zcreator_connecction");
+saleperon_id = "";
+return_msg = "";
+if(fetchemp.get("code") == 3000)
+{
+	empList = fetchemp.get("data");
+	if(empList.size() > 0)
+	{
+		get_salesperson = empList.get(0);
+		saleperon_id = get_salesperson.getJSON("ID");
+	}
+	else
+	{
+		info "-no emp found-";
+		//return_msg = "There is no Salesperson Availble for this owner Email, Please contact your Admin";
+	}
+}
+// if ( saleperon_id != "" ) 
+// {
+account_name = "";
+if(CRM_contact.get("Account_Name") != null)
+{
+	account_name_check = CRM_contact.get("Account_Name");
+	if(account_name_check != null)
+	{
+		account_name = account_name_check.get("name");
+	}
+}
+url = "https://creator.zohopublic.com/zoho_zoho1502/quotes/form-perma/Contact_Details_Migration/DAw6qzQM75W2HewyMBFRaHDzSzHpf0mHRS8HzFvm5yAWPsdRO30Zeb1tQ15WdMbzgHw6fp515KT8BSAF8DwyqKQAGTxd8WhR0Uwr?Salesperson=" + saleperon_id + "&Old_Owner=" + Get_Owner_details + "&CRM_Contact_Url=" + Contact_URL + "&Old_First_Name=" + ifNull(CRM_contact.get("First_Name"),"") + "&Old_Name=" + ifNull(CRM_contact.get("Last_Name"),"") + "&Old_Email=" + ifNull(CRM_contact.get("Email"),"") + "&Old_Account=" + ifNull(account_name,"");
+// + "&Company=" + companyname
+//info url;
+if(!isNull(url) && url != null && url != "")
+{
+	openUrl(url,"new window");
+	info url;
+}
+// }
+// else 
+// {
+// 	return_msg =  "There is no Salesperson Availble for this owner Email, Please contact your Admin";
+// }
+return "";
+}

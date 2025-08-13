@@ -1,0 +1,48 @@
+void automation.ContactSendEmailbestaccessdoors(Int contact_id)
+{
+company = zoho.crm.getRecordById("Contacts",contact_id);
+//info company;
+//email_val = company.get("Email");
+billing_email_val = company.get("Billing_Email");
+contact_email_val = company.get("Contact_Email");
+email_val = company.get("Email");
+workflow = Map();
+workflow.put("trigger",{"workflow"});
+mp1 = Map();
+mp1.put("$se_module","Contacts");
+mp1.put("What_Id",contact_id);
+//mp1.put("Who_Id",lead_id);
+mp1.put("Owner",3106252000000147013);
+mp1.put("Due_Date",zoho.currentdate);
+mp1.put("Subject","Contact Added with @bestaccessdoors.com domain");
+create_Task1 = zoho.crm.createRecord("Tasks",mp1,workflow);
+//info create_Task1;
+mp = Map();
+mp.put("$se_module","Contacts");
+mp.put("What_Id",contact_id);
+//mp.put("Who_Id",lead_id);
+mp.put("Owner",3106252000000147711);
+mp.put("Due_Date",zoho.currentdate);
+mp.put("Subject","Contact Added with @bestaccessdoors.com domain");
+// 			mp.put("Call_Purpose","Prospecting");
+// 			mp.put("Call_Start_Time",Get_call_starttime);
+create_Task = zoho.crm.createRecord("Tasks",mp,workflow);
+//info create_Task;
+//info create_Task;
+get_task_id = create_Task.get("id");
+task_link = "https://crm.zoho.com/crm/org663942562/tab/Activities/" + get_task_id + "?sub_module=Tasks";
+crm_link = "https://crm.zoho.com/crm/org663942562/tab/Contacts/" + contact_id + "";
+boady = "<br> Hello, <br> A Contact was created with an @bestaccessdoor.com url <br>Email : <b>" + email_val + "</b><br>Please see <b>" + crm_link + "</b><br>A Task has been created in CRM as well to approve or modify this Contact.<br> <b>" + task_link + "  </b><br> Thanks, <br><b>Best Access Doors ADMIN</b><br><br>";
+mailmap = Map();
+mailmap.put("to",{"anitha@bizappln.com"});
+//mailmap.put("to",{"po@bestaccessdoors.com"});
+//mailmap.put("cc",{"anthony@bestaccessdoors.com","citrigno"});
+//mailmap.put("bcc",{"tharmendheran@bizappln.com","balaji"});
+mailmap.put("scope","EmailCheck");
+//mailmap.put("subject","New Product from BC Store " + storename.replaceAll("_"," ") + " Added to Zoho for Order " + lead_id);
+mailmap.put("subject",'Contact Added with @bestaccessdoors.com domain');
+mailmap.put("body",boady);
+// 	info mailmap;
+mailres = postURL("https://1.door-pay.com/api/Office360Mail/sendreq",mailmap);
+info "mailres:" + mailres;
+}

@@ -1,0 +1,15 @@
+void schedule.weeklyWonDealsUpdate()
+{
+//Code done by Pooja L
+//Updates Today and Yesterday deal calculations for admin reports
+//created on 10/Aug/2020
+usersData = zoho.crm.searchRecords("Salesperson_Dashboard_Rpt",{"cvid":3106252000066726161});
+for each  userdata in usersData
+{
+	thisWeekWonAmount = ifnull(userdata.get("Won_Amount_Weekly"),0);
+	thisWeekWonDeal = ifnull("Deals_Count_Weekly",0);
+	lastWeekWonAmount = ifnull("Won_Amount_Last_Week",0);
+	lastWeekWonDeal = ifnull("Deal_Count_Last_Week",0);
+	updateReport = zoho.crm.updateRecord("Salesperson_Dashboard_Rpt",userdata.get("id").toLong(),{"Won_Amount_Weekly":0,"Deals_Count_Weekly":0,"Deal_Count_Last_Week":thisWeekWonDeal,"Won_Amount_Last_Week":thisWeekWonAmount});
+}
+}

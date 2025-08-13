@@ -1,0 +1,99 @@
+void automation.update_type_of_call(Int recId)
+{
+calls = zoho.crm.getRecordById("Calls",recId);
+//info calls;
+if(calls.containKey("id"))
+{
+	sub = calls.get("Subject");
+	Dailednumber = sub.removeAllAlpha();
+	//info Dailednumber;
+	// if(Dailednumber.contains("+"))
+	// {
+	// 	info "yess";
+	Dailednumber = Dailednumber.replaceAll("[(@#%*&$+_)]","");
+	if(Dailednumber.contains("-"))
+	{
+		Dailednumber = Dailednumber.remove("-");
+	}
+	if(Dailednumber.contains("."))
+	{
+		Dailednumber = Dailednumber.remove(".");
+	}
+	if(Dailednumber.contains("/"))
+	{
+		Dailednumber = Dailednumber.remove("/");
+	}
+	if(Dailednumber.contains("*"))
+	{
+		Dailednumber = Dailednumber.remove("*");
+	}
+	if(Dailednumber.contains("è"))
+	{
+		Dailednumber = Dailednumber.remove("è");
+	}
+	if(Dailednumber.contains("\""))
+	{
+		Dailednumber = Dailednumber.remove("\"");
+	}
+	///Dailednumber = Dailednumber.getSuffix("+");
+	// 	if(Dailednumber.contains(")"))
+	// 	{
+	// 		Dailednumber = Dailednumber.remove(")");
+	// 	}
+	// }
+	// else
+	// {
+	// 	// 	info "noo";
+	// 	Dailednumber = Dailednumber;
+	// }
+	// code comment by Cva 20-Oct-2020
+	// contactMap = calls.get("Who_Id");
+	// if ( contactMap != null ) 
+	// {
+	// 	contactID = contactMap.get("id");
+	// 	getContact = zoho.crm.getRecordById("Contacts", contactID);
+	// 	info getContact ;
+	// }
+	// dialedNum = calls.get("Dialled_Number");
+	// dialedNumLen = 0;
+	// numLength = 0;
+	// if(dialedNum != null)
+	// {
+	// 	dialedNumLen = dialedNum.len();
+	// }
+	// if(sub != null)
+	// {
+	// 	if(sub.contains("Outgoing call to"))
+	// 	{
+	// 		numLength = sub.replaceFirst("Outgoing call to ","").len();
+	// 	}
+	// 	else if(sub.contains("Missed call from"))
+	// 	{
+	// 		numLength = sub.replaceFirst("Missed call from ","").len();
+	// 	}
+	// 	else if(sub.contains("Incoming call from"))
+	// 	{
+	// 		numLength = sub.replaceFirst("Incoming call from ","").len();
+	// 	}
+	// }
+	//code comment
+	numLength = Dailednumber.trim().len();
+	info numLength;
+	typeMap = Map();
+	if(numLength == 3)
+	{
+		//typeMap = {"Type_of_Call":"Internal"};
+		typeMap.put("Type_of_Call","Internal");
+	}
+	else
+	{
+		//typeMap = {"Type_of_Call":"External"};
+		typeMap.put("Type_of_Call","External");
+	}
+	typeMap.put("Called_Number",Dailednumber);
+	//info Dailednumber;
+	info typeMap;
+	resp = zoho.crm.updateRecord("Calls",recId,typeMap,{"trigger":{}});
+	info resp;
+}
+}

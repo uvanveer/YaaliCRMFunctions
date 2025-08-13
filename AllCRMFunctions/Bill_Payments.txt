@@ -1,0 +1,86 @@
+string standalone.Bill_Payments()
+{
+// Page_Count = 1;
+// Record_count = 10;
+// Get_data = getUrl("https://books.zoho.com/api/v3/vendorpayments?page=" + Page_Count + "&per_page=" + Record_count + "&payment_number=115&organization_id=666840843",{"Authorization":"Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2"});
+// info Get_data;
+// // info get_bill;
+// Get_vendor_payments = Get_data.get("vendorpayments");
+// vendorpayment_map = Get_vendor_payments.toMap();
+// Get_all_billnumbers = vendorpayment_map.get("bill_numbers");
+// Get_vendor_amt = vendorpayment_map.get("amount");
+// // info Get_all_billnumbers;
+// Bills_list = LIST();
+// Amount = 0;
+// for each  rec_bill in Get_all_billnumbers.toList(",")
+// {
+// 	if(rec_bill.contains("Old-"))
+// 	{
+// 		Get_bill_number = rec_bill.getsuffix("Old-");
+// 		// 	info Get_bill_number;
+// 		bill_id = getUrl("https://books.zoho.com/api/v3/bills?page=" + Page_Count + "&per_page=" + Record_count + "&bill_number=" + Get_bill_number + "&organization_id=666840843",{"Authorization":"Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2"});
+// 			info bill_id;
+// 		if(bill_id.get("bills").size() > 0)
+// 		{
+// 			Searched_Bill_Map = bill_id.get("bills").toMap();
+// 			Get_Bill_Id = Searched_Bill_Map.get("bill_id");
+// 			Get_Bill_amount = Searched_Bill_Map.get("balance");
+// 			Amount = Amount + Get_Bill_amount;
+// 			// 		info "First" + Get_Bill_amount;
+// 			Bill_Map = Map();
+// 			Bill_Map.put("bill_id",Get_Bill_Id);
+// 			Bill_Map.put("amount_applied",Get_Bill_amount);
+// 			Bills_list.add(Bill_Map);
+// 			// 	break;
+// 		}
+// 	}
+// }
+// info "Amount" + Amount;
+// // info "vendorpayment_map" + vendorpayment_map;
+// Get_vendor_Id = vendorpayment_map.get("vendor_id");
+// Get_reference_number = vendorpayment_map.get("reference_number");
+// Get_payment_mode = vendorpayment_map.get("payment_mode");
+// Get_payment_number = vendorpayment_map.get("payment_number");
+// Get_payment_date = vendorpayment_map.get("date");
+// Get_payment_amount = vendorpayment_map.get("amount");
+// Get_account_id = vendorpayment_map.get("paid_through_account_id");
+// Get_description = vendorpayment_map.get("description");
+// Get_exchange_rate = vendorpayment_map.get("exchange_rate");
+Header_map = Map();
+Header_map.put("Authorization","Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2");
+comment_map = Map();
+// comment_map.put("vendor_id",Get_vendor_Id);
+// comment_map.put("reference_number",Get_reference_number);
+// comment_map.put("payment_mode",Get_payment_mode);
+// comment_map.put("payment_number",Get_payment_number);
+// comment_map.put("date",Get_payment_date);
+// comment_map.put("amount", Get_payment_amount + Amount);
+comment_map.put("amount","7142.75");
+// comment_map.put("exchange_rate",Get_exchange_rate);
+// comment_map.put("description",Get_description);
+// comment_map.put("paid_through_account_id",Get_account_id);
+// comment_map.put("bills",Bills_list);
+Jsonmap = Map();
+Jsonmap.put("JSONString",comment_map);
+info "Jsonmap" + Jsonmap;
+Update_comments_url = "https://books.zoho.com/api/v3/vendorpayments/1324986000035236176?organization_id=666840843";
+// // comments_url = "https://books.zoho.com/api/v3/vendorpayments?organization_id=666840843";
+Update_vp = putUrl(Update_comments_url,Jsonmap,Header_map);
+// Add_comments = postUrl(comments_url,Jsonmap,Header_map);
+info Update_vp;
+// info Add_comments;
+// payment_list = getUrl("https://books.zoho.com/api/v3/bills/" + Get_Bill_ID + "/payments?organization_id=666840843",{"Authorization":"Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2"});
+// // 			header_data = Map();
+// // 		Payment_Id = 1324986000032905697;
+// // 			header_data.put("Authorization","Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2");
+// // 			info payment_list;
+// // 			payment_list = getUrl("https://books.zoho.com/api/v3/customerpayments/" + Payment_Id + "?organization_id=666840843",{"Authorization":"Zoho-authtoken 352b62ac379a71fe6f7524fe107ebdd2"});
+// 			info payment_list;
+// // 			Paymentupdate = Map();
+// 					Paymentupdate.put("customer_id",salesorder.get("customer_id"));
+// 					Paymentupdate.put("payment_mode",payment_mode);
+// 					Paymentupdate.put("amount",invoice.get("total"));
+// 					Paymentupdate.put("account_id",account);
+// 					Paymentupdate.put("invoices",invoicemap.toList());
+return "";
+}

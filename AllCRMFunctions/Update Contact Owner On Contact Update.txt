@@ -1,0 +1,254 @@
+void automation.Update_Contact_Owner_On_Contact_Update(Int contactID)
+{
+//Comment As per Carlo's request in this comment: https://trello.com/c/nZWX4Gza/1831-4-19-2021-daily-checklist#comment-607ec13b38f9c749c5fda83b
+action_flag = "revert";
+permanant_contact_owner = false;
+loginuseremail = zoho.loginuserid;
+currentuser = "";
+sp_id = null;
+skiplist = {"crm@bestaccessdoors.com","crmadmin@bestaccessdoors.com"};
+//enable below line while testing from dev@bestaccessdoors.com\
+// skiplist.add("dev@bestaccessdoors.com");
+skiplist_id = {3106252000138625046,3106252000004512006};
+allowed_to_change_owner_roles = {"Administrator","Sales with Chat - Fern","Operations","Product Management - Zyarina","Sales with Chat","CS/OM Management - Manager"};
+allowed_contact_owner_roles = {"Sales with Chat - Fern","Sales","Sales with Chat","CS/OM Management - Manager"};
+allowed_contact_owner_roles_id = {3106252000014640008,3106252000023874101,3106252000082381010,3106252000617139235};
+coql_profile_query = "";
+role_counter = 0;
+// for each  each_role_id in allowed_contact_owner_roles_id
+// {
+// 	if(allowed_contact_owner_roles_id.size() - 1 == role_counter)
+// 	{
+// 		coql_profile_query = coql_profile_query + " OR Owner.profile = " + each_role_id + ")";
+// 	}
+// 	else if(role_counter > 0)
+// 	{
+// 		coql_profile_query = coql_profile_query + " OR Owner.profile = " + each_role_id;
+// 	}
+// 	else
+// 	{
+// 		coql_profile_query = coql_profile_query + "(Owner.profile = " + each_role_id;
+// 	}
+// 	role_counter = role_counter + 1;
+// }
+coql_profile_query = "(Owner.profile in (" + allowed_contact_owner_roles_id.toString() + "))";
+get_contact = zoho.crm.getRecordById("contacts",contactID);
+// info "ganesh1" + get_contact.keys().size();
+if(get_contact.keys().size() > 1)
+{
+	// 	info "get contact: " + get_contact;
+	permanant_contact_owner = get_contact.get("Permanent_Owner_Set");
+	set_sp_contact_owner = get_contact.get("Secondary_Permanent_Contact_Owner");
+	previous_contact_owner = get_contact.get("Owner").get("id");
+	info "Contact Owner: " + previous_contact_owner;
+	if(loginuseremail != null)
+	{
+		currentuser = zoho.crm.searchRecords("users","(email:equals:" + loginuseremail + ")");
+	}
+	currentuser = currentuser.get("users").get(0);
+	login_user_profiles = currentuser.get("profile").get("name");
+	if(allowed_to_change_owner_roles.contains(login_user_profiles) && !skiplist.contains(loginuseremail))
+	{
+		action_flag = "set_per_owner";
+		permanant_contact_owner = true;
+		sp_id = previous_contact_owner;
+		info "Admin Set: " + sp_id;
+	}
+	//Verify the final sp profile Level 1- Starting
+	if(permanant_contact_owner == true && sp_id != null)
+	{
+		info "Level 1 sp profile checker Entered";
+		get_user = zoho.crm.getRecordById("users",sp_id);
+		get_current_contact_owner = get_user.get("users").get(0);
+		current_contact_owner_profile = get_user.get("users").get(0).get("profile").get("name");
+		if(!allowed_contact_owner_roles.contains(current_contact_owner_profile) && !isnull(set_sp_contact_owner))
+		{
+			info "Level 1 - 1.1 sp profile checker IF";
+			get_user_2 = zoho.crm.getRecordById("users",set_sp_contact_owner.toLong());
+			info set_sp_contact_owner + " Get User 2 response: " + get_user_2;
+			if(get_user_2.get("status") != "failure")
+			{
+				get_current_contact_owner_2 = get_user_2.get("users").get(0);
+				current_contact_owner_profile_2 = get_user_2.get("users").get(0).get("profile").get("name");
+				if(current_contact_owner_profile_2.isEmpty() != true)
+				{
+					if(!isNull(current_contact_owner_profile_2))
+					{
+						if(allowed_contact_owner_roles.contains(current_contact_owner_profile_2))
+						{
+							info "Level 1 sp profile checker revert";
+							action_flag = "revert";
+							permanant_contact_owner = true;
+							sp_id = set_sp_contact_owner;
+						}
+						else
+						{
+							info "Level 1 sp profile checker default";
+							action_flag = "default";
+							sp_id = null;
+							permanant_contact_owner = false;
+						}
+					}
+				}
+			}
+		}
+		else if(!allowed_contact_owner_roles.contains(current_contact_owner_profile))
+		{
+			info "Level 1 - 1.2 sp profile checker ELSE";
+			action_flag = "default";
+			sp_id = null;
+			permanant_contact_owner = false;
+		}
+	}
+	info "action_flag: " + action_flag;
+	//Verify the final sp profile Level 1- ending
+	if(action_flag == "revert" && get_contact.get("Permanent_Owner_Set") == true && !isnull(get_contact.get("Secondary_Permanent_Contact_Owner")))
+	{
+		action_flag = "revert";
+		permanant_contact_owner = true;
+		sp_id = get_contact.get("Secondary_Permanent_Contact_Owner");
+		info "Secondary_Permanent_Contact_Owner";
+	}
+	else if(permanant_contact_owner == false)
+	{
+		//Setting contact owner based on task - Starting
+		if(permanant_contact_owner == false)
+		{
+			coql_Task = Map();
+			coql_Task.put("select_query","select Who_Id,Status,Owner.profile, Owner, Due_Date from Tasks where (Who_Id = " + contactID + if(coql_profile_query != ""," AND " + coql_profile_query,"") + ") order by Created_Time asc limit 1");
+			taskList = invokeurl
+			[
+				url :"https://www.zohoapis.com/crm/v2/coql"
+				type :POST
+				parameters:coql_Task.tostring()
+				connection:"crm_connection"
+			];
+			if(!isnull(taskList))
+			{
+				taskData = taskList.get("data");
+				if(taskData.size() > 0)
+				{
+					info "testing";
+					action_flag = "set_per_owner";
+					permanant_contact_owner = true;
+					sp_id = taskData.get(0).get("Owner").get("id");
+				}
+			}
+			else
+			{
+				info "No Matching task found!!!";
+				action_flag = "default";
+			}
+		}
+		//Setting contact owner based on task - Ending
+		info "Searching Task SP_ID: " + sp_id;
+		info "action_flag: " + action_flag;
+		if(permanant_contact_owner == false)
+		{
+			//Setting contact owner based on quotes - Starting
+			coql_Quote = Map();
+			coql_Quote.put("select_query","select Contact_Name, Subject, Created_Time, Owner from Quotes where (Contact_Name = " + contactID + if(coql_profile_query != ""," AND " + coql_profile_query,"") + ") order by Created_Time asc limit 1");
+			quoteList = invokeurl
+			[
+				url :"https://www.zohoapis.com/crm/v2/coql"
+				type :POST
+				parameters:coql_Quote.tostring()
+				connection:"crm_connection"
+			];
+			info quoteList;
+			if(!isnull(quoteList))
+			{
+				QuoteData = quoteList.get("data");
+				if(QuoteData.size() > 0)
+				{
+					action_flag = "set_per_owner";
+					permanant_contact_owner = true;
+					sp_id = QuoteData.get(0).get("Owner").get("id");
+					info "set_per_owner test";
+				}
+			}
+			else
+			{
+				action_flag = "default";
+				info "No Matching Quote Found!!!";
+			}
+			//Setting contact owner based on quotes - Ending
+		}
+	}
+	//Verify the final sp profile Level 2- Starting
+	if(permanant_contact_owner == true && sp_id != null)
+	{
+		info "Level 2 sp profile checker Entered";
+		get_user = zoho.crm.getRecordById("users",sp_id);
+		get_current_contact_owner = get_user.get("users").get(0);
+		current_contact_owner_profile = get_user.get("users").get(0).get("profile").get("name");
+		if(!allowed_contact_owner_roles.contains(current_contact_owner_profile) && !isnull(set_sp_contact_owner))
+		{
+			info "Level 2 - 1.1 sp profile checker IF";
+			get_user_2 = zoho.crm.getRecordById("users",set_sp_contact_owner.toLong());
+			info "checkeinf" + get_user_2;
+			if(get_user_2.get("status") != "failure")
+			{
+				get_current_contact_owner_2 = get_user_2.get("users").get(0);
+				current_contact_owner_profile_2 = get_user_2.get("users").get(0).get("profile").get("name");
+				if(allowed_contact_owner_roles.contains(current_contact_owner_profile_2))
+				{
+					info "Level 2 sp profile checker revert";
+					action_flag = "revert";
+					permanant_contact_owner = true;
+					sp_id = set_sp_contact_owner;
+				}
+				else
+				{
+					info "Level 2 sp profile checker default";
+					action_flag = "default";
+					sp_id = null;
+					permanant_contact_owner = false;
+				}
+			}
+		}
+		else if(!allowed_contact_owner_roles.contains(current_contact_owner_profile))
+		{
+			info "Level 2 - 1.2 sp profile checker ELSE";
+			action_flag = "default";
+			sp_id = null;
+			permanant_contact_owner = false;
+		}
+	}
+	info "Final SP: " + sp_id;
+	info "action_flag: " + action_flag;
+	//Verify the final sp profile Level 2- ending
+	temp_map = Map();
+	if(action_flag == "set_per_owner" && permanant_contact_owner == true && sp_id != null)
+	{
+		info "set per ownress";
+		temp_map.put("Owner",sp_id);
+		temp_map.put("Permanent_Owner_Set",true);
+		temp_map.put("Secondary_Permanent_Contact_Owner",sp_id);
+		temp_map.put("Processed_Contact_Owner",true);
+		temp_map.put("Update_Source","ZCRM-Contact-3106252000121781058-1-" + now.toLong());
+		if(previous_contact_owner != sp_id)
+		{
+			temp_map.put("Previous_Owner_ID",previous_contact_owner);
+		}
+		update_response = zoho.crm.updateRecord("Contacts",contactID,temp_map,{"trigger":{}});
+	}
+	else if(action_flag == "revert" && permanant_contact_owner == true && sp_id != null)
+	{
+		info "print";
+		temp_map.put("Owner",sp_id);
+		temp_map.put("Processed_Contact_Owner",true);
+		temp_map.put("Update_Source","ZCRM-Contact-3106252000121781058-2-" + now.toLong());
+		update_response = zoho.crm.updateRecord("Contacts",contactID,temp_map,{"trigger":{}});
+	}
+	else if(action_flag == "default")
+	{
+		temp_map.put("Owner","3106252000004512006");
+		temp_map.put("Permanent_Owner_Set",false);
+		temp_map.put("Secondary_Permanent_Contact_Owner",null);
+		temp_map.put("Processed_Contact_Owner",false);
+		temp_map.put("Update_Source","ZCRM-Contact-3106252000121781058-3-" + now.toLong());
+		update_response = zoho.crm.updateRecord("Contacts",contactID,temp_map,{"trigger":{}});
+	}
+}
+}

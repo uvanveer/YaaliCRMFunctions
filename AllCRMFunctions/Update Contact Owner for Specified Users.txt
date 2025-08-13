@@ -1,0 +1,27 @@
+void automation.Update_Contact_Owner_for_Specified_Users(Int contactid,String profile,Int userid)
+{
+// info "Profilename" + profile;
+// info contactid;
+// contactdetails = zoho.crm.getRecordById("Contacts",contactid);
+// // user_response = zoho.crm.getRecords("users",1,200,{"type":"ActiveUsers"});
+// // userid_list =List();
+// loginuseremail = zoho.loginuserid;
+// info loginuseremail;
+// // user_list = user_response.get("users");
+// // for each eachuser in user_list
+// // {
+// // 	userprofiles =  eachuser.get("profile").get("name");
+// // 	if ( profile == "Administrator" || profile == "Product Management - Zyarina" || profile == "Sales with Chat - Fern" )  
+// //     {
+// // 		info "entercondition";
+// // 		userid = userid;
+// // 		userid_list.add(userid);
+// // 		info userid;
+// //     }
+// // 	if ( loginuseremail == eachuser.get("email") ) 
+// //     {
+// // 		login_userid = eachuser.tomap().get("id");
+// //     }
+// // }
+// // info userid_list;
+}

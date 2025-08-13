@@ -1,0 +1,50 @@
+string standalone.elmdor_canada_invoice_to_bill_with_pdf(String crmAPIRequest)
+{
+orgId = 666840843;
+crm_api_map = crmAPIRequest.toMap();
+params = crm_api_map.get("body");
+bill_no = ifnull(params.get("bill_no"),"");
+invoice_date_map = ifnull(params.get("invoice_date"),Map());
+invoice_date = ifnull(invoice_date_map.get("formatted"),"");
+po_no = ifnull(params.get("po_no"),"");
+tax_data = ifnull(params.getJSON("tax_data"),0.0);
+shipping_cost = ifnull(params.get("shipping_cost"),0.0);
+if(shipping_cost == "")
+{
+	shipping_cost = 0.0;
+}
+attachment_link = ifnull(params.get("media_link_original"),"");
+try 
+{
+	//checkBillNoHas = 
+	searchText = "(Po_No:equals:" + po_no + ")";
+	serachRecordsCRM = zoho.crm.searchRecords("Bill_Parser",searchText);
+	if(serachRecordsCRM.size() > 0)
+	{
+	}
+	else
+	{
+		createMap = Map();
+		createMap.put("Name",po_no);
+		createMap.put("Bill_No",bill_no);
+		createMap.put("Invoice_Date",invoice_date);
+		createMap.put("Po_No",po_no);
+		createMap.put("Tax_Data",tax_data.tostring());
+		createMap.put("Shipping_cost",shipping_cost.tostring());
+		createMap.put("Media_Link_Orginal",attachment_link);
+		createMap.put("Retry_Count",0);
+		createMap.put("Bill_Parser_Request",crmAPIRequest.trim());
+		createMap.put("Bill_Parser_ID",params.get("id"));
+		createMap.put("Document_ID",params.get("document_id"));
+		createMap.put("File_Name",params.get("file_name"));
+		createMap.put("Vendor_Name",3106252000028027078);
+		createResonse = zoho.crm.createRecord("Bill_Parser",createMap,{"trigger":{"workflow"}});
+		//{"trigger":"{}"}); {"trigger":{"workflow"}})
+		info createResonse;
+	}
+}
+catch (e)
+{
+}
+return "";
+}

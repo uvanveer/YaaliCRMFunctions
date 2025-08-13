@@ -1,0 +1,160 @@
+void schedule.Dropship_Order_Based_Notification()
+{
+/* Created By Ezhil on 13 August 2020 */
+/* Sent an email alert if the dropship order not created */
+currentTime = now;
+createDateTime = currentTime.toString("yyyy-MM-dd'T'HH:mm:ss");
+createDateTime = createDateTime + "-04:00";
+timeBefour = currentTime.subHour(2);
+dateTimeBefour = timeBefour.toString("yyyy-MM-dd'T'HH:mm:ss");
+dateTimeBefour = dateTimeBefour + "-04:00";
+coql_map = Map();
+coql_map.put("select_query","select id, Subject, Status, Source, Store.Name, Created_Time  from Sales_Orders where Source = 'Amazon Store' and Created_Time between '" + dateTimeBefour + "' and  '" + createDateTime + "' order by Order_Date ASC");
+date = "2021-01-18T00:00:00-04:00";
+orderList = invokeurl
+[
+	url :"https://www.zohoapis.com/crm/v2/coql"
+	type :POST
+	parameters:coql_map.tostring()
+	connection:"crm_connection"
+];
+for each  saleOrderObj in orderList.get("data")
+{
+	info saleOrderObj;
+	saleOrderId = saleOrderObj.get("id");
+	orderStatus = saleOrderObj.get("Status");
+	storeName = saleOrderObj.get("Store.Name");
+	orderCreated = saleOrderObj.get("Created_Time");
+	poFollowupSent = false;
+	orderSource = saleOrderObj.get("Source");
+	storeOrderId = "";
+	if(storeName != "" && storeName != null)
+	{
+		if(orderSource.equals("BigCommerce"))
+		{
+			storeOrderId = saleOrderObj.get("Bigcommerce_Order_ID");
+		}
+		else if(orderSource.equals("Amazon Store"))
+		{
+			storeOrderId = saleOrderObj.get("Subject");
+		}
+		if(!poFollowupSent && orderStatus != "Incomplete" && orderStatus != "Cancelled" && orderStatus != "Canceled" && orderStatus != "Declined" && orderStatus != "Pending" && orderStatus != "Returned" && orderStatus != "Unfulfillable")
+		{
+			purchaseOrderList = zoho.crm.getRelatedRecords("Dropship_Orders","Sales_Orders",saleOrderId);
+			if(purchaseOrderList.size() == 0)
+			{
+				updateDate = Map();
+				updateDate.put("Is_Dropship_Order_Follow_Up_Sent",true);
+				zoho.crm.updateRecord("Sales_Orders",saleOrderId,updateDate);
+				// Send Email Notification
+				emailSendUrl = "https://1.door-pay.com/pq/m/sendMailNotification.php";
+				emailToken = "59AACEAFB2CE53271A6048D2D385D4C800587C0D047F8B07958934F710AE5D7891FB4EC28BB2FA684F638630E9EF76F7D19D22EE9A20EE892625DC2FCEDCD976";
+				emailListData = list();
+				emailList = list();
+				saleOrderUrl = "https://crm.zoho.com/crm/org663942562/tab/SalesOrders/" + saleOrderId;
+				emailSubject = "CRM Purchase Order Not Created Alert";
+				emailBody = "<div>Hi Anthony,<br><br>We have identified a sales order with the status : " + orderStatus + ". For the mentioned salesorder Dropship orders was not created. Kindly please check it.<br><br>Order Synced From :&nbsp;" + orderSource + "<br><br>Order ID :&nbsp;" + storeOrderId + "<br><br>Store Name :&nbsp;" + storeName + "<br><br>Order Link :&nbsp;" + saleOrderUrl + "<br><br>Sale Order Created On :&nbsp; " + orderCreated + "<br><br>Thanks.</div>";
+				emailList.add("dinesh@bizappln.com");
+				emailList.add("tharmendheran@bizappln.com");
+				emailList.add("balaji@bizappln.com");
+				emailList.add("pooja@bizappln.com");
+				emailList.add("ganesh@bizappln.com");
+				emailList.add("vijay.vr@bizappln.com");
+				emailList.add("notifications@bestaccessdoors.com");
+				emailList.add("dev@bestaccessdoors.com");
+				emailList.add("zyarina@bestaccessdoors.com");
+				mailArrayDataObject = Map();
+				mailArrayDataObject.put("MailTo",emailList);
+				mailArrayDataObject.put("Subject",emailSubject);
+				mailArrayDataObject.put("Message",emailBody);
+				emailListData.add(mailArrayDataObject);
+				mailMap = Map();
+				mailMap.put("MailArray",emailListData);
+				mailMap.put("Authtoken",emailToken);
+				// Header
+				emailHeader = Map();
+				emailHeader.put("content-type","application/json");
+				response = invokeurl
+				[
+					url :emailSendUrl
+					type :POST
+					parameters:mailMap.toString()
+					headers:emailHeader
+					detailed:false
+				];
+				info response;
+			}
+		}
+	}
+}
+// salesOrderList = zoho.crm.getRecords("Sales_Orders");
+// for each  saleOrderObj in salesOrderList
+// {
+// 	saleOrderId = saleOrderObj.get("id");
+// 	orderStatus = saleOrderObj.get("Status");
+// 	storeName = saleOrderObj.get("Store").get("name");
+// 	orderCreated = saleOrderObj.get("Created_Time");
+// 	// poFollowupSent = saleOrderObj.get("Is_Dropship_Order_Follow_Up_Sent");
+// 	poFollowupSent = false;
+// 	orderSource = saleOrderObj.get("Source");
+// 	storeOrderId = "";
+// 	if(storeName != "" && storeName != null)
+// 	{
+// 		if(orderSource.equals("BigCommerce"))
+// 		{
+// 			storeOrderId = saleOrderObj.get("Bigcommerce_Order_ID");
+// 		}
+// 		else if(orderSource.equals("Amazon Store"))
+// 		{
+// 			storeOrderId = saleOrderObj.get("Subject");
+// 		}
+// 		if(!poFollowupSent && orderStatus != "Incomplete" && orderStatus != "Cancelled" && orderStatus != "Canceled" && orderStatus != "Declined" && orderStatus != "Pending" && orderStatus != "Returned" && orderStatus != "Unfulfillable")
+// 		{
+// 			purchaseOrderList = zoho.crm.getRelatedRecords("Dropship_Orders","Sales_Orders",saleOrderId);
+// 			if(purchaseOrderList.size() == 0)
+// 			{
+// 				updateDate = Map();
+// 				updateDate.put("Is_Dropship_Order_Follow_Up_Sent",true);
+// 				zoho.crm.updateRecord("Sales_Orders",saleOrderId,updateDate);
+// 				// Send Email Notification
+// 				emailSendUrl = "https://1.door-pay.com/pq/m/sendMailNotification.php";
+// 				emailToken = "59AACEAFB2CE53271A6048D2D385D4C800587C0D047F8B07958934F710AE5D7891FB4EC28BB2FA684F638630E9EF76F7D19D22EE9A20EE892625DC2FCEDCD976";
+// 				emailListData = list();
+// 				emailList = list();
+// 				saleOrderUrl = "https://crm.zoho.com/crm/org663942562/tab/SalesOrders/" + saleOrderId;
+// 				emailSubject = "CRM Purchase Order Not Created Alert";
+// 				emailBody = "<div>Hi Anthony,<br><br>We have identified a sales order with the status : " + orderStatus + ". For the mentioned salesorder Dropship orders was not created. Kindly please check it.<br><br>Order Synced From :&nbsp;" + orderSource + "<br><br>Order ID :&nbsp;" + storeOrderId + "<br><br>Store Name :&nbsp;" + storeName + "<br><br>Order Link :&nbsp;" + saleOrderUrl + "<br><br>Sale Order Created On :&nbsp; " + orderCreated + "<br><br>Thanks.</div>";
+// 				emailList.add("dinesh@bizappln.com");
+// 				emailList.add("tharmendheran@bizappln.com");
+// 				emailList.add("balaji@bizappln.com");
+// 				emailList.add("pooja@bizappln.com");
+// 				emailList.add("notifications@bestaccessdoors.com");
+// 				emailList.add("dev@bestaccessdoors.com");
+// 				emailList.add("zyarina@bestaccessdoors.com");
+// 				// 			emailList.add("anthony@bestaccessdoors.com");
+// 				// 			emailList.add("citrigno@bestaccessdoors.com");
+// 				mailArrayDataObject = Map();
+// 				mailArrayDataObject.put("MailTo",emailList);
+// 				mailArrayDataObject.put("Subject",emailSubject);
+// 				mailArrayDataObject.put("Message",emailBody);
+// 				emailListData.add(mailArrayDataObject);
+// 				mailMap = Map();
+// 				mailMap.put("MailArray",emailListData);
+// 				mailMap.put("Authtoken",emailToken);
+// 				// Header
+// 				emailHeader = Map();
+// 				emailHeader.put("content-type","application/json");
+// 				response = invokeurl
+// 				[
+// 					url :emailSendUrl
+// 					type :POST
+// 					parameters:mailMap.toString()
+// 					headers:emailHeader
+// 					detailed:false
+// 				];
+// 				info response;
+// 			}
+// 		}
+// 	}
+// }
+}

@@ -1,0 +1,136 @@
+string standalone.process_karp_raw_data_for_po_confirmation(String crmAPIRequest)
+{
+crm_api_map = crmAPIRequest.toMap();
+params = crm_api_map.get("body");
+info params;
+po_breaker = "Karp Associates, Inc.";
+shipping_location_for_Krap = ifnull(params.get("shipping_location_for_karp"),"");
+if(params.get("raw_data") != null)
+{
+	po_raw_datas = params.get("raw_data").toList(po_breaker);
+	po_raw_datas.remove(0);
+	parsing_keys_map = {"dropship_number":{"data_from":"CUSTOMER PO","additional_filters_1":{"remove_empty_lines"},"remove_x_lines":{"from_top":6,"from_bottom":0},"additional_filters_2":{"end_of_line"}},"confirmation_number":{"data_from":"CUSTOMER ORDER","additional_filters":{"remove_empty_lines","end_of_line"}},"estimated_ship_date":{"data_from":"EST. SHIP","additional_filters_1":{"remove_empty_lines"},"remove_x_lines":{"from_top":5,"from_bottom":0},"additional_filters_2":{"end_of_line"}}};
+	processed_list = list();
+	for each  raw_content in po_raw_datas
+	{
+		raw_content = raw_content.replaceAll("\\","");
+		output_map = Map();
+		for each  parsing_key in parsing_keys_map.keys()
+		{
+			temp_process_data = raw_content;
+			parsing_map = parsing_keys_map.get(parsing_key);
+			for each  process_key in parsing_map.keys()
+			{
+				if(process_key == "data_from" && temp_process_data != null)
+				{
+					temp_process_data = temp_process_data.getSuffix(parsing_map.get(process_key));
+				}
+				else if(process_key == "data_upto" && temp_process_data != null)
+				{
+					temp_process_data = temp_process_data.getPrefix(parsing_map.get(process_key));
+				}
+				else if(process_key.containsIgnoreCase("additional_filters") && temp_process_data != null)
+				{
+					for each  additional_filter in parsing_map.get(process_key)
+					{
+						if(temp_process_data != null && temp_process_data != "")
+						{
+							if(additional_filter == "remove_empty_lines")
+							{
+								temp_list = list();
+								process_list = temp_process_data.toList("\n");
+								for each  process_list_data in process_list
+								{
+									if(process_list_data != "")
+									{
+										temp_list.add(process_list_data);
+									}
+								}
+								temp_process_data = temp_list.toString("\n");
+							}
+							else if(additional_filter == "end_of_line")
+							{
+								temp_process_data = temp_process_data.toList("\n").get(0);
+							}
+						}
+					}
+				}
+				else if(process_key == "remove_x_lines" && temp_process_data != null)
+				{
+					temp_list = temp_process_data.toList("\n");
+					if(parsing_map.get(process_key).get("from_top") != null && temp_process_data != null && temp_list.size() >= parsing_map.get(process_key).get("from_top"))
+					{
+						temp_list = temp_list.subList(parsing_map.get(process_key).get("from_top"));
+					}
+					if(parsing_map.get(process_key).get("from_bottom") != null && temp_process_data != null && temp_list.size() >= parsing_map.get(process_key).get("from_bottom"))
+					{
+						temp_list = temp_list.subList(0,temp_list.size() - parsing_map.get(process_key).get("from_bottom"));
+					}
+					temp_process_data = temp_list.toString("\n");
+				}
+			}
+			output_map.put(parsing_key,temp_process_data.trim());
+		}
+		// additional formatting
+		if(output_map.get("estimated_ship_date") != null)
+		{
+			info output_map.get("estimated_ship_date");
+			output_map.put("estimated_ship_date",output_map.get("estimated_ship_date").toDate("MM/dd/yyyy").toString("yyyy-MM-dd"));
+		}
+		processed_list.add(output_map);
+	}
+	for each  params_map in processed_list
+	{
+		ds_no = ifnull(params_map.get("dropship_number"),"");
+		if(ds_no != "")
+		{
+			ds_no = ds_no.getAlphaNumeric().removeAllAlpha();
+		}
+		confirmation_no = ifnull(params_map.get("confirmation_number"),"");
+		estimated_ship_date = ifnull(params_map.get("estimated_ship_date"),today.toString("yyyy-MM-dd"));
+		// estimated_ship_date = '2020-7-7';
+		if(ds_no != "" && confirmation_no != "")
+		{
+			drop_ship_orders = zoho.crm.searchRecords("Purchase_Orders","(Dropship_Number:equals:" + ds_no + ")");
+			// 			drop_ship_orders = zoho.crm.searchRecords("Purchase_Orders","(Dropship_Number:equals:" + ds_no + ")",1,200,Map(),"mailparserzoho");
+			for each  drop_ship_order in drop_ship_orders
+			{
+				conf_num = "C " + confirmation_no;
+				upd_resp = zoho.crm.updateRecord("Purchase_Orders",drop_ship_order.get("id"),{"Confirmation_Number":conf_num,"Estimated_Ship_Date":estimated_ship_date,"Shipping_Location":shipping_location_for_Krap},{"trigger":{"workflow"}},"mailparserzoho");
+				if(upd_resp.get("code") != null)
+				{
+					sendmail
+					[
+						from :zoho.loginuserid
+						to :"operations-notifications@bestaccessdoors.com, dev-notifications@bestaccessdoors.com"
+						subject :"MailParser Automation Error"
+						message :"<p>Hi,&nbsp;</p><p>Received error for automation for order confirmations/tracking in MailParser:</p><p>Error Code: " + upd_resp.get("code") + " </p><p>Error Message: " + upd_resp.get("message") + " </p><p>Date and Time of error: " + now.toString("yyyy-MM-dd HH:mm:ss") + " </p><p>Dropship Order ID : " + drop_ship_order.get("id") + " </p><p>Please check this and re-test for all vendors.&nbsp;</p><p>Thank you!</p>"
+					]
+				}
+				else
+				{
+					// Code updated successfully
+					// Upload the file
+					attachment_urls = ifnull(params.get("attachment_url"),list());
+					for each  attachment_url_map in attachment_urls
+					{
+						if(attachment_url_map.get("att_mime").containsIgnoreCase("pdf") || attachment_url_map.get("att_name").containsIgnoreCase("PDF"))
+						{
+							attachment_url = attachment_url_map.get("att_url");
+							attachment_url = attachment_url.replaceAll("\\","");
+							file_stream = invokeurl
+							[
+								url :attachment_url
+								type :GET
+							];
+							info zoho.crm.attachFile("Purchase_Orders",drop_ship_order.get("id"),file_stream,"mailparserzoho");
+						}
+					}
+				}
+			}
+		}
+	}
+	info processed_list;
+}
+return "";
+}

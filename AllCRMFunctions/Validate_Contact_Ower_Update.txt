@@ -1,0 +1,34 @@
+map validation_rule.Validate_Contact_Ower_Update(String crmAPIRequest)
+{
+/* The snippet below shows you how to get a list of fields, their values from a MAP object. The fields’ values can be obtained from the same MAP object.                                                  */
+entityMap = crmAPIRequest.toMap().get("record");
+/* The example below demonstrates how a field’s value (email) can be obtained from a MAP object. Here, entityMap - Map Object, Email - Field's API name
+Sample entityMap= {'Email': 'xxx@xxx.com', 'Last_Name': 'xxx'};                                   */
+email = entityMap.get("Email");
+response = Map();
+/* ---------------------------------------------------------------------------------------------- */
+/* Start writing your code here to perform the necessary field validation                         */
+/* ---------------------------------------------------------------------------------------------- */
+/* If the code identifies a validation error, set the status and alert message as shown below:    */
+//response.put('status','error');
+//response.put('message', '<your message(100 characters)>');
+/* If there are no errors found during validation, set the status as shown below:                 */
+sendmail
+[
+	from :zoho.loginuserid
+	to :'sankar@bizappln.com'
+	subject :"Data Permanent_Owner_Set"
+	message :entityMap.get("Permanent_Owner_Set")
+]
+if(entityMap.get("Permanent_Owner_Set") == true)
+{
+	response.put('status','error');
+	response.put('message','This Contact is Marked as Permanent Owner. Please uncheck the "Permanent Owner Set" field to update the contact owner.');
+}
+else
+{
+	response.put('status','success');
+}
+/* ---------------------------------------------------------------------------------------------- */
+return response;
+}

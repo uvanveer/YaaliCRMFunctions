@@ -1,0 +1,201 @@
+string standalone.CENDREX_Invoice_to_Bill_with_PDF_for_Google_Drive(String crmAPIRequest)
+{
+test_mode = false;
+orgId = 666840843;
+crm_api_map = crmAPIRequest.toMap();
+params = crm_api_map.get("body");
+excel_vendor_sku_price = {"AHA 8X8":"22.52","AHA 12X12":"26.4","AHA 16X16":"34.45","AHA 18X18":"41.17","AHA 24X24":"53.99","AHA-GYP 8X8":"29.34","AHA-GYP 12X12":"31.61","AHA-GYP 16X16":"41.97","AHA-GYP 18X18":"45.85","AHA-GYP 24X24":"59.86","AHD 6X6":"11.07","AHD 8X8":"11.55","AHD 8X12":"13.53","AHD 10X10":"13.68","AHD 12X12":"13.15","AHD 12X16":"18.55","AHD 12X18":"18.27","AHD 12X24":"20.96","AHD 14X14":"16.8","AHD 16X16":"18.08","AHD 18X18":"19.73","AHD 18X24":"28.63","AHD 20X20":"30.62","AHD 22X22":"32.51","AHD 22X30":"44.53","AHD 22X36":"50.44","AHD 24X24":"29.1","AHD 24X30":"48.79","AHD 24X36":"52.71","AHD 24X48":"75.24","AHD 30X30":"62.98","AHD 36X36":"69.89","AHD-GYP 8X8":"16.09","AHD-GYP 10X10":"17.84","AHD-GYP 12X12":"18.6","AHD-GYP 14X14":"21.29","AHD-GYP 16X16":"23.8","AHD-GYP 18X18":"25.98","AHD-GYP 22X22":"34.02","AHD-GYP 24X24":"39.04","AHD-GYP 24X36":"62.27","AHD-SS 6X6":"31.56","AHD-SS 8X8":"34.35","AHD-SS 8X12":"40.08","AHD-SS 10X10":"39.75","AHD-SS 12X12":"45.29","AHD-SS 12X16":"51.67","AHD-SS 12X18":"54.51","AHD-SS 12X24":"65.3","AHD-SS 14X14":"57.49","AHD-SS 16X16":"66.48","AHD-SS 18X18":"83.43","AHD-SS 18X24":"94.45","AHD-SS 20X20":"94.69","AHD-SS 22X22":"113.9","AHD-SS 22X30":"130.41","AHD-SS 22X36":"142.2","AHD-SS 24X24":"109.74","AHD-SS 24X30":"137.37","AHD-SS 24X36":"157.34","AHD-SS 24X48":"192.73","AHD-SS 30X30":"160.94","AHD-SS 36X36":"217.86","AHD-W 8X8":"46.18","AHD-W 12X12":"52.62","CTR 8.25X8.25":"11.55","CTR 8.25X12":"13.53","CTR 10X10":"13.68","CTR 12X12":"13.15","CTR 12X18":"18.27","CTR 14X14":"16.8","CTR 16X16":"18.08","CTR 18X18":"19.73","CTR 18X24":"28.63","CTR 20X20":"30.62","CTR 22X22":"32.51","CTR 22X30":"44.53","CTR 22X36":"50.44","CTR 24X24":"29.1","CTR 24X30":"48.79","CTR 24X36":"52.71","CTR-MAG 8.25X8.25":"16.94","CTR-MAG 8.25X12":"19.97","CTR-MAG 10X10":"19.45","CTR-MAG 12X12":"19.07","CTR-MAG 12X18":"25.41","CTR-MAG 14X14":"24.42","CTR-MAG 16X16":"26.93","CTR-MAG 18X18":"31.89","CTR-MAG 18X24":"47.32","CTR-MAG 20X20":"49.35","CTR-MAG 22X22":"54.32","CTR-MAG 22X30":"75.71","CTR-MAG 22X36":"82.19","CTR-MAG 24X24":"46.33","CTR-MAG 24X30":"69.28","CTR-MAG 24X36":"77.23","CTR-MAG 24X48":"104.1","CTR-MAG 36X36":"99.66","CTR-SS 8.25X8.25":"34.35","CTR-SS 8.25X12":"40.08","CTR-SS 10X10":"39.75","CTR-SS 12X12":"45.29","CTR-SS 12X18":"54.51","CTR-SS 14X14":"57.49","CTR-SS 16X16":"66.48","CTR-SS 18X18":"83.43","CTR-SS 18X24":"94.45","CTR-SS 20X20":"94.69","CTR-SS 22X22":"113.9","CTR-SS 22X30":"130.41","CTR-SS 22X36":"142.2","CTR-SS 24X24":"109.74","CTR-SS 24X30":"137.37","CTR-SS 24X36":"157.34","CTR-W 8.25X8.25":"46.18","CTR-W 12X12":"52.62","EDG-GYP 6X6":"22.43","EDG-GYP 8X8":"23.94","EDG-GYP 8X12":"26.4","EDG-GYP 10X10":"26.69","EDG-GYP 12X12":"27.16","EDG-GYP 12X16":"30.9","EDG-GYP 12X18":"32.13","EDG-GYP 12X24":"37.15","EDG-GYP 14X14":"31.14","EDG-GYP 16X16":"33.12","EDG-GYP 18X18":"36.39","EDG-GYP 18X24":"42.35","EDG-GYP 20X20":"41.88","EDG-GYP 22X22":"45.62","EDG-GYP 22X30":"77.98","EDG-GYP 22X36":"90.19","EDG-GYP 24X24":"49.35","FLE 6.5X8":"12.42","FLE 10.5X12":"15.02","FLE 14X15.5":"18.92","GFRG-PUR 12X12":"64.73","GFRG-PUR 16X16":"69.75","GFRG-PUR 18X18":"71.22","GFRG-PUR 24X24":"75.71","GRFG-PUR 9X9":"61.75","MDS 12X12":"50.92","MDS 16X16":"74.67","MDS 18X18":"82.9","MDS 24X24":"102.78","MDS 24X30":"123.27","MDS 24X36":"133.54","MDS 36X36":"160.51","PAL 8X8":"39.99","PAL 12X12":"48.46","PAL 16X16":"57.83","PAL 18X18":"61.94","PAL 24X24":"81.3","PAL 24X36":"136.61","PAL 36X36":"152.99","PFI 8X8":"53.38","PFI 10X10":"56.88","PFI 12X12":"56.22","PFI 14X14":"63.22","PFI 16X16":"68.85","PFI 18X18":"73.25","PFI 22X22":"82.72","PFI 22X30":"96.39","PFI 22X36":"122.84","PFI 24X24":"92.65","PFI 24X36":"130.98","PFI 24X48":"168.03","PFI 30X30":"130.46","PFI 32X32":"133.21","PFI 36X36":"187.86","PFI 48X48":"327.41","PFI-GYP 8X8":"61.23","PFI-GYP 12X12":"63.74","PFI-GYP 16X16":"78.65","PFI-GYP 18X18":"83.43","PFI-GYP 22X22":"94.69","PFI-GYP 22X30":"110.49","PFI-GYP 22X36":"140.78","PFI-GYP 24X24":"104.01","PFI-GYP 24X36":"150.38","PFI-GYP 32X32":"164.72","PFI-GYP 36X36":"218.76","PFN 8X8":"48.46","PFN 10X10":"50.3","PFN 12X12":"50.06","PFN 14X14":"56.69","PFN 16X16":"63.31","PFN 18X18":"67.86","PFN 22X22":"78.88","PFN 22X30":"91.33","PFN 22X36":"107.7","PFN 24X24":"84.09","PFN 24X36":"113.71","PFN 30X30":"115.89","PFN 32X32":"128.28","PFN 36X36":"164.72","PFN-GYP 8X8":"53.19","PFN-GYP 12X12":"57.21","PFN-GYP 16X16":"72.45","PFN-GYP 18X18":"77.7","PFN-GYP 22X22":"83.57","PFN-GYP 22X30":"97.2","PFN-GYP 22X36":"123.32","PFN-GYP 24X24":"96.15","PFN-GYP 24X36":"130.22","PFN-GYP 32X32":"133.58","PFN-GYP 36X36":"171.35","PFU 22X30":"136.14","PFU 22X36":"173.48","PFU 24X24":"128.33","PHS 12X12":"238.02","PHS 16X16":"247.67","PHS 18X18":"261.87","PHS 24X24":"297.97","PHS 24X36":"376.19","PHS 36X36":"433.4","PPA 24X24":"278.38","PPA 24X36":"338.57","RAL 8X8":"38.23","RAL 8X8":"40.65","RAL 12X12":"47.04","RAL 12X12":"53.38","RAL 16X16":"63.74","RAL 16X16":"70.13","RAL 18X18":"71.74","RAL 18X18":"78.13","RAL 20X20":"78.13","RAL 20X20":"84.47","RAL 24X24":"86.08","RAL 24X24":"91.66","RAL 24X48":"133.87","RAL 24X48":"158.62","RAL 36X36":"129.09","RAL 36X36":"153.03","RPL 6X9":"10.32","RPL 8X8":"11.36","RPL 14X14":"15.47","RPL 14X29":"39.13","SFM 8X8":"32.65","SFM 12X12":"42.78","SFM 16X16":"43.82","SFM 18X18":"56.07","SFM 24X24":"60.19","TRH 36X30":"409.89","TRH 36X36":"461.84"};
+if(test_mode == true)
+{
+	params = {"id":"efaec1973c16d823d81bd39618932987","document_id":"e7ca04c21da5a59d58510e2e13a0fa83","remote_id":"1jhE5l-XtaTJkYWkGKmL32xfD_N9ch0KJ","file_name":"https:zapier.comenginehydrate2233891.eJxN0cuOokAAheFX6dS6mXAX3Yk0KgKKooCTCSmoQgoQuZRyMb57O5fF7P8vZ3GeIE5xnIc5HsCM5wVBmXKfIL6VFJc0pEOFwQzY4BOQsqWwjHFIEJhxLMtOBFGQP0FCcIHCEl5_h5BSGKfXN23fJO9gc2nB7AmuuG3h5a8F3ETEUJ4qPBJ4Vkykd_m_m_18gj_d3F5myFDG6OYyZsU0lzncBJ","media_link":"https:\/\/api.docparser.com\/v1\/document\/media\/QkCG2qb9w5DwlI4CjQloE771QEtN47GRwB_u-5ySA7UzfauiiS9FC5V3J3kOlJc5spwoRjmaFVK694dQLsGyQqpouOYNSa6E3hgLfHNuWXI","media_link_original":"https:\/\/api.docparser.com\/v1\/document\/media\/QkCG2qb9w5DwlI4CjQloE771QEtN47GRwB_u-5ySA7UzfauiiS9FC5V3J3kOlJc5spwoRjmaFVK694dQLsGyQqpouOYNSa6E3hgLfHNuWXI\/original","media_link_data":"https:\/\/api.docparser.com\/v1\/document\/media\/QkCG2qb9w5DwlI4CjQloE771QEtN47GRwB_u-5ySA7UzfauiiS9FC5V3J3kOlJc5spwoRjmaFVK694dQLsGyQqpouOYNSa6E3hgLfHNuWXI\/data","uploaded_at":"2020-11-09T18:54:41+00:00","processed_at":"2020-11-09T18:56:05+00:00","bill_no":"VFR20-13551","po_no":{"match":"433953"},"tax_data":{"match":"0.00"},"invoice_date":{"formatted":"2020-07-16"}};
+}
+bill_no = ifnull(params.getJSON("bill_no"),"");
+invoice_date_map = ifnull(params.get("invoice_date"),Map());
+invoice_date = ifnull(invoice_date_map.get("formatted"),"");
+po_no_map = ifnull(params.get("po_no"),Map());
+po_no = ifnull(po_no_map.get("match"),"");
+tax_data_map = ifnull(params.getJSON("tax_data"),Map());
+tax_data = ifnull(tax_data_map.get("match"),0.0);
+if(tax_data == "")
+{
+	tax_data = 0.0;
+}
+shipping_cost_map = ifnull(params.get("shipping_cost"),Map());
+shipping_cost = ifnull(shipping_cost_map.get("match"),0.0);
+if(shipping_cost == "")
+{
+	shipping_cost = 0.0;
+}
+attachment_link = ifnull(params.get("media_link_original"),"");
+/**
+ * Test Data
+ */
+// po_no = "Testing-09";
+// tax_data = 10.0;
+// shipping_cost = 20.0;
+/**
+ * End of Test Data
+ */
+/**
+ * Attachment Link and File Stream
+ */
+if(attachment_link != "")
+{
+	attachment_link = attachment_link.replaceAll("\\","");
+	attach_file = invokeurl
+	[
+		url :attachment_link
+	];
+	attach_file.setParamName("attachment");
+	info attach_file;
+}
+/*
+	Process Purchase Order
+*/
+if(po_no != "")
+{
+	po_resps = invokeurl
+	[
+		url :"https://books.zoho.com/api/v3/purchaseorders?organization_id=" + orgId + "&purchaseorder_number=" + zoho.encryption.urlEncode(po_no)
+		type :GET
+		connection:"mailparserzoho"
+	];
+	// 	info "PO Reps " + po_resps;   
+	if(!po_resps.get("purchaseorders").isEmpty())
+	{
+		po_order_resp = po_resps.get("purchaseorders").get(0);
+		// Get PO Details
+		po_full_details = invokeurl
+		[
+			url :"https://books.zoho.com/api/v3/purchaseorders/" + po_order_resp.get("purchaseorder_id") + "?organization_id=" + orgId
+			type :GET
+			connection:"mailparserzoho"
+		];
+		info po_full_details;
+		if(test_mode == false)
+		{
+			// Mark PO Open
+			po_open_resp = invokeurl
+			[
+				url :"https://books.zoho.com/api/v3/purchaseorders/" + po_order_resp.get("purchaseorder_id") + "/status/open?organization_id=" + orgId
+				type :POST
+				connection:"mailparserzoho"
+			];
+			info po_open_resp;
+			// Mark PO Billed
+			po_open_resp = invokeurl
+			[
+				url :"https://books.zoho.com/api/v3/purchaseorders/" + po_order_resp.get("purchaseorder_id") + "/status/billed?organization_id=" + orgId
+				type :POST
+				connection:"mailparserzoho"
+			];
+			info po_open_resp;
+		}
+		po_full_detail = po_full_details.get("purchaseorder");
+		bill_map = Map();
+		bill_line_items = list();
+		new_custom_fields_list = list();
+		// Processing PO Items
+		tax_percentage = 0.0;
+		shipping_found = 0;
+		for each  po_line_item in po_full_detail.get("line_items")
+		{
+			bill_line_item = Map();
+			// usa. 1324986000026491986   Canada. 1324986000026509004
+			if(po_line_item.get("item_id") == "1324986000026491986" && shipping_cost.toDecimal() > 0.0)
+			{
+				shipping_found = 1;
+				bill_line_item.put("rate",shipping_cost);
+			}
+			else
+			{
+				bill_line_item.put("rate",po_line_item.get("rate"));
+			}
+			for each  line_custom_field in po_line_item.get("item_custom_fields")
+			{
+				if(line_custom_field.get("placeholder") == "cf_image_2" && excel_vendor_sku_price.get(line_custom_field.get("value_formatted")) != null)
+				{
+					info "Excel Price " + excel_vendor_sku_price.get(line_custom_field.get("value_formatted"));
+					bill_line_item.put("rate",excel_vendor_sku_price.get(line_custom_field.get("value_formatted")).toDecimal());
+					temp_custom_field_map = {"customfield_id":"1324986000048611282","index":12,"placeholder":"cf_pricing_updated","value":true};
+					new_custom_fields_list.add(temp_custom_field_map);
+				}
+			}
+			bill_line_item.put("item_id",po_line_item.get("item_id"));
+			bill_line_item.put("account_id",po_line_item.get("account_id"));
+			bill_line_item.put("quantity",po_line_item.get("quantity"));
+			bill_line_item.put("tax_id",po_line_item.get("tax_id"));
+			bill_line_item.put("item_order",po_line_item.get("item_order"));
+			bill_line_item.put("description",po_line_item.get("description"));
+			bill_line_item.put("name",po_line_item.get("name"));
+			bill_line_items.add(bill_line_item);
+		}
+		info shipping_cost;
+		if(shipping_cost.toDecimal() > 0.0 && shipping_found == 0)
+		{
+			bill_line_item = Map();
+			bill_line_item.put("item_id","1324986000026491986");
+			// usa.  1324986000026491974 canada 1324986000026491980   Account ID
+			// Now usa.  1324986000067828502 canada 1324986000067828582   Account ID
+			bill_line_item.put("account_id","1324986000067828502");
+			bill_line_item.put("rate",shipping_cost);
+			bill_line_item.put("quantity",1);
+			bill_line_items.add(bill_line_item);
+		}
+		// info tax_data;
+		custom_field_sales_tax_found = 0;
+		if(tax_data.toDecimal() > 0.0)
+		{
+			temp_custom_field_map = {"customfield_id":"1324986000040485278","index":4,"label":"Sales Tax","placeholder":"cf_sales_tax","value":tax_data.toDecimal()};
+			new_custom_fields_list.add(temp_custom_field_map);
+		}
+		if(new_custom_fields_list.size() > 0)
+		{
+			bill_map.put("custom_fields",new_custom_fields_list);
+		}
+		info bill_line_items;
+		bill_map.put("vendor_id",po_full_detail.get("vendor_id"));
+		bill_map.put("purchaseorder_ids",{po_full_detail.get("purchaseorder_id")});
+		bill_map.put("status","draft");
+		bill_map.put("current_sub_status","draft");
+		bill_map.put("bill_number",bill_no);
+		bill_map.put("date",invoice_date);
+		if(invoice_date != "")
+		{
+			bill_map.put("due_date",invoice_date.toDate().addDay(30).toString("yyyy-MM-dd"));
+		}
+		bill_map.put("payment_terms_label","Net 30");
+		bill_map.put("reference_number",po_no);
+		bill_map.put("currency_id",po_full_detail.get("currency_id"));
+		bill_map.put("line_items",bill_line_items);
+		info "Bill Map " + bill_map;
+		// Creating Bill using API
+		if(test_mode == false)
+		{
+			bill_params = {"JSONString":bill_map};
+			bill_resp = invokeurl
+			[
+				url :"https://books.zoho.com/api/v3/bills?organization_id=" + orgId
+				type :POST
+				parameters:bill_params
+				connection:"mailparserzoho"
+			];
+			info bill_resp;
+			if(bill_resp.get("code") == 0)
+			{
+				bill_id = bill_resp.get("bill").get("bill_id");
+				info bill_id;
+				file_resp = invokeurl
+				[
+					url :"https://books.zoho.com/api/v3/bills/" + bill_id + "/attachment?organization_id=" + orgId
+					type :POST
+					files:attach_file
+					connection:"mailparserzoho"
+				];
+				info file_resp;
+			}
+		}
+	}
+}
+return "";
+}

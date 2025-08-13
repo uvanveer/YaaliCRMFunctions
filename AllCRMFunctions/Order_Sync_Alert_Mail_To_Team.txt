@@ -1,0 +1,34 @@
+void automation.Order_Sync_Alert_Mail_To_Team(String saleOrderId,String orderStatus)
+{
+/* Created By Dev Ezhil on 11 August 2020 */
+// Trigger Email To Team
+emailSendUrl = "https://1.door-pay.com/api/Office360Mail/v2/sendreq";
+emailList = list();
+saleOrderUrl = "https://crm.zoho.com/crm/org663942562/tab/SalesOrders/" + saleOrderId;
+emailSubject = "CRM Saleorder Sync Notification";
+emailBody = "<div>Hi Team,<br><br>We have identified a sales order with the status : " + orderStatus + " was synced to CRM. We wont process Dropship orders for this sale order.<br><br>Order Link :&nbsp;" + saleOrderUrl + "<br><br>Thanks.</div>";
+emailList.add("vijay.vr@bizappln.com");
+emailList.add("balaji@bizappln.com");
+emailList.add("ganesh@bizappln.com");
+emailList.add("surya.k@bizappln.com");
+emailList.add("operations-notifications@bestaccessdoors.com");
+emailList.add("dev-notifications@bestaccessdoors.com");
+mailArrayDataObject = Map();
+mailArrayDataObject.put("to",emailList);
+mailArrayDataObject.put("subject",emailSubject);
+mailArrayDataObject.put("body",emailBody);
+mailArrayDataObject.put("Scope","ZohoCRM-rkCreateDropshiporder");
+// Header
+BADAuthorization = zoho.crm.getOrgVariable("OAuthHashCode");
+emailHeader = Map();
+emailHeader.put("content-type","application/json");
+emailHeader.put("BADAuthorization",BADAuthorization);
+response = invokeurl
+[
+	url :emailSendUrl
+	type :POST
+	parameters:mailArrayDataObject.toString()
+	headers:emailHeader
+];
+info response;
+}

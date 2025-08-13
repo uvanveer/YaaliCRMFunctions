@@ -1,0 +1,42 @@
+void automation.Delete_Books_PO(String PurchaseOrder_Id)
+{
+// header_data = Map();
+// header_data.put("Authorization","Zoho-authtoken 62821be1f52aaa5a1e3c658edba059cf");
+// OrganizationID = "666840843";
+// Get_Books_PO = zoho.books.getRecords("Purchaseorders",OrganizationID,"cf_crm_rec_id=" + PurchaseOrder_Id.toText());
+// if(Get_Books_PO.getJSON("purchaseorders").size() > 0)
+// {
+// 	Books_PO_Id = Get_Books_PO.getJSON("purchaseorders").getJSON("purchaseorder_id");
+// 	Delete_Books_PurchaseOrder = invokeurl
+// 	[
+// 		url :"https://books.zoho.com/api/v3/purchaseorders/" + Books_PO_Id + "?organization_id=666840843"
+// 		type :DELETE
+// 		headers:header_data.toString()
+// 	];
+// 	info Delete_Books_PurchaseOrder;
+// }
+currentDate = zoho.currenttime.toString("yyyy-mm-dd HH:mm:ss");
+purchaseOrderInfo = zoho.crm.getRecordById("Purchase_Orders",PurchaseOrder_Id);
+//Get OAuthHashCode Zoho Crm variable
+BADAuthorization = zoho.crm.getOrgVariable("OAuthHashCode");
+header_map = Map();
+header_map.put("Content-Type","application/json");
+header_map.put("BADAuthorization",BADAuthorization);
+bodyData = Map();
+bodyData.put("CRM_PURCHASE_ORDER_ID",purchaseOrderInfo.get("id"));
+bodyData.put("CRM_PURCHASE_ORDER_NO",purchaseOrderInfo.get("Dropship_Number"));
+bodyData.put("CRM_PURCHASE_ORDER_STATUS",purchaseOrderInfo.get("Status"));
+bodyData.put("DELETED_AT",currentDate);
+bodyData.put("CRM_SALES_ORDER_ID",purchaseOrderInfo.get("Sales_Order").get("id"));
+bodyData.put("CRM_SALES_ORDER_NO",purchaseOrderInfo.get("Sales_Order").get("name"));
+bodyData.put("CRM_STORE_ID",purchaseOrderInfo.get("Store").get("id"));
+bodyData.put("CRM_STORE_NAME",purchaseOrderInfo.get("Store").get("name"));
+sendReplyUrl = "https://1.door-pay.com/api/zohocrm/store/poinfo";
+response = invokeurl
+[
+	url :sendReplyUrl
+	type :POST
+	parameters:bodyData
+	headers:header_map
+];
+}

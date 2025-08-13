@@ -1,0 +1,16 @@
+map validation_rule.BillingEmailValidate(String crmAPIRequest)
+{
+entityMap = crmAPIRequest.toMap().get("record");
+email = entityMap.get("Shipping_Email");
+response = Map();
+if(email.contains("bestaccessdoors.com"))
+{
+	response.put('status','error');
+	response.put('message','You cannot create a record with an internal email');
+}
+else
+{
+	response.put('status','success');
+}
+return response;
+}

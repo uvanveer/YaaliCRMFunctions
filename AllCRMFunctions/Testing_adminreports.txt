@@ -1,0 +1,4 @@
+string standalone.Testing_adminreports()
+{
+return "";
+}

@@ -1,0 +1,52 @@
+void automation.Cancelled_Sales_Order_Email_Alert(String saleOrderId)
+{
+/* Created By Ezhil on 07 July 2020 */
+/* Send an email alert for the sales order was cancelled but respective PO was sent */
+purchaseOrderList = zoho.crm.getRelatedRecords("Dropship_Orders","Sales_Orders",saleOrderId);
+for each  purchaseOrderInfo in purchaseOrderList
+{
+	purchaseOrderId = purchaseOrderInfo.get("id");
+	poStatus = purchaseOrderInfo.get("Status");
+	if(poStatus.equals("Sent to Dropshippers"))
+	{
+		emailSendUrl = "https://1.door-pay.com/pq/m/sendMailNotification.php";
+		emailToken = "59AACEAFB2CE53271A6048D2D385D4C800587C0D047F8B07958934F710AE5D7891FB4EC28BB2FA684F638630E9EF76F7D19D22EE9A20EE892625DC2FCEDCD976";
+		emailListData = list();
+		emailList = list();
+		saleOrderUrl = "https://crm.zoho.com/crm/org663942562/tab/SalesOrders/" + saleOrderId;
+		purchaseOrderUrl = "https://crm.zoho.com/crm/org663942562/tab/PurchaseOrders/" + purchaseOrderId;
+		emailSubject = "CRM Saleorder Cancelled Notification";
+		emailBody = "<div>Hi,<br></div><div><br></div><div>We have identified a purchase order which has been sent to vendors. But respective sales order was cancelled now.<br><br>Sales Order URL :&nbsp;" + saleOrderUrl + "</div><div><br></div><div>Purchase Order URL :&nbsp;" + purchaseOrderUrl + "<br></div><div><br></div><div>Thanks.</div>";
+		// 		emailList.add("ezhil@bizappln.com");
+		emailList.add("dinesh@bizappln.com");
+		emailList.add("tharmendheran@bizappln.com");
+		emailList.add("balaji@bizappln.com");
+		emailList.add("operations-notifications@bestaccessdoors.com");
+		emailList.add("dev-notifications@bestaccessdoors.com");
+		// 		emailList.add("anthony@bestaccessdoors.com");
+		// 		emailList.add("citrigno@bestaccessdoors.com");
+		mailArrayDataObject = Map();
+		mailArrayDataObject.put("MailTo",emailList);
+		mailArrayDataObject.put("Subject",emailSubject);
+		mailArrayDataObject.put("Message",emailBody);
+		emailListData.add(mailArrayDataObject);
+		mailMap = Map();
+		mailMap.put("MailArray",emailListData);
+		mailMap.put("Authtoken",emailToken);
+		// Header
+		//BADAuthorization = zoho.crm.getOrgVariable("OAuthHashCode");
+		emailHeader = Map();
+		emailHeader.put("content-type","application/json");
+		//emailHeader.put("BADAuthorization",BADAuthorization);
+		response = invokeurl
+		[
+			url :emailSendUrl
+			type :POST
+			parameters:mailMap.toString()
+			headers:emailHeader
+			detailed:false
+		];
+		info response;
+	}
+}
+}
